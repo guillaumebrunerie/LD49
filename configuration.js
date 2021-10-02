@@ -11,8 +11,8 @@ conf.tileSize = 24;
 conf.tileScaleFactor = 4;
 
 // Total size (in tiles) of the world
-conf.worldWidth = 26;
-conf.worldHeight = 22;
+conf.worldWidth = 27;
+conf.worldHeight = 23;
 
 // Size (in tiles) of the viewport
 conf.viewportWidth = 13;

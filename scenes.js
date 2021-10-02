@@ -20,6 +20,9 @@ class StartScene extends Phaser.Scene {
 
 		this.load.spritesheet("Tiles", "Tiles.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
 		this.load.spritesheet("CracksTiles", "CracksTiles.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
+
+		this.load.image("Tree_Dead_01");
+		this.load.image("Tree_Dead_02");
 	}
 
 	create() {
@@ -66,6 +69,9 @@ class MainScene extends Phaser.Scene {
 		this.cameras.main.startFollow(this.player.sprite);
 
 		this.cracks = [new Crack(this)];
+
+		this.add.sprite(conf.tileSize * 3, 0, "Tree_Dead_01");
+		this.add.sprite(conf.tileSize * 5, conf.tileSize * 2, "Tree_Dead_02");
 	}
 
 	update(time, delta) {
@@ -144,7 +150,10 @@ const initialCrackTilesData = [
 	{tile: 0, dx: 0, dy: 0, from: "", to: "Right", pivotX: -1, pivotY: 0.5},
 	{tile: 1, dx: 2, dy: 1, from: "Right", to: "Right", pivotX: 1, pivotY: 0.5},
 	{tile: 2, dx: 0.5, dy: -1.5, from: "Right", to: "Down", pivotX: 1, pivotY: -0.5},
+
 	{tile: 0, dx: 0, dy: 0, from: "Left", to: "", pivotX: -1, pivotY: 0.5},
+	{tile: 1, dx: -2, dy: -1, from: "Left", to: "Left", pivotX: -1, pivotY: -0.5},
+	{tile: 2, dx: -0.5, dy: 1.5, from: "Up", to: "Left", pivotX: 0.5, pivotY: 1},
 ];
 
 const intermediateCrackTilesData = [];
@@ -196,6 +205,7 @@ class Crack {
 		// debugger;
 		const crackPoints = this.generateRandomCrack(10, {x: 0, y: 0});
 		const crackSegmentData = this.generateCrackSegmentData(crackPoints);
+
 		this.crackSegments = this.generateCrackSegments(crackSegmentData);
 	}
 
@@ -219,7 +229,7 @@ class Crack {
 	generateCrackSegmentData(crackPoints) {
 		const result = [];
 
-		const firstTile = finalCrackTilesData.find(data => data.from == "" && data.to == crackPoints[0].direction);
+		const firstTile = pick(finalCrackTilesData.filter(data => data.from == "" && data.to == crackPoints[0].direction));
 		result.push({
 			x: crackPoints[0].x + firstTile.pivotX,
 			y: crackPoints[0].y + firstTile.pivotY,
@@ -236,7 +246,7 @@ class Crack {
 			const dy = crackPoint.y - previousCrackPoint.y;
 			const from = previousCrackPoint.direction;
 			const to = crackPoint.direction;
-			const tileData = finalCrackTilesData.find(data => data.dx == dx && data.dy == dy && data.from == from && data.to == to);
+			const tileData = pick(finalCrackTilesData.filter(data => data.dx == dx && data.dy == dy && data.from == from && data.to == to));
 			result.push({
 				x: previousCrackPoint.x + tileData.pivotX,
 				y: previousCrackPoint.y + tileData.pivotY,
@@ -247,7 +257,7 @@ class Crack {
 		});
 
 		const lastPoint = crackPoints[crackPoints.length - 1];
-		const lastTile = finalCrackTilesData.find(data => data.from == lastPoint.direction && data.to == "");
+		const lastTile = pick(finalCrackTilesData.filter(data => data.from == lastPoint.direction && data.to == ""));
 		result.push({
 			x: lastPoint.x + lastTile.pivotX,
 			y: lastPoint.y + lastTile.pivotY,
