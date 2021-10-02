@@ -25,4 +25,4 @@ conf.crackTileSize = 48;
 conf.speed = 4;
 
 // Time between two earthquakes, in seconds
-conf.crackDelay = 2;
+conf.crackDelay = 1;
