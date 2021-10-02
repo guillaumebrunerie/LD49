@@ -19,7 +19,7 @@ class StartScene extends Phaser.Scene {
 
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
 
-		this.load.spritesheet("CracksTiles", "CracksTiles2.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
+		this.load.spritesheet("CracksTiles", "CracksTiles.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
 		this.load.image("CrackPoint");
 		this.load.image("CrackPointActive");
 
