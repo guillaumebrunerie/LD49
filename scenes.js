@@ -17,13 +17,7 @@ class StartScene extends Phaser.Scene {
 		this.load.image("StartButton", "StartButton.jpg");
 
 
-		this.load.spritesheet("Tiles", "Tiles.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
-		this.load.image("Tree_Dead_01");
-		this.load.image("Tree_Dead_02");
-		this.load.image("Tree_Green_01");
-		this.load.image("Tree_Green_02");
-		this.load.image("Trees_Dead_01");
-		this.load.image("Trees_Green_01");
+		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
 
 		this.load.spritesheet("CracksTiles", "CracksTiles.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
 		this.load.image("CrackPoint");
@@ -51,30 +45,49 @@ class MainScene extends Phaser.Scene {
 	}
 
 	create() {
-		const tilemapData = [];
+		const groundLayerData = [];
 		for (let y = 0; y < conf.worldHeight; y++) {
-			tilemapData[y] = [];
+			groundLayerData[y] = [];
 			for (let x = 0; x < conf.worldWidth; x++) {
-				tilemapData[y][x] = Math.floor(Math.random() * 2);
+				groundLayerData[y][x] = pick([0, 1, 13, 14]);
 			}
 		}
-		const tilemap = this.make.tilemap({
-			data: tilemapData,
+		const groundTilemap = this.make.tilemap({
+			data: groundLayerData,
 			tileWidth: conf.tileSize,
 			tileHeight: conf.tileSize,
 			width: conf.worldWidth,
 			height: conf.worldHeight,
 		});
-		const tileset = tilemap.addTilesetImage("tileset", "Tiles");
-		const layer = tilemap.createLayer(0, tileset);
+		const groundTileset = groundTilemap.addTilesetImage("tileset", "Tiles");
+		const groundLayer = groundTilemap.createLayer(0, groundTileset);
 
-		layer.x = -layer.width / 2;
-		layer.y = -layer.height / 2;
+		groundLayer.x = -groundLayer.width / 2;
+		groundLayer.y = -groundLayer.height / 2;
+
+		const stuffLayerData = [];
+		for (let y = 0; y < conf.worldHeight; y++) {
+			stuffLayerData[y] = [];
+			for (let x = 0; x < conf.worldWidth; x++) {
+				const liveTrees = [2, 3, 4];
+				const deadStuff = [5, 6, 7, 15, 16, 17, 18, 19, 20];
+				stuffLayerData[y][x] = pick([...liveTrees, ...deadStuff, ...new Array(30).fill(21)]);
+			}
+		}
+		const stuffTilemap = this.make.tilemap({
+			data: stuffLayerData,
+			tileWidth: conf.tileSize,
+			tileHeight: conf.tileSize,
+			width: conf.worldWidth,
+			height: conf.worldHeight,
+		});
+		const stuffTileset = stuffTilemap.addTilesetImage("tileset", "Tiles");
+		const stuffLayer = stuffTilemap.createLayer(0, stuffTileset);
+
+		stuffLayer.x = -stuffLayer.width / 2;
+		stuffLayer.y = -stuffLayer.height / 2;
 
 		this.cracks = [new Crack(this)];
-
-		this.add.sprite(conf.tileSize * 3, 0, "Tree_Dead_01");
-		this.add.sprite(conf.tileSize * 5, conf.tileSize * 2, "Tree_Dead_02");
 
 		this.player = new Player(this);
 		this.cameras.main.centerOn(0, 0);
