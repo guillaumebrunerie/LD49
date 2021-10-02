@@ -3,11 +3,12 @@ new Phaser.Game({
 	url: "",
 	type: Phaser.AUTO,
 	transparent: true,
+	pixelArt: true,
+	zoom: conf.tileScaleFactor,
 	scale: {
 		autoCenter: Phaser.Scale.CENTER_BOTH,
-		mode: Phaser.Scale.FIT,
-		width: 1920,
-		height: 1080,
+		width: conf.viewportWidth * conf.tileSize,
+		height: conf.viewportHeight * conf.tileSize,
 	},
 	scene: [StartScene, MainScene],
 });
