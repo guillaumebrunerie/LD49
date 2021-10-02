@@ -19,7 +19,7 @@ class StartScene extends Phaser.Scene {
 
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
 
-		this.load.spritesheet("CracksTiles", "CracksTiles.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
+		this.load.spritesheet("CracksTiles", "CracksTiles2.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
 		this.load.image("CrackPoint");
 		this.load.image("CrackPointActive");
 
@@ -248,24 +248,33 @@ const reverseDirection = (direction) => {
 const initialCrackTilesData = [
 	{tile: 0, dx: 0, dy: 0, from: "", to: "Right", toSize: 1, pivotX: -1, pivotY: 0.5},
 	{tile: 1, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: 0.5},
-	// {tile: 2, dx: 0.5, dy: -1.5, from: "Right", fromSize: 1, to: "Down", toSize: 1, pivotX: 1, pivotY: -0.5},
-
-	// 3
-	{tile: 4, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
-	// {tile: 5, dx: 0.5, dy: -1.5, from: "Right", fromSize: 2, to: "Down", toSize: 1, pivotX: 1, pivotY: -0.5},
-
-	// {tile: 6, dx: 1.5, dy: 0.5, from: "Up", fromSize: 1, to: "Right", toSize: 2, pivotX: 0.5, pivotY: 1},
-	{tile: 7, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
-	// {tile: 8, dx: 0.5, dy: -1.5, from: "Right", fromSize: 2, to: "Down", toSize: 2, pivotX: 1, pivotY: -0.5},
-
-	{tile: 9, dx: 2, dy: -1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
-	{tile: 10, dx: 2, dy: 1, from: "Right", fromSize: 3, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
-	// {tile: 11, dx: 0.5, dy: -1.5, from: "Right", fromSize: 2, to: "Down", toSize: 3, pivotX: 1, pivotY: -0.5},
-
-	// // 12
-	// {tile: 13, dx: 0.5, dy: -1.5, from: "Down", fromSize: 2, to: "Right", toSize: 3, pivotX: -0.5, pivotY: -1},
-	// {tile: 14, dx: 0.5, dy: 1.5, from: "Right", fromSize: 3, to: "Up", toSize: 3, pivotX: 1, pivotY: 0.5},
+	{tile: 2, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: -0.5},
+	{tile: 3, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
+	{tile: 4, dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
+	{tile: 5, dx: 2, dy: 1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
 ];
+
+// const initialCrackTilesData = [
+// 	{tile: 0, dx: 0, dy: 0, from: "", to: "Right", toSize: 1, pivotX: -1, pivotY: 0.5},
+// 	{tile: 1, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: 0.5},
+// 	// {tile: 2, dx: 0.5, dy: -1.5, from: "Right", fromSize: 1, to: "Down", toSize: 1, pivotX: 1, pivotY: -0.5},
+
+// 	// 3
+// 	{tile: 4, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
+// 	// {tile: 5, dx: 0.5, dy: -1.5, from: "Right", fromSize: 2, to: "Down", toSize: 1, pivotX: 1, pivotY: -0.5},
+
+// 	// {tile: 6, dx: 1.5, dy: 0.5, from: "Up", fromSize: 1, to: "Right", toSize: 2, pivotX: 0.5, pivotY: 1},
+// 	{tile: 7, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
+// 	// {tile: 8, dx: 0.5, dy: -1.5, from: "Right", fromSize: 2, to: "Down", toSize: 2, pivotX: 1, pivotY: -0.5},
+
+// 	{tile: 9, dx: 2, dy: -1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
+// 	{tile: 10, dx: 2, dy: 1, from: "Right", fromSize: 3, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
+// 	// {tile: 11, dx: 0.5, dy: -1.5, from: "Right", fromSize: 2, to: "Down", toSize: 3, pivotX: 1, pivotY: -0.5},
+
+// 	// // 12
+// 	// {tile: 13, dx: 0.5, dy: -1.5, from: "Down", fromSize: 2, to: "Right", toSize: 3, pivotX: -0.5, pivotY: -1},
+// 	// {tile: 14, dx: 0.5, dy: 1.5, from: "Right", fromSize: 3, to: "Up", toSize: 3, pivotX: 1, pivotY: 0.5},
+// ];
 
 // Reverse the direction
 const firstIntermediateCrackTilesData = [];
