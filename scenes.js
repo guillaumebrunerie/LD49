@@ -16,6 +16,7 @@ class StartScene extends Phaser.Scene {
 		this.load.image("StartScreen", "StartScreen.jpg");
 		this.load.image("StartButton", "StartButton.jpg");
 
+		this.load.image("DialogBackground");
 
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
 
@@ -24,6 +25,10 @@ class StartScene extends Phaser.Scene {
 		this.load.image("CrackPointActive");
 
 		this.load.image("Player");
+		this.load.image("IntroGuide");
+		this.load.image("Bubble");
+
+		this.load.spritesheet("Font", "Font.png", {frameWidth: 8, frameHeight: 8});
 	}
 
 	create() {
@@ -89,17 +94,23 @@ class MainScene extends Phaser.Scene {
 
 		this.cracks = [new Crack(this)];
 
+		this.lastEarthquake = 0;
+
+		this.introGuide = this.add.sprite(0, -4 * conf.tileSize, "IntroGuide");
+		this.introGuideBubble = this.add.sprite(1 * conf.tileSize, -5 * conf.tileSize, "Bubble").setVisible(false);
+
+		this.input.keyboard.on('keydown-SPACE', (event) => this.interaction(event));
+
 		this.player = new Player(this);
 		this.cameras.main.centerOn(0, 0);
 		this.cameras.main.startFollow(this.player.sprite);
-
-		this.lastEarthquake = 0;
-
-		this.input.keyboard.on('keydown-SPACE', (event) => this.fireStart(event));
-		this.input.keyboard.on('keyup-SPACE', (event) => this.fireEnd(event));
 	}
 
-	fireStart() {
+	interaction() {
+		if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize) {
+			this.startIntroDialog();
+		}
+
 		const healPoints = [];
 		this.cracks.forEach(crack => {
 			crack.crackPoints.forEach(crackPoint => {
@@ -119,7 +130,14 @@ class MainScene extends Phaser.Scene {
 	fireEnd() {
 	}
 
+	startIntroDialog() {
+		this.scene.pause();
+		this.scene.run("DialogScene", dialogs.intro);
+	}
+
 	update(time, delta) {
+		this.introGuideBubble.setVisible(Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize);
+
 		this.lastEarthquake += delta;
 
 		if (this.lastEarthquake > conf.crackDelay * 1000) {
@@ -133,6 +151,43 @@ class MainScene extends Phaser.Scene {
 
 		this.player.update(time, delta);
 		this.cracks.forEach(c => c.update(time, delta));
+	}
+}
+
+class DialogScene extends Phaser.Scene {
+	constructor() {
+		super("DialogScene");
+		this.lines = [];
+	}
+
+	init(dialog) {
+		this.dialog = dialog;
+		this.currentIndex = 0;
+	}
+
+	create() {
+		this.add.image(0, 0, "DialogBackground").setOrigin(0, 0);
+
+		this.refresh();
+
+		this.input.keyboard.on('keydown-SPACE', () => this.nextDialog());
+	}
+
+	nextDialog() {
+		this.currentIndex++;
+		if (this.currentIndex == this.dialog.length) {
+			this.scene.stop();
+			this.scene.resume("MainScene");
+		} else {
+			this.refresh();
+		}
+	}
+
+	refresh() {
+		this.lines.forEach(line => line.destroy());
+		this.lines = this.dialog[this.currentIndex].text.map((text, i) => (
+			new TextLine(this, 50, 50 + 10 * i, text)
+		));
 	}
 }
 
@@ -165,6 +220,29 @@ const healAt = (scene, crack, crackPoint) => {
 		];
 	}
 };
+
+const charsInFont = "ABCDEFGHIJKLMNOPQRSTUVWXYZ.:,;°×!?' ";
+class TextLine {
+	constructor(scene, x, y, text) {
+		this.scene = scene;
+		this.letters = [];
+		let currentX = x;
+		[...text].forEach(letter => {
+			const frame = charsInFont.indexOf(letter.toUpperCase());
+			if (frame < 0) {
+				// Unknown character
+				currentX += 6;
+			} else {
+				this.letters.push(scene.add.image(currentX, y, "Font", frame));
+				currentX += 8;
+			}
+		});
+	}
+
+	destroy() {
+		this.letters.forEach(letter => letter.destroy());
+	}
+}
 
 class Player {
 	constructor(scene) {
