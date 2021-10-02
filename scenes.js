@@ -16,13 +16,16 @@ class StartScene extends Phaser.Scene {
 		this.load.image("StartScreen", "StartScreen.jpg");
 		this.load.image("StartButton", "StartButton.jpg");
 
-		this.load.image("Player");
 
 		this.load.spritesheet("Tiles", "Tiles.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
-		this.load.spritesheet("CracksTiles", "CracksTiles.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
-
 		this.load.image("Tree_Dead_01");
 		this.load.image("Tree_Dead_02");
+
+		this.load.spritesheet("CracksTiles", "CracksTiles.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
+		this.load.image("CrackPoint");
+		this.load.image("CrackPointActive");
+
+		this.load.image("Player");
 	}
 
 	create() {
@@ -64,21 +67,75 @@ class MainScene extends Phaser.Scene {
 		layer.x = -layer.width / 2;
 		layer.y = -layer.height / 2;
 
-		this.player = new Player(this);
-		this.cameras.main.centerOn(0, 0);
-		this.cameras.main.startFollow(this.player.sprite);
-
 		this.cracks = [new Crack(this)];
 
 		this.add.sprite(conf.tileSize * 3, 0, "Tree_Dead_01");
 		this.add.sprite(conf.tileSize * 5, conf.tileSize * 2, "Tree_Dead_02");
+
+		this.player = new Player(this);
+		this.cameras.main.centerOn(0, 0);
+		this.cameras.main.startFollow(this.player.sprite);
+
+		this.lastEarthquake = 0;
+
+		this.input.keyboard.on('keydown-SPACE', (event) => this.fireStart(event));
+		this.input.keyboard.on('keyup-SPACE', (event) => this.fireEnd(event));
+	}
+
+	fireStart() {
+		const healPoints = [];
+		this.cracks.forEach(crack => {
+			crack.crackPoints.forEach(crackPoint => {
+				if (crack.isCloseToPlayer({x: crackPoint.x * conf.tileSize, y: -crackPoint.y * conf.tileSize}))
+					healPoints.push({crack, crackPoint});
+			});
+		});
+		if (healPoints.length !== 0) {
+			const {crack, crackPoint} = pick(healPoints);
+			const newCracks = healAt(this, crack, crackPoint);
+			crack.destroy();
+			this.cracks = this.cracks.filter(c => c !== crack);
+			this.cracks.push(...newCracks);
+		}
+	}
+
+	fireEnd() {
+		console.log("fireend");
 	}
 
 	update(time, delta) {
+		this.lastEarthquake += delta;
+
+		if (this.lastEarthquake > conf.crackDelay * 1000) {
+			this.lastEarthquake -= conf.crackDelay * 1000;
+			const crack = pick([null, ...this.cracks]);
+			if (crack)
+				crack.extend();
+			else
+				this.cracks.push(new Crack(this));
+		}
+
 		this.player.update(time, delta);
 		this.cracks.forEach(c => c.update(time, delta));
 	}
 }
+
+const healAt = (scene, crack, crackPoint) => {
+	const crackPoints = [...crack.crackPoints];
+	const index = crackPoints.indexOf(crackPoint);
+	if (crackPoints.length == 1) {
+		return [];
+	} else if (index == 0) {
+		return [new Crack(scene, crackPoints.slice(1))];
+	} else if (index == crackPoints.length - 1) {
+		return [new Crack(scene, crackPoints.slice(0, index))];
+	} else {
+		return [
+			new Crack(scene, crackPoints.slice(0, index)),
+			new Crack(scene, crackPoints.slice(index + 1)),
+		];
+	}
+};
 
 class Player {
 	constructor(scene) {
@@ -87,6 +144,9 @@ class Player {
 
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
 	}
+
+	get x() {return this.sprite.x;}
+	get y() {return this.sprite.y;}
 
 	update(time, delta) {
 		const up    = this.cursorKeys.up.isDown;
@@ -190,23 +250,55 @@ intermediateCrackTilesData.forEach(({tile, dx, dy, from, to, pivotX, pivotY, fli
 
 const pick = (array) => {
 	return array[Math.floor(Math.random() * array.length)];
-}
+};
 
 class Crack {
-	constructor(scene) {
+	constructor(scene, crackPoints) {
 		this.scene = scene;
-		// const crackPoints = [
-		// 	{x: -1, y: -0.5, direction: "Right"},
-		// 	{x: 1, y: 0.5, direction: "Right"},
-		// 	{x: 1.5, y: -1, direction: "Down"},
-		// 	{x: 3, y: -1.5, direction: "Right"},
-		// 	{x: 3.5, y: 0, direction: "Up"},
-		// ];
-		// debugger;
-		const crackPoints = this.generateRandomCrack(10, {x: 0, y: 0});
-		const crackSegmentData = this.generateCrackSegmentData(crackPoints);
+		const x = (Math.random() - 0.5) * conf.viewportWidth;
+		const y = (Math.random() - 0.5) * conf.viewportHeight;
+		this.crackPoints = crackPoints || this.generateRandomCrack(1, {x, y});
+		this.crackSegments = [];
+		this.crackPointsSprites = [];
+		this.regenerateAll();
+	}
 
-		this.crackSegments = this.generateCrackSegments(crackSegmentData);
+	destroy() {
+		this.crackSegments.forEach(s => s.destroy());
+		this.crackPointsSprites.forEach(s => s.destroy());
+	}
+
+	regenerateAll() {
+		this.crackSegmentData = this.generateCrackSegmentData(this.crackPoints);
+
+		this.crackSegments.forEach(s => s.destroy());
+		this.crackSegments = this.generateCrackSegments(this.crackSegmentData);
+
+		this.crackPointsSprites.forEach(s => s.destroy());
+		this.crackPointsSprites = this.crackPoints.map(({x, y}) => (
+			this.scene.add.sprite(x * conf.tileSize, -y * conf.tileSize, "CrackPoint")
+		));
+	}
+
+	extend() {
+		if (Math.random() < 0.5) {
+			const lastPoint = this.crackPoints[this.crackPoints.length - 1];
+			const tile = pick(finalCrackTilesData.filter(data => data.from == lastPoint.direction && data.to !== ""));
+			this.crackPoints.push({
+				x: lastPoint.x + tile.dx,
+				y: lastPoint.y + tile.dy,
+				direction: tile.to,
+			});
+		} else {
+			const firstPoint = this.crackPoints[0];
+			const tile = pick(finalCrackTilesData.filter(data => data.from !== "" && data.to == firstPoint.direction));
+			this.crackPoints.unshift({
+				x: firstPoint.x - tile.dx,
+				y: firstPoint.y - tile.dy,
+				direction: tile.from,
+			});
+		}
+		this.regenerateAll();
 	}
 
 	generateRandomCrack(length, {x: initialX, y: initialY}) {
@@ -229,6 +321,8 @@ class Crack {
 	generateCrackSegmentData(crackPoints) {
 		const result = [];
 
+		const pick = array => array[0];
+
 		const firstTile = pick(finalCrackTilesData.filter(data => data.from == "" && data.to == crackPoints[0].direction));
 		result.push({
 			x: crackPoints[0].x + firstTile.pivotX,
@@ -246,7 +340,7 @@ class Crack {
 			const dy = crackPoint.y - previousCrackPoint.y;
 			const from = previousCrackPoint.direction;
 			const to = crackPoint.direction;
-			const tileData = pick(finalCrackTilesData.filter(data => data.dx == dx && data.dy == dy && data.from == from && data.to == to));
+			const tileData = pick(finalCrackTilesData.filter(data => Math.abs(data.dx - dx) < 0.1 && Math.abs(data.dy - dy) < 0.1 && data.from == from && data.to == to));
 			result.push({
 				x: previousCrackPoint.x + tileData.pivotX,
 				y: previousCrackPoint.y + tileData.pivotY,
@@ -283,7 +377,20 @@ class Crack {
 		return result;
 	}
 
+	isCloseToPlayer({x, y}) {
+		const dx = Math.abs(x - this.scene.player.x);
+		const dy = Math.abs(y - this.scene.player.y);
+		return (dx + dy < 2 * conf.tileSize);
+	}
+
 	update(time, delta) {
 		this.crackSegments.forEach(cs => cs.update(time, delta));
+		this.crackPointsSprites.forEach(cs => {
+			if (this.isCloseToPlayer(cs))
+				cs.setTexture("CrackPointActive");
+			else
+				cs.setTexture("CrackPoint");
+			cs.update(time, delta);
+		});
 	}
 }
