@@ -18,5 +18,8 @@ conf.worldHeight = 22;
 conf.viewportWidth = 13;
 conf.viewportHeight = 11;
 
+// Size (in pixels) of one tile for cracks
+conf.crackTileSize = 48;
+
 // Speed of the robot, in tiles/second
 conf.speed = 4;
