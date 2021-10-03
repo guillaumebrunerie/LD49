@@ -358,7 +358,7 @@ class MainScene extends Phaser.Scene {
 	}
 
 	isValidPosition(x, y) {
-		if (this.worldMask[Math.round(y + (conf.worldSize - 1) / 2)][Math.round(x + (conf.worldSize - 1) / 2)] == 0)
+		if (!this.worldMask[Math.round(y + (conf.worldSize - 1) / 2)]?.[Math.round(x + (conf.worldSize - 1) / 2)])
 			return false;
 
 		for (let i = 0; i < this.cracks.length; i++) {
@@ -384,11 +384,14 @@ class MainScene extends Phaser.Scene {
 		return true;
 	}
 
-	fixPlayerPosition() {
+	fixPlayerPosition(iterations = 0) {
+		if (iterations === 100)
+			this.player.sprite.x = this.player.sprite.y = 0;
+
 		if (!this.isValidPosition(this.player.x / conf.tileSize, this.player.y / conf.tileSize)) {
-			this.player.x += Math.random() * conf.tileSize;
-			this.player.y += Math.random() * conf.tileSize;
-			this.fixPlayerPosition();
+			this.player.sprite.x += Math.random() * conf.tileSize;
+			this.player.sprite.y += Math.random() * conf.tileSize;
+			this.fixPlayerPosition(iterations + 1);
 		}
 	}
 
