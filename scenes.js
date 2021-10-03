@@ -29,6 +29,7 @@ class StartScene extends Phaser.Scene {
 		this.load.spritesheet("Player", "SpriteSheets/Hero.png", tileConf);
 		this.load.image("IntroGuide");
 		this.load.spritesheet("Bubble", "SpriteSheets/SpeechBubble.png", tileConf);
+		this.load.spritesheet("Laser", "SpriteSheets/Laser.png", tileConf);
 
 		this.load.spritesheet("Font", "Font.png", {frameWidth: 8, frameHeight: 8});
 	}
@@ -39,33 +40,41 @@ class StartScene extends Phaser.Scene {
 		this.anims.create({
 			key: "BubbleStart",
 			frameRate: 15,
-			frames: [
-				{key: "Bubble", frame: 0},
-				{key: "Bubble", frame: 1},
-				{key: "Bubble", frame: 2},
-			]
+			frames: this.anims.generateFrameNames("Bubble", {frames: [0, 1, 2]}),
 		});
 
 		this.anims.create({
 			key: "BubbleLoop",
 			frameRate: 3,
-			frames: [
-				{key: "Bubble", frame: 3},
-				{key: "Bubble", frame: 4},
-				{key: "Bubble", frame: 5},
-			],
+			frames: this.anims.generateFrameNames("Bubble", {frames: [3, 4, 5]}),
 			repeat: -1,
 		});
 
 		this.anims.create({
 			key: "BubbleEnd",
 			frameRate: 15,
-			frames: [
-				{key: "Bubble", frame: 2},
-				{key: "Bubble", frame: 1},
-				{key: "Bubble", frame: 0},
-				{key: "Bubble", frame: 6},
-			]
+			frames: this.anims.generateFrameNames("Bubble", {frames: [2, 1, 0, 6]}),
+		});
+
+		const laserAnimations = [
+			["W", 0],
+			["E", 3],
+			["N", 6],
+			["S", 9],
+			["NW", 13],
+			["NE", 16],
+			["SW", 19],
+			["SE", 22],
+			["Particles", 26],
+		];
+
+		laserAnimations.forEach(([suffix, frame]) => {
+			this.anims.create({
+				key: "Laser" + suffix,
+				frameRate: 5,
+				frames: this.anims.generateFrameNames("Laser", {start: frame, end: frame + 2}),
+				repeat: -1
+			});
 		});
 
 		// const startButton = this.add.image(0, 0, "StartButton");
@@ -139,6 +148,7 @@ class MainScene extends Phaser.Scene {
 		this.introGuideBubble.isBubbling = false;
 
 		this.input.keyboard.on('keydown-SPACE', (event) => this.interaction(event));
+		this.input.keyboard.on('keyup-SPACE', (event) => this.fireEnd(event));
 
 		this.player = new Player(this);
 		this.cameras.main.centerOn(0, 0);
@@ -156,6 +166,8 @@ class MainScene extends Phaser.Scene {
 		if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize) {
 			this.talkToIntroGuide();
 		}
+
+		this.player.fireStart();
 
 		const healPoints = [];
 		this.cracks.forEach(crack => {
@@ -179,6 +191,7 @@ class MainScene extends Phaser.Scene {
 	}
 
 	fireEnd() {
+		this.player.fireEnd();
 	}
 
 	createCracks(amount) {
@@ -338,32 +351,76 @@ class TextLine {
 	}
 }
 
+const idleFrame = {
+	"N": 65,
+	"NE": 54,
+	"E": 26,
+	"SE": 41,
+	"S": 0,
+	"SW": 39,
+	"W": 13,
+	"NW": 52,
+};
+
+const firingFrame = {
+	"N": 66,
+	"NE": 55,
+	"E": 30,
+	"SE": 42,
+	"S": 3,
+	"SW": 40,
+	"W": 17,
+	"NW": 53,
+};
+
+const laserOffset = {
+	"N": {dx: 2, dy: -17},
+	"NE": {dx: 12, dy: -14},
+	"E": {dx: 24, dy: 1},
+	"SE": {dx: 22, dy: 16},
+	"S": {dx: -6, dy: 21},
+	"SW": {dx: -22, dy: 16},
+	"W": {dx: -23, dy: 1},
+	"NW": {dx: -16, dy: -18},
+};
+
 class Player {
 	constructor(scene) {
 		this.scene = scene;
+		this.laser = scene.add.sprite(0, 0);
 		this.sprite = scene.add.sprite(0, 0, "Player", 0);
 
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
+		this.setDirection("N");
 	}
 
 	get x() {return this.sprite.x;}
 	get y() {return this.sprite.y;}
 
 	setDirection(direction) {
-		let frame = {
-			"N": 65,
-			"NE": 54,
-			"E": 26,
-			"SE": 41,
-			"S": 0,
-			"SW": 39,
-			"W": 13,
-			"NW": 52,
-		}[direction];
-		this.sprite.setFrame(frame);
+		this.direction = direction;
+		this.sprite.setFrame(idleFrame[direction]);
+	}
+
+	fireStart() {
+		this.sprite.setFrame(firingFrame[this.direction]);
+		this.laser.play("Laser" + this.direction);
+		this.laser.x = this.sprite.x + laserOffset[this.direction].dx;
+		this.laser.y = this.sprite.y + laserOffset[this.direction].dy;
+		this.isFiring = true;
+	}
+
+	fireEnd() {
+		this.laser.stop();
+		this.laser.setFrame(12);
+		this.isFiring = false;
+		this.sprite.setFrame(idleFrame[this.direction]);
 	}
 
 	update(time, delta) {
+		if (this.isFiring)
+			return;
+
 		const up    = this.cursorKeys.up.isDown;
 		const down  = this.cursorKeys.down.isDown;
 		const left  = this.cursorKeys.left.isDown;
