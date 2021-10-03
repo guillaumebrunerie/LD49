@@ -391,6 +391,7 @@ class MainScene extends Phaser.Scene {
 		if (!this.isValidPosition(this.player.x / conf.tileSize, this.player.y / conf.tileSize)) {
 			this.player.sprite.x += Math.random() * conf.tileSize;
 			this.player.sprite.y += Math.random() * conf.tileSize;
+			this.fireEnd();
 			this.fixPlayerPosition(iterations + 1);
 		}
 	}
