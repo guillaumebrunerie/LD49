@@ -24,7 +24,7 @@ class StartScene extends Phaser.Scene {
 		this.load.image("CrackPoint");
 		this.load.image("CrackPointActive");
 
-		this.load.image("Player");
+		this.load.spritesheet("Player", "SpriteSheets/Hero.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
 		this.load.image("IntroGuide");
 		this.load.image("Bubble");
 
@@ -75,8 +75,11 @@ class MainScene extends Phaser.Scene {
 			stuffLayerData[y] = [];
 			for (let x = 0; x < conf.worldWidth; x++) {
 				const liveTrees = [2, 3, 4];
-				const deadStuff = [5, 6, 7, 15, 16, 17, 18, 19, 20];
-				stuffLayerData[y][x] = pick([...liveTrees, ...deadStuff, ...new Array(30).fill(21)]);
+				const deadTrees = [15, 16, 17];
+				const otherStuff = [5, 6, 7, 18, 19, 20];
+				const nothing = new Array(30).fill(21);
+				const stuff = pick([...deadTrees, ...otherStuff, ...nothing]);
+				stuffLayerData[y][x] = stuff;
 			}
 		}
 		const stuffTilemap = this.make.tilemap({
@@ -92,7 +95,7 @@ class MainScene extends Phaser.Scene {
 		stuffLayer.x = -stuffLayer.width / 2;
 		stuffLayer.y = -stuffLayer.height / 2;
 
-		this.cracks = [new Crack(this)];
+		this.cracks = [];
 
 		this.lastEarthquake = 0;
 
@@ -104,11 +107,18 @@ class MainScene extends Phaser.Scene {
 		this.player = new Player(this);
 		this.cameras.main.centerOn(0, 0);
 		this.cameras.main.startFollow(this.player.sprite);
+
+		this.batteryLevel = 5;
+		this.batteryCapacity = 5;
+	}
+
+	upgradeBattery(value) {
+		this.batteryLevel = this.batteryCapacity = value;
 	}
 
 	interaction() {
 		if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize) {
-			this.startIntroDialog();
+			this.talkToIntroGuide();
 		}
 
 		const healPoints = [];
@@ -119,6 +129,11 @@ class MainScene extends Phaser.Scene {
 			});
 		});
 		if (healPoints.length !== 0) {
+			if (this.batteryLevel == 0)
+				return; // No battery
+			else
+				this.batteryLevel--;
+
 			const {crack, crackPoint} = pick(healPoints);
 			const newCracks = healAt(this, crack, crackPoint);
 			crack.destroy();
@@ -130,27 +145,43 @@ class MainScene extends Phaser.Scene {
 	fireEnd() {
 	}
 
-	startIntroDialog() {
+	createCracks(amount) {
+		for (let i = 0; i < amount; i++) {
+			this.cracks.push(new Crack({scene: this, crackExtendDelay: conf.crackExtendDelay}));
+		}
+	}
+
+	talkToIntroGuide() {
 		this.scene.pause();
-		this.scene.run("DialogScene", dialogs.intro);
+		const dialog = this.hasRunIntroDialog ? (
+			this.cracks.length > 0 ? dialogs.intro2 : dialogs.intro3)
+			  : dialogs.intro;
+
+		this.scene.run("DialogScene", dialog);
+		this.hasRunIntroDialog = true;
 	}
 
 	update(time, delta) {
 		this.introGuideBubble.setVisible(Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize);
 
-		this.lastEarthquake += delta;
-
-		if (this.lastEarthquake > conf.crackDelay * 1000) {
-			this.lastEarthquake -= conf.crackDelay * 1000;
-			const crack = pick([null, ...this.cracks]);
-			if (crack)
-				crack.extend();
-			else
-				this.cracks.push(new Crack(this));
-		}
-
 		this.player.update(time, delta);
-		this.cracks.forEach(c => c.update(time, delta));
+		this.cracks.forEach(c => {
+			if (c.timeLeft < 0) {
+				c.extend();
+			}
+			c.update(time, delta);
+		});
+
+		// this.lastEarthquake += delta;
+
+		// if (this.lastEarthquake > conf.crackDelay * 1000) {
+		// 	this.lastEarthquake -= conf.crackDelay * 1000;
+		// 	const crack = pick([null, ...this.cracks]);
+		// 	if (crack)
+		// 		crack.extend();
+		// 	else
+		// 		this.cracks.push(new Crack(this));
+		// }
 	}
 }
 
@@ -167,6 +198,7 @@ class DialogScene extends Phaser.Scene {
 
 	create() {
 		this.add.image(0, 0, "DialogBackground").setOrigin(0, 0);
+		this.avatar = this.add.sprite(40, 35, "").setOrigin(0, 0).setScale(2);
 
 		this.refresh();
 
@@ -185,38 +217,53 @@ class DialogScene extends Phaser.Scene {
 
 	refresh() {
 		this.lines.forEach(line => line.destroy());
-		this.lines = this.dialog[this.currentIndex].text.map((text, i) => (
-			new TextLine(this, 50, 50 + 10 * i, text)
-		));
+
+		const currentDialog = this.dialog[this.currentIndex];
+		switch (currentDialog.type) {
+			case "you":
+			case "them":
+				this.avatar.setTexture(currentDialog.type == "you" ? "Player" : "IntroGuide");
+				this.lines = currentDialog.text.map((text, i) => (
+					new TextLine(this, 100, 50 + 10 * i, text)
+				));
+				break;
+			case "callback":
+				const mainScene = this.scene.get("MainScene");
+				mainScene.scene.resume();
+				currentDialog.callback(mainScene);
+				mainScene.scene.pause();
+				break;
+		}
 	}
 }
 
 const healAt = (scene, crack, crackPoint) => {
 	const crackPoints = [...crack.crackPoints];
+	const crackExtendDelay = crack.crackExtendDelay;
 	const index = crackPoints.indexOf(crackPoint);
 
-	const canBeHealed = (crackPoint, i, array) => (
-		true
-			&& (i == 0 || array[i - 1].size <= crackPoint.size)
-			&& (i == array.length - 1 || array[i + 1].size <= crackPoint.size)
-	);
+	// const canBeHealed = (crackPoint, i, array) => (
+	// 	true
+	// 		&& (i == 0 || array[i - 1].size <= crackPoint.size)
+	// 		&& (i == array.length - 1 || array[i + 1].size <= crackPoint.size)
+	// );
 
-	if (!canBeHealed(crackPoint, index, crackPoints))
-		return [new Crack(scene, crackPoints)];
+	// if (!canBeHealed(crackPoint, index, crackPoints))
+	// 	return [new Crack(scene, crackPoints)];
 
 	if (crackPoint.size > 1) {
 		crackPoint.size--;
-		return [new Crack(scene, crackPoints)];
+		return [new Crack({scene, crackPoints, crackExtendDelay})];
 	} else if (crackPoints.length == 1) {
 		return [];
 	} else if (index == 0) {
-		return [new Crack(scene, crackPoints.slice(1))];
+		return [new Crack({scene, crackPoints: crackPoints.slice(1), crackExtendDelay})];
 	} else if (index == crackPoints.length - 1) {
-		return [new Crack(scene, crackPoints.slice(0, index))];
+		return [new Crack({scene, crackPoints: crackPoints.slice(0, index), crackExtendDelay})];
 	} else {
 		return [
-			new Crack(scene, crackPoints.slice(0, index)),
-			new Crack(scene, crackPoints.slice(index + 1)),
+			new Crack({scene, crackPoints: crackPoints.slice(0, index), crackExtendDelay}),
+			new Crack({scene, crackPoints: crackPoints.slice(index + 1), crackExtendDelay}),
 		];
 	}
 };
@@ -247,13 +294,27 @@ class TextLine {
 class Player {
 	constructor(scene) {
 		this.scene = scene;
-		this.sprite = scene.add.sprite(0, 0, "Player");
+		this.sprite = scene.add.sprite(0, 0, "Player", 0);
 
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
 	}
 
 	get x() {return this.sprite.x;}
 	get y() {return this.sprite.y;}
+
+	setDirection(direction) {
+		let frame = {
+			"N": 65,
+			"NE": 54,
+			"E": 26,
+			"SE": 41,
+			"S": 0,
+			"SW": 39,
+			"W": 13,
+			"NW": 52,
+		}[direction];
+		this.sprite.setFrame(frame);
+	}
 
 	update(time, delta) {
 		const up    = this.cursorKeys.up.isDown;
@@ -264,14 +325,25 @@ class Player {
 		if ((up || down) && (left || right))
 			deltaPos /= Math.sqrt(2);
 
-		if (down)
+		let direction = "";
+		if (down) {
 			this.sprite.y += deltaPos;
-		if (up)
+			direction = "S";
+		} else if (up) {
 			this.sprite.y -= deltaPos;
-		if (right)
+			direction = "N";
+		}
+
+		if (right) {
 			this.sprite.x += deltaPos;
-		if (left)
+			direction += "E";
+		} else if (left) {
 			this.sprite.x -= deltaPos;
+			direction += "W";
+		}
+
+		if (direction)
+			this.setDirection(direction);
 	}
 }
 
@@ -330,6 +402,10 @@ const initialCrackTilesData = [
 	{tile: 3, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
 	{tile: 4, dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
 	{tile: 5, dx: 2, dy: 1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
+
+	{tile: 0, dx: 0, dy: 0, from: "", to: "Right", toSize: 2, pivotX: -1, pivotY: 0.5},
+	{tile: 0, dx: 0, dy: 0, from: "", to: "Right", toSize: 3, pivotX: -1, pivotY: 0.5},
+	{tile: 1, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
 ];
 
 // const initialCrackTilesData = [
@@ -400,12 +476,24 @@ intermediateCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, p
 	});
 });
 
-const pick = (array) => {
-	return array[Math.floor(Math.random() * array.length)];
-};
+const pick = (array) => (
+	array[Math.floor(Math.random() * array.length)]
+);
+
+// const pickWeighted = (array) => {
+// 	const cumulative
+// 	return array[Math.floor(Math.random() * array.length)];
+// };
+
+const random = (value) => {
+	if (typeof value == "number")
+		return value;
+	else
+		return (value.min + Math.random() * (value.max - value.min));
+}
 
 class Crack {
-	constructor(scene, crackPoints) {
+	constructor({scene, crackPoints, crackExtendDelay}) {
 		this.scene = scene;
 		const x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
 		const y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
@@ -413,6 +501,13 @@ class Crack {
 		this.crackSegments = [];
 		this.crackPointsSprites = [];
 		this.regenerateAll();
+
+		this.crackExtendDelay = crackExtendDelay;
+		this.restartTimer();
+	}
+
+	restartTimer() {
+		this.timeLeft = random(this.crackExtendDelay) * 1000;
 	}
 
 	destroy() {
@@ -461,6 +556,7 @@ class Crack {
 			});
 		}
 		this.regenerateAll();
+		this.restartTimer();
 	}
 
 	generateRandomCrack(length, {x: initialX, y: initialY}) {
@@ -552,6 +648,7 @@ class Crack {
 	}
 
 	update(time, delta) {
+		this.timeLeft -= delta;
 		this.crackSegments.forEach(cs => cs.update(time, delta));
 		this.crackPointsSprites.forEach(cs => {
 			if (this.isCloseToPlayer(cs))
