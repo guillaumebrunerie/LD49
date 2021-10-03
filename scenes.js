@@ -357,11 +357,13 @@ class MainScene extends Phaser.Scene {
 		this.scene.run("DialogScene", dialog);
 	}
 
-	isValidPosition(x, y) {
+	isValidPosition(x, y, crackToIgnore) {
 		if (!this.worldMask[Math.round(y + (conf.worldSize - 1) / 2)]?.[Math.round(x + (conf.worldSize - 1) / 2)])
 			return false;
 
 		for (let i = 0; i < this.cracks.length; i++) {
+			if (this.cracks[i] === crackToIgnore)
+				continue;
 			const crackPoints = this.cracks[i].crackPoints;
 			const circle = new Phaser.Geom.Circle(x * conf.tileSize, y * conf.tileSize, conf.crackHitboxSize);
 			for (let j = 0; j < crackPoints.length - 1; j++) {
@@ -793,9 +795,12 @@ const random = (value) => {
 class Crack {
 	constructor({scene, crackPoints}) {
 		this.scene = scene;
-		const x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
-		const y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
-		this.crackPoints = crackPoints || this.generateRandomCrack(2, {x, y});
+		let x, y;
+		do {
+			x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
+			y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
+		} while (!scene.isValidPosition(x, -y))
+		this.crackPoints = crackPoints || this.generateRandomCrack(1, {x, y});
 		this.crackSegments = [];
 		this.crackPointsSprites = [];
 		this.regenerateAll();
@@ -834,23 +839,31 @@ class Crack {
 			if (lastPoint == this.pointBeingHealed)
 				return false;
 			const tile = pick(finalCrackTilesData.filter(data => data.from == lastPoint.direction && data.toSize == 1));
-			this.crackPoints.push({
-				x: lastPoint.x + tile.dx,
-				y: lastPoint.y + tile.dy,
-				direction: tile.to,
-				size: 1,
-			});
+			const x = lastPoint.x + tile.dx;
+			const y = lastPoint.y + tile.dy;
+			if ([0.25, 0.5, 0.75, 1].every(k => this.scene.isValidPosition(lastPoint.x + tile.dx * k, -(lastPoint.y + tile.dy * k), this))) {
+				this.crackPoints.push({
+					x,
+					y,
+					direction: tile.to,
+					size: 1,
+				});
+			} else return false;
 		} else {
 			const firstPoint = this.crackPoints[0];
 			if (firstPoint == this.pointBeingHealed)
 				return false;
 			const tile = pick(finalCrackTilesData.filter(data => data.fromSize == 1 && data.to == firstPoint.direction));
-			this.crackPoints.unshift({
-				x: firstPoint.x - tile.dx,
-				y: firstPoint.y - tile.dy,
-				direction: tile.from,
-				size: 1,
-			});
+			const x = firstPoint.x - tile.dx;
+			const y = firstPoint.y - tile.dy;
+			if ([0.25, 0.5, 0.75, 1].every(k => this.scene.isValidPosition(firstPoint.x - tile.dx * k, -(firstPoint.y - tile.dy * k), this)))  {
+				this.crackPoints.unshift({
+					x,
+					y,
+					direction: tile.from,
+					size: 1,
+				});
+			} else return false;
 		}
 		this.regenerateAll();
 		return true;
