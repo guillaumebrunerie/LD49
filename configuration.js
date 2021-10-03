@@ -25,7 +25,7 @@ conf.crackTileSize = 48;
 conf.speed = 4;
 
 // Time between two earthquakes, in seconds
-conf.crackDelay = {min: 4, max: 6};
+conf.crackDelay = {min: 2, max: 4};
 
 // Time it takes to heal a crack, in seconds
 conf.crackResistance = 3;

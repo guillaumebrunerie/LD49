@@ -602,7 +602,7 @@ initialCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX
 // Rotate
 const finalCrackTilesData = [];
 intermediateCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY, flipX}) => {
-	[0, 1, 2, 3].forEach(rotation => {
+	[0, 3].forEach(rotation => {
 		const {dx: newDx, dy: newDy} = rotateDxDy({dx, dy}, rotation);
 		const {dx: newPivotX, dy: newPivotY} = rotateDxDy({dx: pivotX, dy: pivotY}, rotation);
 		finalCrackTilesData.push({
