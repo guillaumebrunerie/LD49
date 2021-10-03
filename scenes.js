@@ -370,7 +370,9 @@ class MainScene extends Phaser.Scene {
 			}
 		}
 
-		this.player.update(time, delta);
+		if (!this.scene.isActive("DialogScene"))
+			this.player.update(time, delta);
+
 		this.cracks.forEach(c => c.update(time, delta));
 
 		this.timeLeft -= delta;
