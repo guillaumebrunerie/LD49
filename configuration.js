@@ -25,10 +25,10 @@ conf.crackTileSize = 48;
 conf.speed = 4;
 
 // Time between two earthquakes, in seconds
-conf.crackDelay = 1;
-
-// Time it takes for a crack to get bigger, in seconds
-conf.crackExtendDelay = {min: 2, max: 4};
+conf.crackDelay = {min: 4, max: 6};
 
 // Time it takes to heal a crack, in seconds
 conf.crackResistance = 3;
+
+// Probability that a crack will widen instead of extending (if possible)
+conf.widenProbability = 0.8;

@@ -45,8 +45,8 @@ class StartScene extends Phaser.Scene {
 
 		this.anims.create({
 			key: "BubbleLoop",
-			frameRate: 2,
-			frames: this.anims.generateFrameNames("Bubble", {frames: [3, 4, 5]}),
+			frameRate: 3,
+			frames: this.anims.generateFrameNames("Bubble", {frames: [2, 3, 4, 5]}),
 			repeat: -1,
 		});
 
@@ -91,7 +91,7 @@ class StartScene extends Phaser.Scene {
 		playerWalkAnimations.forEach(([suffix, frames]) => {
 			this.anims.create({
 				key: "PlayerWalk" + suffix,
-				frameRate: 5,
+				frameRate: 10,
 				frames: this.anims.generateFrameNames("Player", {frames}),
 				repeat: -1
 			});
@@ -174,8 +174,10 @@ class MainScene extends Phaser.Scene {
 		this.cameras.main.centerOn(0, 0);
 		this.cameras.main.startFollow(this.player.sprite);
 
-		this.batteryLevel = 5;
+		this.batteryLevel = 50;
 		this.batteryCapacity = 5;
+
+		this.timeLeft = random(conf.crackDelay);
 	}
 
 	upgradeBattery(value) {
@@ -187,10 +189,10 @@ class MainScene extends Phaser.Scene {
 			this.talkToIntroGuide();
 		}
 
-		this.player.fireStart();
-
 		if (this.batteryLevel == 0)
 			return; // No battery
+
+		this.player.fireStart();
 
 		const healPoints = [];
 		this.cracks.forEach(crack => {
@@ -200,27 +202,28 @@ class MainScene extends Phaser.Scene {
 			});
 		});
 		if (healPoints.length !== 0) {
-			// else
-			// 	this.batteryLevel--;
-
-			const {crack, crackPoint} = pick(healPoints);
-			const newCracks = healAt(this, crack, crackPoint);
-			crack.destroy();
-			this.cracks = this.cracks.filter(c => c !== crack);
-			this.cracks.push(...newCracks);
+			this.pointBeingHealed = pick(healPoints);
 		}
 	}
 
 	heal() {
+		this.batteryLevel--;
+		const {crack, crackPoint} = this.pointBeingHealed;
+		const newCracks = healAt(this, crack, crackPoint);
+		crack.destroy();
+		this.cracks = this.cracks.filter(c => c !== crack);
+		this.cracks.push(...newCracks);
+		this.pointBeingHealed = null;
 	}
 
 	fireEnd() {
 		this.player.fireEnd();
+		this.pointBeingHealed = null;
 	}
 
 	createCracks(amount) {
 		for (let i = 0; i < amount; i++) {
-			this.cracks.push(new Crack({scene: this, crackExtendDelay: conf.crackExtendDelay}));
+			this.cracks.push(new Crack({scene: this}));
 		}
 		this.cameras.main.shake(500, 0.008);
 	}
@@ -259,16 +262,17 @@ class MainScene extends Phaser.Scene {
 			c.update(time, delta);
 		});
 
-		// this.lastEarthquake += delta;
+		this.timeLeft -= delta;
 
-		// if (this.lastEarthquake > conf.crackDelay * 1000) {
-		// 	this.lastEarthquake -= conf.crackDelay * 1000;
-		// 	const crack = pick([null, ...this.cracks]);
-		// 	if (crack)
-		// 		crack.extend();
-		// 	else
-		// 		this.cracks.push(new Crack(this));
-		// }
+		if (this.timeLeft < 0) {
+			this.timeLeft = random(conf.crackDelay) * 1000;
+			const crack = pick([null, ...this.cracks]);
+			if (crack)
+				crack.extend();
+			else
+				; //this.cracks.push(new Crack({scene: this}));
+			this.cameras.main.shake(200, 0.008);
+		}
 	}
 }
 
@@ -323,22 +327,21 @@ class DialogScene extends Phaser.Scene {
 
 const healAt = (scene, crack, crackPoint) => {
 	const crackPoints = [...crack.crackPoints];
-	const crackExtendDelay = crack.crackExtendDelay;
 	const index = crackPoints.indexOf(crackPoint);
 
 	if (crackPoint.size > 1) {
 		crackPoint.size--;
-		return [new Crack({scene, crackPoints, crackExtendDelay})];
+		return [new Crack({scene, crackPoints})];
 	} else if (crackPoints.length == 1) {
 		return [];
 	} else if (index == 0) {
-		return [new Crack({scene, crackPoints: crackPoints.slice(1), crackExtendDelay})];
+		return [new Crack({scene, crackPoints: crackPoints.slice(1)})];
 	} else if (index == crackPoints.length - 1) {
-		return [new Crack({scene, crackPoints: crackPoints.slice(0, index), crackExtendDelay})];
+		return [new Crack({scene, crackPoints: crackPoints.slice(0, index)})];
 	} else {
 		return [
-			new Crack({scene, crackPoints: crackPoints.slice(0, index), crackExtendDelay}),
-			new Crack({scene, crackPoints: crackPoints.slice(index + 1), crackExtendDelay}),
+			new Crack({scene, crackPoints: crackPoints.slice(0, index)}),
+			new Crack({scene, crackPoints: crackPoints.slice(index + 1)}),
 		];
 	}
 };
@@ -435,8 +438,11 @@ class Player {
 	update(time, delta) {
 		if (this.isFiring) {
 			this.firingAmount += delta;
-			if (this.firingAmount > conf.crackResistance * 1000)
+			if (this.firingAmount > conf.crackResistance * 1000) {
 				this.scene.heal();
+				this.firingAmount = 0;
+				this.fireEnd();
+			}
 			return;
 		}
 
@@ -534,75 +540,64 @@ const initialCrackTilesData = [
 	{tile: 4, dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
 	{tile: 5, dx: 2, dy: 1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
 
-	{tile: 6, dx: 0, dy: 0, from: "", to: "Right", toSize: 2, pivotX: -1, pivotY: 0.5},
-	{tile: 7, dx: 0, dy: 0, from: "", to: "Right", toSize: 3, pivotX: -1, pivotY: 0.5},
-	{tile: 8, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
+	{tile: 6,  dx: 0, dy: 0, from: "", to: "Right", toSize: 1, pivotX: -1, pivotY: 0.5},
+	{tile: 7,  dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: -0.5},
+	{tile: 8,  dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
+	{tile: 9,  dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: -0.5},
+	{tile: 10, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
+	{tile: 11, dx: 2, dy: -1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
+
+	{tile: 12, dx: 0, dy: 0, from: "", to: "Right", toSize: 2, pivotX: -1, pivotY: 0.5},
+	{tile: 13, dx: 0, dy: 0, from: "", to: "Right", toSize: 3, pivotX: -1, pivotY: 0.5},
+	{tile: 14, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
+
+	{tile: 15, dx: 0, dy: 0, from: "", to: "Right", toSize: 2, pivotX: -1, pivotY: -0.5},
+	{tile: 16, dx: 0, dy: 0, from: "", to: "Right", toSize: 3, pivotX: -1, pivotY: -0.5},
+	{tile: 17, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
 ];
 
-// const initialCrackTilesData = [
-// 	{tile: 0, dx: 0, dy: 0, from: "", to: "Right", toSize: 1, pivotX: -1, pivotY: 0.5},
-// 	{tile: 1, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: 0.5},
-// 	// {tile: 2, dx: 0.5, dy: -1.5, from: "Right", fromSize: 1, to: "Down", toSize: 1, pivotX: 1, pivotY: -0.5},
-
-// 	// 3
-// 	{tile: 4, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
-// 	// {tile: 5, dx: 0.5, dy: -1.5, from: "Right", fromSize: 2, to: "Down", toSize: 1, pivotX: 1, pivotY: -0.5},
-
-// 	// {tile: 6, dx: 1.5, dy: 0.5, from: "Up", fromSize: 1, to: "Right", toSize: 2, pivotX: 0.5, pivotY: 1},
-// 	{tile: 7, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
-// 	// {tile: 8, dx: 0.5, dy: -1.5, from: "Right", fromSize: 2, to: "Down", toSize: 2, pivotX: 1, pivotY: -0.5},
-
-// 	{tile: 9, dx: 2, dy: -1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
-// 	{tile: 10, dx: 2, dy: 1, from: "Right", fromSize: 3, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5},
-// 	// {tile: 11, dx: 0.5, dy: -1.5, from: "Right", fromSize: 2, to: "Down", toSize: 3, pivotX: 1, pivotY: -0.5},
-
-// 	// // 12
-// 	// {tile: 13, dx: 0.5, dy: -1.5, from: "Down", fromSize: 2, to: "Right", toSize: 3, pivotX: -0.5, pivotY: -1},
-// 	// {tile: 14, dx: 0.5, dy: 1.5, from: "Right", fromSize: 3, to: "Up", toSize: 3, pivotX: 1, pivotY: 0.5},
-// ];
-
-// Reverse the direction
-const firstIntermediateCrackTilesData = [];
-initialCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
-	firstIntermediateCrackTilesData.push({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY});
-	firstIntermediateCrackTilesData.push({
-		tile,
-		dx: -dx, dy: -dy,
-		from: reverseDirection(to), fromSize: toSize,
-		to: reverseDirection(from), toSize: fromSize,
-		pivotX: pivotX - dx,
-		pivotY: pivotY - dy,
-	});
-});
-
-// Flip horizontally
-const intermediateCrackTilesData = [];
-firstIntermediateCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
-	intermediateCrackTilesData.push({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY});
-	intermediateCrackTilesData.push({
-		tile,
-		dx: -dx, dy,
-		from: flipXDirection(from), fromSize,
-		to: flipXDirection(to), toSize,
-		pivotX: -pivotX, pivotY,
-		flipX: true
-	});
-});
+// // Reverse the direction
+// const firstIntermediateCrackTilesData = [];
+// initialCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
+// 	firstIntermediateCrackTilesData.push({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY});
+// 	firstIntermediateCrackTilesData.push({
+// 		tile,
+// 		dx: -dx, dy: -dy,
+// 		from: reverseDirection(to), fromSize: toSize,
+// 		to: reverseDirection(from), toSize: fromSize,
+// 		pivotX: pivotX - dx,
+// 		pivotY: pivotY - dy,
+// 	});
+// });
 
 // // Flip horizontally
 // const intermediateCrackTilesData = [];
-// initialCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
+// firstIntermediateCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
 // 	intermediateCrackTilesData.push({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY});
 // 	intermediateCrackTilesData.push({
 // 		tile,
-// 		dx, dy: -dy,
-// 		from: reverseDirection(flipXDirection(to)), fromSize: toSize,
-// 		to: reverseDirection(flipXDirection(from)), toSize: fromSize,
-// 		pivotX: dx - pivotX,
-// 		pivotY: pivotY - dy,
+// 		dx: -dx, dy,
+// 		from: flipXDirection(from), fromSize,
+// 		to: flipXDirection(to), toSize,
+// 		pivotX: -pivotX, pivotY,
 // 		flipX: true
 // 	});
 // });
+
+// Flip horizontally and reverse the direction
+const intermediateCrackTilesData = [];
+initialCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
+	intermediateCrackTilesData.push({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY});
+	intermediateCrackTilesData.push({
+		tile,
+		dx, dy: -dy,
+		from: reverseDirection(flipXDirection(to)), fromSize: toSize,
+		to: reverseDirection(flipXDirection(from)), toSize: fromSize,
+		pivotX: dx - pivotX,
+		pivotY: pivotY - dy,
+		flipX: true
+	});
+});
 
 // Rotate
 const finalCrackTilesData = [];
@@ -639,21 +634,14 @@ const random = (value) => {
 }
 
 class Crack {
-	constructor({scene, crackPoints, crackExtendDelay}) {
+	constructor({scene, crackPoints}) {
 		this.scene = scene;
 		const x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
 		const y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
-		this.crackPoints = crackPoints || this.generateRandomCrack(1, {x, y});
+		this.crackPoints = crackPoints || this.generateRandomCrack(2, {x, y});
 		this.crackSegments = [];
 		this.crackPointsSprites = [];
 		this.regenerateAll();
-
-		this.crackExtendDelay = crackExtendDelay;
-		this.restartTimer();
-	}
-
-	restartTimer() {
-		this.timeLeft = random(this.crackExtendDelay) * 1000;
 	}
 
 	destroy() {
@@ -679,7 +667,7 @@ class Crack {
 		);
 
 		const pointsToWiden = this.crackPoints.filter(canBeWidened);
-		if (pointsToWiden.length > 0 && Math.random() < 0.5) {
+		if (pointsToWiden.length > 0 && Math.random() < conf.widenProbability) {
 			const pointToWiden = pick(pointsToWiden);
 			pointToWiden.size++;
 		} else if (Math.random() < 0.5) {
@@ -702,8 +690,6 @@ class Crack {
 			});
 		}
 		this.regenerateAll();
-		this.restartTimer();
-		this.scene.cameras.main.shake(200, 0.008);
 	}
 
 	generateRandomCrack(length, {x: initialX, y: initialY}) {
