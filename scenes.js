@@ -137,14 +137,30 @@ class MainScene extends Phaser.Scene {
 				if (mask[y][x] == 1) {
 					tile = pick([0, 1, 13, 14]);
 				} else {
-					if (mask[y][x + 1])
+					if (mask[y][x + 1] && mask[y + 1]?.[x])
+						tile = 43;
+					else if (mask[y][x + 1] && mask[y - 1]?.[x])
+						tile = 30;
+					else if (mask[y][x + 1])
 						tile = 39;
+					else if (mask[y][x - 1] && mask[y + 1]?.[x])
+						tile = 42;
+					else if (mask[y][x - 1] && mask[y - 1]?.[x])
+						tile = 29;
 					else if (mask[y][x - 1])
 						tile = 41;
 					else if (mask[y + 1]?.[x])
 						tile = 27;
 					else if (mask[y - 1]?.[x])
 						tile = 53;
+					else if (mask[y + 1]?.[x + 1])
+						tile = 26;
+					else if (mask[y + 1]?.[x - 1])
+						tile = 28;
+					else if (mask[y - 1]?.[x + 1])
+						tile = 52;
+					else if (mask[y - 1]?.[x - 1])
+						tile = 54;
 				}
 				groundLayerData[y][x] = tile;
 			}
@@ -166,12 +182,16 @@ class MainScene extends Phaser.Scene {
 		for (let y = 0; y < conf.worldHeight; y++) {
 			stuffLayerData[y] = [];
 			for (let x = 0; x < conf.worldWidth; x++) {
-				const liveTrees = [2, 3, 4];
-				const deadTrees = [15, 16, 17];
-				const otherStuff = [5, 6, 7, 18, 19, 20];
-				const nothing = new Array(30).fill(21);
-				const stuff = pick([...deadTrees, ...otherStuff, ...nothing]);
-				stuffLayerData[y][x] = stuff;
+				if (mask[y][x]) {
+					const liveTrees = [2, 3, 4];
+					const deadTrees = [15, 16, 17];
+					const otherStuff = [5, 6, 7, 18, 19, 20];
+					const nothing = new Array(30).fill(21);
+					const stuff = pick([...deadTrees, ...otherStuff, ...nothing]);
+					stuffLayerData[y][x] = stuff;
+				} else {
+					stuffLayerData[y][x] = 21;
+				}
 			}
 		}
 		const stuffTilemap = this.make.tilemap({
