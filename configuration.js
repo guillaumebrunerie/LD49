@@ -26,3 +26,6 @@ conf.speed = 4;
 
 // Time between two earthquakes, in seconds
 conf.crackDelay = 1;
+
+// Time it takes for a crack to get bigger, in seconds
+conf.crackExtendDelay = {min: 2, max: 4};
