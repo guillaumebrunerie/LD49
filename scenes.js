@@ -21,6 +21,7 @@ class StartScene extends Phaser.Scene {
 		this.load.image("DialogBackground");
 
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", tileConf);
+		this.load.spritesheet("SpaceTiles", "SpriteSheets/BgSpace.png", tileConf);
 
 		this.load.spritesheet("CracksTiles", "SpriteSheets/Cracks.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
 		this.load.image("CrackPoint");
@@ -227,6 +228,31 @@ class MainScene extends Phaser.Scene {
 		this.batteryCapacity = 5;
 
 		this.timeLeft = random(conf.crackDelay);
+
+		// Background
+
+		const backgroundLayerData = [];
+		for (let y = 0; y < conf.worldHeight; y++) {
+			backgroundLayerData[y] = [];
+			for (let x = 0; x < conf.worldWidth; x++) {
+				backgroundLayerData[y][x] = pick([...new Array(15).fill(0), 1, 2, 3, 4, 5, 6, 7, 8]);
+			}
+		}
+		const backgroundTilemap = this.make.tilemap({
+			data: backgroundLayerData,
+			tileWidth: conf.tileSize,
+			tileHeight: conf.tileSize,
+			width: conf.worldWidth,
+			height: conf.worldHeight,
+		});
+		const backgroundTileset = backgroundTilemap.addTilesetImage("tileset", "SpaceTiles");
+		const backgroundLayer = backgroundTilemap.createLayer(0, backgroundTileset);
+
+		backgroundLayer.x = 1000;
+		backgroundLayer.y = 1000;
+
+		this.cameras.add(0, 0, undefined, undefined, false, "Background").setScroll(1000, 1000);
+		this.cameras.cameras.reverse();
 	}
 
 	upgradeBattery(value) {
