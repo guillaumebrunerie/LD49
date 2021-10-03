@@ -372,6 +372,10 @@ class MainScene extends Phaser.Scene {
 			if (crackPoints.length == 1 && Phaser.Geom.Circle.Contains(circle, crackPoints[0].x * conf.tileSize, crackPoints[0].y * -conf.tileSize))
 				return false;
 		}
+
+		if (Phaser.Math.Distance.Between(x * conf.tileSize, y * conf.tileSize, this.introGuide.x, this.introGuide.y) <= conf.introGuideHitboxSize)
+			return false;
+
 		return true;
 	}
 

@@ -44,6 +44,7 @@ conf.crackResistance = 2;
 conf.widenProbability = 0.8;
 
 conf.crackHitboxSize = 12;
+conf.introGuideHitboxSize = 18;
 
 // Level specific configurations
 
