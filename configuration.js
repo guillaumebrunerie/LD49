@@ -11,7 +11,7 @@ conf.tileSize = 24;
 conf.tileScaleFactor = 3;
 
 // Total size (in tiles) of the world
-conf.worldSize = 30;
+conf.worldSize = 35;
 conf.worldWidth = conf.worldSize;
 conf.worldHeight = conf.worldSize;
 
@@ -45,3 +45,7 @@ conf.crackResistance = 2;
 
 // Probability that a crack will widen instead of extending (if possible)
 conf.widenProbability = 0.8;
+
+conf.level2 = {
+	numberOfCracks: 3,
+};

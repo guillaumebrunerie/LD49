@@ -184,19 +184,20 @@ class MainScene extends Phaser.Scene {
 		groundLayer.x = -groundLayer.width / 2;
 		groundLayer.y = -groundLayer.height / 2;
 
+		const liveTrees = [2, 3, 4, 5, 6, 7, 8, 33, 34];
+		const deadTrees = liveTrees.map(x => x + 13);
+		const otherStuff = [9, 10, 11, 12, 22, 23, 24, 25, 31, 32, 44, 45];
+		const nothing = new Array(100).fill(40);
+		const stuffToPickFrom = [...deadTrees, ...otherStuff, ...nothing];
 		const stuffLayerData = [];
 		for (let y = 0; y < conf.worldHeight; y++) {
 			stuffLayerData[y] = [];
 			for (let x = 0; x < conf.worldWidth; x++) {
 				if (mask[y][x]) {
-					const liveTrees = [2, 3, 4];
-					const deadTrees = [15, 16, 17];
-					const otherStuff = [5, 6, 7, 18, 19, 20];
-					const nothing = new Array(30).fill(21);
-					const stuff = pick([...deadTrees, ...otherStuff, ...nothing]);
+					const stuff = pick(stuffToPickFrom);
 					stuffLayerData[y][x] = stuff;
 				} else {
-					stuffLayerData[y][x] = 21;
+					stuffLayerData[y][x] = 40;
 				}
 			}
 		}
@@ -214,7 +215,7 @@ class MainScene extends Phaser.Scene {
 		stuffLayer.y = -stuffLayer.height / 2;
 
 		this.cracks = [];
-		this.createCracks(1);
+		// this.createCracks(1);
 
 		this.lastEarthquake = 0;
 
@@ -308,8 +309,8 @@ class MainScene extends Phaser.Scene {
 	fireEnd() {
 		this.player.fireEnd();
 		this.pointBeingHealed = null;
-		this.crackPointSprite.stop();
-		this.crackPointSprite.destroy();
+		this.crackPointSprite?.stop();
+		this.crackPointSprite?.destroy();
 		this.crackPointSprite = null;
 	}
 
