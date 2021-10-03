@@ -28,7 +28,7 @@ dialogs.intro = [
 
 dialogs.intro2 = [
 	{type: "them", text: ["Will you help us?",
-						  "It's not like you have much choice anyway"]},
+						  "It's not like you have much choice anyway."]},
 ];
 
 dialogs.intro3 = [
