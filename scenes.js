@@ -129,7 +129,7 @@ class MainScene extends Phaser.Scene {
 
 	create() {
 		const groundLayerData = [];
-		const mask = generateWorldMask(conf.worldSize);
+		const mask = this.worldMask = generateWorldMask(conf.worldSize);
 		for (let y = 0; y < conf.worldHeight; y++) {
 			groundLayerData[y] = [];
 			for (let x = 0; x < conf.worldWidth; x++) {
@@ -236,6 +236,7 @@ class MainScene extends Phaser.Scene {
 	interaction() {
 		if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize) {
 			this.talkToIntroGuide();
+			return;
 		}
 
 		if (this.batteryLevel == 0)
@@ -286,6 +287,10 @@ class MainScene extends Phaser.Scene {
 
 		this.scene.run("DialogScene", dialog);
 		this.hasRunIntroDialog = true;
+	}
+
+	isValidPosition(x, y) {
+		return !!this.worldMask[Math.round(y + (conf.worldSize - 1) / 2)][Math.round(x + (conf.worldSize - 1) / 2)];
 	}
 
 	update(time, delta) {
@@ -515,20 +520,29 @@ class Player {
 		deltaPos = Math.ceil(deltaPos);
 
 		let direction = "";
+		let x = this.sprite.x;
+		let y = this.sprite.y;
 		if (down) {
-			this.sprite.y += deltaPos;
+			y += deltaPos;
 			direction = "S";
 		} else if (up) {
-			this.sprite.y -= deltaPos;
+			y -= deltaPos;
 			direction = "N";
 		}
 
 		if (right) {
-			this.sprite.x += deltaPos;
+			x += deltaPos;
 			direction += "E";
 		} else if (left) {
-			this.sprite.x -= deltaPos;
+			x -= deltaPos;
 			direction += "W";
+		}
+
+		if (this.scene.isValidPosition(x / conf.tileSize, y / conf.tileSize)) {
+			this.sprite.x = x;
+			this.sprite.y = y;
+		} else {
+			direction = null;
 		}
 
 		if (direction) {

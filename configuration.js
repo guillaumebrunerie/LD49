@@ -11,7 +11,7 @@ conf.tileSize = 24;
 conf.tileScaleFactor = 3;
 
 // Total size (in tiles) of the world
-conf.worldSize = 40;
+conf.worldSize = 30;
 conf.worldWidth = conf.worldSize;
 conf.worldHeight = conf.worldSize;
 
