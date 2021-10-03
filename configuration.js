@@ -43,6 +43,7 @@ conf.crackResistance = 2;
 // Probability that a crack will widen instead of extending (if possible)
 conf.widenProbability = 0.8;
 
+conf.crackHitboxSize = 12;
 
 // Level specific configurations
 

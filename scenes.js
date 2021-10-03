@@ -353,7 +353,26 @@ class MainScene extends Phaser.Scene {
 	}
 
 	isValidPosition(x, y) {
-		return !!this.worldMask[Math.round(y + (conf.worldSize - 1) / 2)][Math.round(x + (conf.worldSize - 1) / 2)];
+		if (this.worldMask[Math.round(y + (conf.worldSize - 1) / 2)][Math.round(x + (conf.worldSize - 1) / 2)] == 0)
+			return false;
+
+		for (let i = 0; i < this.cracks.length; i++) {
+			const crackPoints = this.cracks[i].crackPoints;
+			const circle = new Phaser.Geom.Circle(x * conf.tileSize, y * conf.tileSize, conf.crackHitboxSize);
+			for (let j = 0; j < crackPoints.length - 1; j++) {
+				const line = new Phaser.Geom.Line(
+					crackPoints[j].x * conf.tileSize,
+					crackPoints[j].y * -conf.tileSize,
+					crackPoints[j + 1].x * conf.tileSize,
+					crackPoints[j + 1].y * -conf.tileSize,
+				);
+				if (Phaser.Geom.Intersects.LineToCircle(line, circle))
+					return false;
+			}
+			if (crackPoints.length == 1 && Phaser.Geom.Circle.Contains(circle, crackPoints[0].x * conf.tileSize, crackPoints[0].y * -conf.tileSize))
+				return false;
+		}
+		return true;
 	}
 
 	update(time, delta) {
