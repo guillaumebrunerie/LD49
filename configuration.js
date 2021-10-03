@@ -28,6 +28,9 @@ conf.avatar = {x: 10, y: 35, scale: 2};
 // Position and scale of the text
 conf.dialogText = {x: 70, y: 50, dy: 10};
 
+// Position and scale of the dialog background
+conf.dialogBg = {x: 0, y: 0};
+
 // Position of the bubble
 conf.bubbleOffset = {dx: 14, dy: -15};
 
