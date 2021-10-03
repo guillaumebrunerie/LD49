@@ -11,8 +11,9 @@ conf.tileSize = 24;
 conf.tileScaleFactor = 3;
 
 // Total size (in tiles) of the world
-conf.worldWidth = 27;
-conf.worldHeight = 23;
+conf.worldSize = 30;
+conf.worldWidth = conf.worldSize;
+conf.worldHeight = conf.worldSize;
 
 // Size (in tiles) of the viewport
 conf.viewportWidth = 20;
@@ -21,7 +22,13 @@ conf.viewportHeight = 10;
 // Size (in pixels) of one tile for cracks
 conf.crackTileSize = 48;
 
-//
+// Position and scale of the avatar
+conf.avatar = {x: 10, y: 35, scale: 2};
+
+// Position and scale of the text
+conf.dialogText = {x: 70, y: 50, dy: 10};
+
+// Position of the bubble
 conf.bubbleOffset = {dx: 14, dy: -15};
 
 // Speed of the robot, in tiles/second

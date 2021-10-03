@@ -107,6 +107,21 @@ class StartScene extends Phaser.Scene {
 	}
 }
 
+// Returns a 2D mask of size [size × size] that represents a circle
+const generateBrokenCircle = (size) => {
+	const radius = size / 2;
+	const center = (size - 1) / 2;
+	const result = [];
+	for (let i = 0; i < size; i++) {
+		result[i] = [];
+		for (let j = 0; j < size; j++) {
+			const distance = (j - center) * (j - center) + (i - center) * (i - center);
+			result[i][j] = distance < radius * radius ? 1 : 0;
+		}
+	}
+	return result;
+};
+
 class MainScene extends Phaser.Scene {
 	constructor() {
 		super("MainScene");
@@ -114,6 +129,7 @@ class MainScene extends Phaser.Scene {
 
 	create() {
 		const groundLayerData = [];
+		// const mask = generateWorldMask(conf.worldSize);
 		for (let y = 0; y < conf.worldHeight; y++) {
 			groundLayerData[y] = [];
 			for (let x = 0; x < conf.worldWidth; x++) {
@@ -291,7 +307,7 @@ class DialogScene extends Phaser.Scene {
 
 	create() {
 		this.add.image(0, 0, "DialogBackground").setOrigin(0, 0);
-		this.avatar = this.add.sprite(10, 35, "").setOrigin(0, 0).setScale(2);
+		this.avatar = this.add.sprite(conf.avatar.x, conf.avatar.y, "").setOrigin(0, 0).setScale(conf.avatar.scale);
 
 		this.refresh();
 
@@ -309,6 +325,7 @@ class DialogScene extends Phaser.Scene {
 
 	refresh() {
 		this.lines.forEach(line => line.destroy());
+		const cfg = conf.dialogText;
 
 		const currentDialog = this.dialog[this.currentIndex];
 		switch (currentDialog.type) {
@@ -316,7 +333,7 @@ class DialogScene extends Phaser.Scene {
 			case "them":
 				this.avatar.setTexture(currentDialog.type == "you" ? "Player" : "Characters");
 				this.lines = currentDialog.text.map((text, i) => (
-					new TextLine(this, 70, 50 + 10 * i, text)
+					new TextLine(this, cfg.x, cfg.y + cfg.dy * i, text)
 				));
 				break;
 			case "callback":
