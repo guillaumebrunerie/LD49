@@ -241,8 +241,6 @@ class MainScene extends Phaser.Scene {
 		if (this.batteryLevel == 0)
 			return; // No battery
 
-		this.player.fireStart();
-
 		const healPoints = [];
 		this.cracks.forEach(crack => {
 			crack.crackPoints.forEach(crackPoint => {
@@ -252,6 +250,7 @@ class MainScene extends Phaser.Scene {
 		});
 		if (healPoints.length !== 0) {
 			this.pointBeingHealed = pick(healPoints);
+			this.player.fireStart(this.pointBeingHealed);
 		}
 	}
 
@@ -470,7 +469,15 @@ class Player {
 	get x() {return this.sprite.x;}
 	get y() {return this.sprite.y;}
 
-	fireStart() {
+	fireStart(pointBeingHealed) {
+		// Pick direction
+		const dx = pointBeingHealed.crackPoint.x * conf.tileSize - this.x;
+		const dy = - pointBeingHealed.crackPoint.y * conf.tileSize - this.y;
+		const angle = (Math.atan2(dy, dx) + Math.PI) * 180 / Math.PI;
+		const directionIndex = Math.round(angle / 45);
+
+		this.direction = ["W", "NW", "N", "NE", "E", "SE", "S", "SW", "W"][directionIndex];
+
 		this.sprite.setFrame(firingFrame[this.direction]);
 		this.laser.play("Laser" + this.direction);
 		this.laser.x = this.sprite.x + laserOffset[this.direction].dx;
@@ -505,6 +512,7 @@ class Player {
 		let deltaPos = conf.tileSize * conf.speed * delta / 1000;
 		if ((up || down) && (left || right))
 			deltaPos /= Math.sqrt(2);
+		deltaPos = Math.ceil(deltaPos);
 
 		let direction = "";
 		if (down) {
