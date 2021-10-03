@@ -24,8 +24,7 @@ class StartScene extends Phaser.Scene {
 		this.load.spritesheet("SpaceTiles", "SpriteSheets/BgSpace.png", tileConf);
 
 		this.load.spritesheet("CracksTiles", "SpriteSheets/Cracks.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
-		this.load.image("CrackPoint");
-		this.load.image("CrackPointActive");
+		this.load.spritesheet("CrackPoints", "SpriteSheets/CrackPoints.png", tileConf);
 
 		this.load.spritesheet("Player", "SpriteSheets/Hero.png", tileConf);
 		this.load.spritesheet("Characters", "SpriteSheets/Characters.png", tileConf);
@@ -37,6 +36,12 @@ class StartScene extends Phaser.Scene {
 
 	create() {
 		this.add.image(0, 0, "StartScreen").setOrigin(0, 0);
+
+		this.anims.create({
+			key: "CrackPoint",
+			frameRate: 16 / conf.crackResistance,
+			frames: this.anims.generateFrameNames("CrackPoints", {start: 1, end: 17}),
+		});
 
 		this.anims.create({
 			key: "BubbleStart",
@@ -278,6 +283,10 @@ class MainScene extends Phaser.Scene {
 		if (healPoints.length !== 0) {
 			this.pointBeingHealed = pick(healPoints);
 			this.player.fireStart(this.pointBeingHealed);
+			const x = this.pointBeingHealed.crackPoint.x * conf.tileSize;
+			const y = -this.pointBeingHealed.crackPoint.y * conf.tileSize;
+			this.crackPointSprite = this.add.sprite(x, y, "CrackPoints", 18);
+			this.crackPointSprite.play("CrackPoint");
 		}
 	}
 
@@ -294,6 +303,9 @@ class MainScene extends Phaser.Scene {
 	fireEnd() {
 		this.player.fireEnd();
 		this.pointBeingHealed = null;
+		this.crackPointSprite.stop();
+		this.crackPointSprite.destroy();
+		this.crackPointSprite = null;
 	}
 
 	createCracks(amount) {
@@ -757,7 +769,7 @@ class Crack {
 
 		this.crackPointsSprites.forEach(s => s.destroy());
 		this.crackPointsSprites = this.crackPoints.map(({x, y}) => (
-			this.scene.add.sprite(x * conf.tileSize, -y * conf.tileSize, "CrackPoint")
+			this.scene.add.sprite(x * conf.tileSize, -y * conf.tileSize, "CrackPoints", 17)
 		));
 	}
 
@@ -891,10 +903,10 @@ class Crack {
 		this.timeLeft -= delta;
 		this.crackSegments.forEach(cs => cs.update(time, delta));
 		this.crackPointsSprites.forEach(cs => {
-			if (this.isCloseToPlayer(cs))
-				cs.setTexture("CrackPointActive");
+			if (this.isCloseToPlayer(cs) && !this.scene.player.isFiring)
+				cs.setFrame(0);
 			else
-				cs.setTexture("CrackPoint");
+				cs.setFrame(17);
 			cs.update(time, delta);
 		});
 	}
