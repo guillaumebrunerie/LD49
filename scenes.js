@@ -22,12 +22,12 @@ class StartScene extends Phaser.Scene {
 
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", tileConf);
 
-		this.load.spritesheet("CracksTiles", "CracksTiles.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
+		this.load.spritesheet("CracksTiles", "SpriteSheets/Cracks.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
 		this.load.image("CrackPoint");
 		this.load.image("CrackPointActive");
 
 		this.load.spritesheet("Player", "SpriteSheets/Hero.png", tileConf);
-		this.load.image("IntroGuide");
+		this.load.spritesheet("Characters", "SpriteSheets/Characters.png", tileConf);
 		this.load.spritesheet("Bubble", "SpriteSheets/SpeechBubble.png", tileConf);
 		this.load.spritesheet("Laser", "SpriteSheets/Laser.png", tileConf);
 
@@ -45,7 +45,7 @@ class StartScene extends Phaser.Scene {
 
 		this.anims.create({
 			key: "BubbleLoop",
-			frameRate: 3,
+			frameRate: 2,
 			frames: this.anims.generateFrameNames("Bubble", {frames: [3, 4, 5]}),
 			repeat: -1,
 		});
@@ -73,6 +73,26 @@ class StartScene extends Phaser.Scene {
 				key: "Laser" + suffix,
 				frameRate: 5,
 				frames: this.anims.generateFrameNames("Laser", {start: frame, end: frame + 2}),
+				repeat: -1
+			});
+		});
+
+		const playerWalkAnimations = [
+			["W", [13, 14, 15]],
+			["E", [26, 27, 28]],
+			["N", [65]],
+			["S", [0, 1, 2]],
+			["NW", [52]],
+			["NE", [54]],
+			["SW", [39]],
+			["SE", [41]],
+		];
+
+		playerWalkAnimations.forEach(([suffix, frames]) => {
+			this.anims.create({
+				key: "PlayerWalk" + suffix,
+				frameRate: 5,
+				frames: this.anims.generateFrameNames("Player", {frames}),
 				repeat: -1
 			});
 		});
@@ -143,7 +163,7 @@ class MainScene extends Phaser.Scene {
 
 		this.lastEarthquake = 0;
 
-		this.introGuide = this.add.sprite(0, -4 * conf.tileSize, "IntroGuide");
+		this.introGuide = this.add.sprite(0, -4 * conf.tileSize, "Characters", 0);
 		this.introGuideBubble = this.add.sprite(1 * conf.tileSize, -5 * conf.tileSize);
 		this.introGuideBubble.isBubbling = false;
 
@@ -169,6 +189,9 @@ class MainScene extends Phaser.Scene {
 
 		this.player.fireStart();
 
+		if (this.batteryLevel == 0)
+			return; // No battery
+
 		const healPoints = [];
 		this.cracks.forEach(crack => {
 			crack.crackPoints.forEach(crackPoint => {
@@ -177,10 +200,8 @@ class MainScene extends Phaser.Scene {
 			});
 		});
 		if (healPoints.length !== 0) {
-			if (this.batteryLevel == 0)
-				return; // No battery
-			else
-				this.batteryLevel--;
+			// else
+			// 	this.batteryLevel--;
 
 			const {crack, crackPoint} = pick(healPoints);
 			const newCracks = healAt(this, crack, crackPoint);
@@ -188,6 +209,9 @@ class MainScene extends Phaser.Scene {
 			this.cracks = this.cracks.filter(c => c !== crack);
 			this.cracks.push(...newCracks);
 		}
+	}
+
+	heal() {
 	}
 
 	fireEnd() {
@@ -198,10 +222,13 @@ class MainScene extends Phaser.Scene {
 		for (let i = 0; i < amount; i++) {
 			this.cracks.push(new Crack({scene: this, crackExtendDelay: conf.crackExtendDelay}));
 		}
+		this.cameras.main.shake(500, 0.008);
 	}
 
 	talkToIntroGuide() {
-		this.scene.pause();
+		if (this.scene.isActive("DialogScene"))
+			return;
+
 		const dialog = this.hasRunIntroDialog ? (
 			this.cracks.length > 0 ? dialogs.intro2 : dialogs.intro3)
 			  : dialogs.intro;
@@ -269,7 +296,6 @@ class DialogScene extends Phaser.Scene {
 		this.currentIndex++;
 		if (this.currentIndex == this.dialog.length) {
 			this.scene.stop();
-			this.scene.resume("MainScene");
 		} else {
 			this.refresh();
 		}
@@ -282,16 +308,14 @@ class DialogScene extends Phaser.Scene {
 		switch (currentDialog.type) {
 			case "you":
 			case "them":
-				this.avatar.setTexture(currentDialog.type == "you" ? "Player" : "IntroGuide");
+				this.avatar.setTexture(currentDialog.type == "you" ? "Player" : "Characters");
 				this.lines = currentDialog.text.map((text, i) => (
 					new TextLine(this, 100, 50 + 10 * i, text)
 				));
 				break;
 			case "callback":
 				const mainScene = this.scene.get("MainScene");
-				mainScene.scene.resume();
 				currentDialog.callback(mainScene);
-				mainScene.scene.pause();
 				break;
 		}
 	}
@@ -301,15 +325,6 @@ const healAt = (scene, crack, crackPoint) => {
 	const crackPoints = [...crack.crackPoints];
 	const crackExtendDelay = crack.crackExtendDelay;
 	const index = crackPoints.indexOf(crackPoint);
-
-	// const canBeHealed = (crackPoint, i, array) => (
-	// 	true
-	// 		&& (i == 0 || array[i - 1].size <= crackPoint.size)
-	// 		&& (i == array.length - 1 || array[i + 1].size <= crackPoint.size)
-	// );
-
-	// if (!canBeHealed(crackPoint, index, crackPoints))
-	// 	return [new Crack(scene, crackPoints)];
 
 	if (crackPoint.size > 1) {
 		crackPoint.size--;
@@ -391,16 +406,14 @@ class Player {
 		this.sprite = scene.add.sprite(0, 0, "Player", 0);
 
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
-		this.setDirection("N");
+		this.direction = "N";
+		this.isWalking = false;
+
+		this.firingAmount = 0;
 	}
 
 	get x() {return this.sprite.x;}
 	get y() {return this.sprite.y;}
-
-	setDirection(direction) {
-		this.direction = direction;
-		this.sprite.setFrame(idleFrame[direction]);
-	}
 
 	fireStart() {
 		this.sprite.setFrame(firingFrame[this.direction]);
@@ -408,6 +421,7 @@ class Player {
 		this.laser.x = this.sprite.x + laserOffset[this.direction].dx;
 		this.laser.y = this.sprite.y + laserOffset[this.direction].dy;
 		this.isFiring = true;
+		this.sprite.stop();
 	}
 
 	fireEnd() {
@@ -415,11 +429,16 @@ class Player {
 		this.laser.setFrame(12);
 		this.isFiring = false;
 		this.sprite.setFrame(idleFrame[this.direction]);
+		this.firingAmount = 0;
 	}
 
 	update(time, delta) {
-		if (this.isFiring)
+		if (this.isFiring) {
+			this.firingAmount += delta;
+			if (this.firingAmount > conf.crackResistance * 1000)
+				this.scene.heal();
 			return;
+		}
 
 		const up    = this.cursorKeys.up.isDown;
 		const down  = this.cursorKeys.down.isDown;
@@ -446,8 +465,16 @@ class Player {
 			direction += "W";
 		}
 
-		if (direction)
-			this.setDirection(direction);
+		if (direction) {
+			if (!this.isWalking || direction !== this.direction) {
+				this.isWalking = true;
+				this.sprite.play("PlayerWalk" + direction);
+			}
+			this.direction = direction;
+		} else {
+			this.isWalking = false;
+			this.sprite.stop();
+		}
 	}
 }
 
@@ -507,9 +534,9 @@ const initialCrackTilesData = [
 	{tile: 4, dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
 	{tile: 5, dx: 2, dy: 1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
 
-	{tile: 0, dx: 0, dy: 0, from: "", to: "Right", toSize: 2, pivotX: -1, pivotY: 0.5},
-	{tile: 0, dx: 0, dy: 0, from: "", to: "Right", toSize: 3, pivotX: -1, pivotY: 0.5},
-	{tile: 1, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
+	{tile: 6, dx: 0, dy: 0, from: "", to: "Right", toSize: 2, pivotX: -1, pivotY: 0.5},
+	{tile: 7, dx: 0, dy: 0, from: "", to: "Right", toSize: 3, pivotX: -1, pivotY: 0.5},
+	{tile: 8, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5},
 ];
 
 // const initialCrackTilesData = [
@@ -561,6 +588,21 @@ firstIntermediateCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSi
 		flipX: true
 	});
 });
+
+// // Flip horizontally
+// const intermediateCrackTilesData = [];
+// initialCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
+// 	intermediateCrackTilesData.push({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY});
+// 	intermediateCrackTilesData.push({
+// 		tile,
+// 		dx, dy: -dy,
+// 		from: reverseDirection(flipXDirection(to)), fromSize: toSize,
+// 		to: reverseDirection(flipXDirection(from)), toSize: fromSize,
+// 		pivotX: dx - pivotX,
+// 		pivotY: pivotY - dy,
+// 		flipX: true
+// 	});
+// });
 
 // Rotate
 const finalCrackTilesData = [];
@@ -661,6 +703,7 @@ class Crack {
 		}
 		this.regenerateAll();
 		this.restartTimer();
+		this.scene.cameras.main.shake(200, 0.008);
 	}
 
 	generateRandomCrack(length, {x: initialX, y: initialY}) {
