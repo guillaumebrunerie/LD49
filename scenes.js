@@ -319,8 +319,8 @@ class DialogScene extends Phaser.Scene {
 	}
 
 	create() {
-		this.add.image(conf.dialogBg.x, conf.dialogBg.y, "DialogBackground").setOrigin(0, 0);
-		this.avatar = this.add.sprite(conf.avatar.x, conf.avatar.y, "").setOrigin(0, 0).setScale(conf.avatar.scale);
+		this.add.image(conf.dialogBg.x, conf.dialogBg.y, "DialogBackground");
+		this.avatar = this.add.sprite(conf.avatar.x, conf.avatar.y, "").setScale(conf.avatar.scale);
 
 		this.refresh();
 
