@@ -39,8 +39,8 @@ class StartScene extends Phaser.Scene {
 
 		this.anims.create({
 			key: "CrackPoint",
-			frameRate: 16 / conf.crackResistance,
-			frames: this.anims.generateFrameNames("CrackPoints", {start: 1, end: 17}),
+			frameRate: 14 / conf.crackResistance,
+			frames: this.anims.generateFrameNames("CrackPoints", {start: 1, end: 15}),
 		});
 
 		this.anims.create({
@@ -264,6 +264,17 @@ class MainScene extends Phaser.Scene {
 		this.batteryLevel = this.batteryCapacity = value;
 	}
 
+	getCloseCrackPoint() {
+		const healPoints = [];
+		this.cracks.forEach(crack => {
+			crack.crackPoints.forEach(crackPoint => {
+				if (crack.isCloseToPlayer({x: crackPoint.x * conf.tileSize, y: -crackPoint.y * conf.tileSize}))
+					healPoints.push({crack, crackPoint});
+			});
+		});
+		return healPoints[0];
+	}
+
 	interaction() {
 		if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize) {
 			this.talkToIntroGuide();
@@ -273,15 +284,9 @@ class MainScene extends Phaser.Scene {
 		if (this.batteryLevel == 0)
 			return; // No battery
 
-		const healPoints = [];
-		this.cracks.forEach(crack => {
-			crack.crackPoints.forEach(crackPoint => {
-				if (crack.isCloseToPlayer({x: crackPoint.x * conf.tileSize, y: -crackPoint.y * conf.tileSize}))
-					healPoints.push({crack, crackPoint});
-			});
-		});
-		if (healPoints.length !== 0) {
-			this.pointBeingHealed = pick(healPoints);
+		const healPoint = this.getCloseCrackPoint();
+		if (healPoint) {
+			this.pointBeingHealed = healPoint;
 			this.player.fireStart(this.pointBeingHealed);
 			const x = this.pointBeingHealed.crackPoint.x * conf.tileSize;
 			const y = -this.pointBeingHealed.crackPoint.y * conf.tileSize;
