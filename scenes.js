@@ -215,7 +215,6 @@ class MainScene extends Phaser.Scene {
 		stuffLayer.y = -stuffLayer.height / 2;
 
 		this.cracks = [];
-		// this.createCracks(1);
 
 		this.lastEarthquake = 0;
 
@@ -233,7 +232,7 @@ class MainScene extends Phaser.Scene {
 		this.batteryLevel = 50;
 		this.batteryCapacity = 5;
 
-		this.timeLeft = random(conf.crackDelay);
+		this.level = 0;
 
 		// Background
 
@@ -314,10 +313,29 @@ class MainScene extends Phaser.Scene {
 		this.crackPointSprite = null;
 	}
 
-	createCracks(amount) {
-		for (let i = 0; i < amount; i++) {
+	initLevel(level) {
+		const {
+			numberOfCracks,
+			crackDelay = Infinity,
+			crackMaxLength = Infinity,
+			dropsDelay = Infinity,
+			allowNewCracks = false,
+		} = conf.levels[level];
+
+		for (let i = 0; i < numberOfCracks; i++) {
 			this.cracks.push(new Crack({scene: this}));
 		}
+
+		this.crackDelay = crackDelay;
+		this.timeLeft = random(crackDelay);
+
+		this.crackMaxLength = crackMaxLength;
+
+		this.dropsDelay = dropsDelay;
+		this.dropTimeLeft = random(dropsDelay);
+
+		this.allowNewCracks = allowNewCracks;
+
 		this.cameras.main.shake(500, 0.008);
 	}
 
@@ -325,12 +343,13 @@ class MainScene extends Phaser.Scene {
 		if (this.scene.isActive("DialogScene"))
 			return;
 
-		const dialog = this.hasRunIntroDialog ? (
-			this.cracks.length > 0 ? dialogs.intro2 : dialogs.intro3)
-			  : dialogs.intro;
+		const isLevelOver = this.cracks.length == 0;
+		if (isLevelOver)
+			this.level++;
+		const levelDialogs = dialogs.levels[this.level];
+		const dialog = isLevelOver ? levelDialogs.start : levelDialogs.loop;
 
 		this.scene.run("DialogScene", dialog);
-		this.hasRunIntroDialog = true;
 	}
 
 	isValidPosition(x, y) {
@@ -352,23 +371,21 @@ class MainScene extends Phaser.Scene {
 		}
 
 		this.player.update(time, delta);
-		this.cracks.forEach(c => {
-			if (c.timeLeft < 0) {
-				c.extend();
-			}
-			c.update(time, delta);
-		});
+		this.cracks.forEach(c => c.update(time, delta));
 
 		this.timeLeft -= delta;
 
 		if (this.timeLeft < 0) {
-			this.timeLeft = random(conf.crackDelay) * 1000;
-			const crack = pick([null, ...this.cracks]);
+			this.timeLeft = random(this.crackDelay) * 1000;
+			const crack = pick(this.allowNewCracks ? [null, ...this.cracks] : this.cracks);
 			let shouldShake;
-			if (crack)
-				shouldShake = crack.extend();
-			else
-				; //this.cracks.push(new Crack({scene: this}));
+			if (crack) {
+				if (crack.crackPoints.length < this.crackMaxLength) {
+					shouldShake = crack.extend();
+				}
+			} else if (this.allowNewCracks) {
+				this.cracks.push(new Crack({scene: this}));
+			}
 			if (shouldShake)
 				this.cameras.main.shake(200, 0.008);
 		}
@@ -906,7 +923,6 @@ class Crack {
 	}
 
 	update(time, delta) {
-		this.timeLeft -= delta;
 		this.crackSegments.forEach(cs => cs.update(time, delta));
 		this.crackPointsSprites.forEach(cs => {
 			if (this.isCloseToPlayer(cs) && !this.scene.player.isFiring)

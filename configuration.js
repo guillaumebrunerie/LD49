@@ -37,15 +37,38 @@ conf.bubbleOffset = {dx: 14, dy: -15};
 // Speed of the robot, in tiles/second
 conf.speed = 4;
 
-// Time between two earthquakes, in seconds
-conf.crackDelay = {min: 2, max: 4};
-
 // Time it takes to heal a crack, in seconds
 conf.crackResistance = 2;
 
 // Probability that a crack will widen instead of extending (if possible)
 conf.widenProbability = 0.8;
 
-conf.level2 = {
+
+// Level specific configurations
+
+conf.levels = [];
+
+conf.levels[1] = {
+	numberOfCracks: 1,
+	crackDelay: Infinity,
+};
+
+conf.levels[2] = {
 	numberOfCracks: 3,
+	crackDelay: {min: 2, max: 4}, // Time between two earthquakes, in seconds
+	crackMaxLength: 5,
+	dropsDelay: {min: 1, max: 4}, // Time between the appearance of droplets
+};
+
+conf.levels[3] = {
+	numberOfCracks: 4,
+	crackDelay: {min: 1, max: 3}, // Time between two earthquakes, in seconds
+	dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
+};
+
+conf.levels[4] = {
+	numberOfCracks: 1,
+	crackDelay: {min: 1, max: 3}, // Time between two earthquakes, in seconds
+	dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
+	allowNewCracks: true,
 };
