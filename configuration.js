@@ -21,6 +21,9 @@ conf.viewportHeight = 10;
 // Size (in pixels) of one tile for cracks
 conf.crackTileSize = 48;
 
+//
+conf.bubbleOffset = {dx: 14, dy: -15};
+
 // Speed of the robot, in tiles/second
 conf.speed = 4;
 
@@ -28,7 +31,7 @@ conf.speed = 4;
 conf.crackDelay = {min: 2, max: 4};
 
 // Time it takes to heal a crack, in seconds
-conf.crackResistance = 3;
+conf.crackResistance = 2;
 
 // Probability that a crack will widen instead of extending (if possible)
 conf.widenProbability = 0.8;

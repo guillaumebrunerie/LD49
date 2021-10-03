@@ -164,7 +164,7 @@ class MainScene extends Phaser.Scene {
 		this.lastEarthquake = 0;
 
 		this.introGuide = this.add.sprite(0, -4 * conf.tileSize, "Characters", 0);
-		this.introGuideBubble = this.add.sprite(1 * conf.tileSize, -5 * conf.tileSize);
+		this.introGuideBubble = this.add.sprite(this.introGuide.x + conf.bubbleOffset.dx, this.introGuide.y + conf.bubbleOffset.dy);
 		this.introGuideBubble.isBubbling = false;
 
 		this.input.keyboard.on('keydown-SPACE', (event) => this.interaction(event));
@@ -267,11 +267,13 @@ class MainScene extends Phaser.Scene {
 		if (this.timeLeft < 0) {
 			this.timeLeft = random(conf.crackDelay) * 1000;
 			const crack = pick([null, ...this.cracks]);
+			let shouldShake;
 			if (crack)
-				crack.extend();
+				shouldShake = crack.extend();
 			else
 				; //this.cracks.push(new Crack({scene: this}));
-			this.cameras.main.shake(200, 0.008);
+			if (shouldShake)
+				this.cameras.main.shake(200, 0.008);
 		}
 	}
 }
@@ -289,7 +291,7 @@ class DialogScene extends Phaser.Scene {
 
 	create() {
 		this.add.image(0, 0, "DialogBackground").setOrigin(0, 0);
-		this.avatar = this.add.sprite(40, 35, "").setOrigin(0, 0).setScale(2);
+		this.avatar = this.add.sprite(10, 35, "").setOrigin(0, 0).setScale(2);
 
 		this.refresh();
 
@@ -314,7 +316,7 @@ class DialogScene extends Phaser.Scene {
 			case "them":
 				this.avatar.setTexture(currentDialog.type == "you" ? "Player" : "Characters");
 				this.lines = currentDialog.text.map((text, i) => (
-					new TextLine(this, 100, 50 + 10 * i, text)
+					new TextLine(this, 70, 50 + 10 * i, text)
 				));
 				break;
 			case "callback":
@@ -669,9 +671,13 @@ class Crack {
 		const pointsToWiden = this.crackPoints.filter(canBeWidened);
 		if (pointsToWiden.length > 0 && Math.random() < conf.widenProbability) {
 			const pointToWiden = pick(pointsToWiden);
+			if (pointToWiden == this.pointBeingHealed)
+				return false;
 			pointToWiden.size++;
 		} else if (Math.random() < 0.5) {
 			const lastPoint = this.crackPoints[this.crackPoints.length - 1];
+			if (lastPoint == this.pointBeingHealed)
+				return false;
 			const tile = pick(finalCrackTilesData.filter(data => data.from == lastPoint.direction && data.toSize == 1));
 			this.crackPoints.push({
 				x: lastPoint.x + tile.dx,
@@ -681,6 +687,8 @@ class Crack {
 			});
 		} else {
 			const firstPoint = this.crackPoints[0];
+			if (firstPoint == this.pointBeingHealed)
+				return false;
 			const tile = pick(finalCrackTilesData.filter(data => data.fromSize == 1 && data.to == firstPoint.direction));
 			this.crackPoints.unshift({
 				x: firstPoint.x - tile.dx,
@@ -690,6 +698,7 @@ class Crack {
 			});
 		}
 		this.regenerateAll();
+		return true;
 	}
 
 	generateRandomCrack(length, {x: initialX, y: initialY}) {
