@@ -12,27 +12,61 @@ class StartScene extends Phaser.Scene {
 	}
 
 	preload() {
+		const tileConf = {frameWidth: conf.tileSize, frameHeight: conf.tileSize};
+
 		this.load.setPath("assets");
 		this.load.image("StartScreen", "StartScreen.jpg");
 		this.load.image("StartButton", "StartButton.jpg");
 
 		this.load.image("DialogBackground");
 
-		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
+		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", tileConf);
 
 		this.load.spritesheet("CracksTiles", "CracksTiles.png", {frameWidth: conf.crackTileSize, frameHeight: conf.crackTileSize});
 		this.load.image("CrackPoint");
 		this.load.image("CrackPointActive");
 
-		this.load.spritesheet("Player", "SpriteSheets/Hero.png", {frameWidth: conf.tileSize, frameHeight: conf.tileSize});
+		this.load.spritesheet("Player", "SpriteSheets/Hero.png", tileConf);
 		this.load.image("IntroGuide");
-		this.load.image("Bubble");
+		this.load.spritesheet("Bubble", "SpriteSheets/SpeechBubble.png", tileConf);
 
 		this.load.spritesheet("Font", "Font.png", {frameWidth: 8, frameHeight: 8});
 	}
 
 	create() {
 		this.add.image(0, 0, "StartScreen").setOrigin(0, 0);
+
+		this.anims.create({
+			key: "BubbleStart",
+			frameRate: 15,
+			frames: [
+				{key: "Bubble", frame: 0},
+				{key: "Bubble", frame: 1},
+				{key: "Bubble", frame: 2},
+			]
+		});
+
+		this.anims.create({
+			key: "BubbleLoop",
+			frameRate: 3,
+			frames: [
+				{key: "Bubble", frame: 3},
+				{key: "Bubble", frame: 4},
+				{key: "Bubble", frame: 5},
+			],
+			repeat: -1,
+		});
+
+		this.anims.create({
+			key: "BubbleEnd",
+			frameRate: 15,
+			frames: [
+				{key: "Bubble", frame: 2},
+				{key: "Bubble", frame: 1},
+				{key: "Bubble", frame: 0},
+				{key: "Bubble", frame: 6},
+			]
+		});
 
 		// const startButton = this.add.image(0, 0, "StartButton");
 		// startButton.setInteractive();
@@ -96,11 +130,13 @@ class MainScene extends Phaser.Scene {
 		stuffLayer.y = -stuffLayer.height / 2;
 
 		this.cracks = [];
+		this.createCracks(1);
 
 		this.lastEarthquake = 0;
 
 		this.introGuide = this.add.sprite(0, -4 * conf.tileSize, "IntroGuide");
-		this.introGuideBubble = this.add.sprite(1 * conf.tileSize, -5 * conf.tileSize, "Bubble").setVisible(false);
+		this.introGuideBubble = this.add.sprite(1 * conf.tileSize, -5 * conf.tileSize);
+		this.introGuideBubble.isBubbling = false;
 
 		this.input.keyboard.on('keydown-SPACE', (event) => this.interaction(event));
 
@@ -162,7 +198,18 @@ class MainScene extends Phaser.Scene {
 	}
 
 	update(time, delta) {
-		this.introGuideBubble.setVisible(Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize);
+		if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize) {
+			if (!this.introGuideBubble.isBubbling) {
+				this.introGuideBubble.isBubbling = true;
+				this.introGuideBubble.play("BubbleStart");
+				this.introGuideBubble.playAfterDelay("BubbleLoop");
+			}
+		} else {
+			if (this.introGuideBubble.isBubbling) {
+				this.introGuideBubble.play("BubbleEnd");
+				this.introGuideBubble.isBubbling = false;
+			}
+		}
 
 		this.player.update(time, delta);
 		this.cracks.forEach(c => {

@@ -28,4 +28,4 @@ conf.speed = 4;
 conf.crackDelay = 1;
 
 // Time it takes for a crack to get bigger, in seconds
-conf.crackExtendDelay = {min: 2, max: 4};
+conf.crackExtendDelay = {min: 0.5, max: 1};
