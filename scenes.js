@@ -108,8 +108,8 @@ class StartScene extends Phaser.Scene {
 }
 
 // Returns a 2D mask of size [size × size] that represents a circle
-const generateBrokenCircle = (size) => {
-	const radius = size / 2;
+const generateWorldMask = (size) => {
+	const radius = size / 2 - 1;
 	const center = (size - 1) / 2;
 	const result = [];
 	for (let i = 0; i < size; i++) {
@@ -129,11 +129,24 @@ class MainScene extends Phaser.Scene {
 
 	create() {
 		const groundLayerData = [];
-		// const mask = generateWorldMask(conf.worldSize);
+		const mask = generateWorldMask(conf.worldSize);
 		for (let y = 0; y < conf.worldHeight; y++) {
 			groundLayerData[y] = [];
 			for (let x = 0; x < conf.worldWidth; x++) {
-				groundLayerData[y][x] = pick([0, 1, 13, 14]);
+				let tile;
+				if (mask[y][x] == 1) {
+					tile = pick([0, 1, 13, 14]);
+				} else {
+					if (mask[y][x + 1])
+						tile = 39;
+					else if (mask[y][x - 1])
+						tile = 41;
+					else if (mask[y + 1]?.[x])
+						tile = 27;
+					else if (mask[y - 1]?.[x])
+						tile = 53;
+				}
+				groundLayerData[y][x] = tile;
 			}
 		}
 		const groundTilemap = this.make.tilemap({
@@ -306,7 +319,7 @@ class DialogScene extends Phaser.Scene {
 	}
 
 	create() {
-		this.add.image(0, 0, "DialogBackground").setOrigin(0, 0);
+		this.add.image(conf.dialogBg.x, conf.dialogBg.y, "DialogBackground").setOrigin(0, 0);
 		this.avatar = this.add.sprite(conf.avatar.x, conf.avatar.y, "").setOrigin(0, 0).setScale(conf.avatar.scale);
 
 		this.refresh();
