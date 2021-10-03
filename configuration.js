@@ -53,6 +53,7 @@ conf.levels = [];
 conf.levels[1] = {
 	numberOfCracks: 1,
 	crackDelay: Infinity,
+	// crackDelay: 0.5,
 };
 
 conf.levels[2] = {

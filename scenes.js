@@ -1,3 +1,19 @@
+const playerWalkAnimations = [
+	["W", [13, 14, 15]],
+	["E", [26, 27, 28]],
+	["N", [65, 66, 67]],
+	["S", [0, 1, 2]],
+	["NW", [52, 53, 54]],
+	["NE", [56, 57, 58]],
+	["SW", [39, 40, 41]],
+	["SE", [43, 44, 45]],
+];
+
+const idleFrame = Object.fromEntries(playerWalkAnimations.map(([d, [x, ...rest]]) => [d, x]));
+const firingFrame = Object.fromEntries(playerWalkAnimations.map(([d, [x, ...rest]]) => [d, x + 3]));
+firingFrame.E++;
+firingFrame.W++;
+
 class StartScene extends Phaser.Scene {
 	constructor() {
 		super("StartScene");
@@ -82,17 +98,6 @@ class StartScene extends Phaser.Scene {
 				repeat: -1
 			});
 		});
-
-		const playerWalkAnimations = [
-			["W", [13, 14, 15]],
-			["E", [26, 27, 28]],
-			["N", [65]],
-			["S", [0, 1, 2]],
-			["NW", [52]],
-			["NE", [54]],
-			["SW", [39]],
-			["SE", [41]],
-		];
 
 		playerWalkAnimations.forEach(([suffix, frames]) => {
 			this.anims.create({
@@ -379,6 +384,14 @@ class MainScene extends Phaser.Scene {
 		return true;
 	}
 
+	fixPlayerPosition() {
+		if (!this.isValidPosition(this.player.x / conf.tileSize, this.player.y / conf.tileSize)) {
+			this.player.x += Math.random() * conf.tileSize;
+			this.player.y += Math.random() * conf.tileSize;
+			this.fixPlayerPosition();
+		}
+	}
+
 	update(time, delta) {
 		if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize) {
 			if (!this.introGuideBubble.isBubbling) {
@@ -413,6 +426,8 @@ class MainScene extends Phaser.Scene {
 			}
 			if (shouldShake)
 				this.cameras.main.shake(200, 0.008);
+
+			this.fixPlayerPosition();
 		}
 	}
 }
@@ -510,28 +525,6 @@ class TextLine {
 		this.letters.forEach(letter => letter.destroy());
 	}
 }
-
-const idleFrame = {
-	"N": 65,
-	"NE": 54,
-	"E": 26,
-	"SE": 41,
-	"S": 0,
-	"SW": 39,
-	"W": 13,
-	"NW": 52,
-};
-
-const firingFrame = {
-	"N": 66,
-	"NE": 55,
-	"E": 30,
-	"SE": 42,
-	"S": 3,
-	"SW": 40,
-	"W": 17,
-	"NW": 53,
-};
 
 const laserOffset = {
 	"N": {dx: 2, dy: -17},
