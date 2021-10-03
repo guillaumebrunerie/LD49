@@ -23,13 +23,13 @@ conf.viewportHeight = 10;
 conf.crackTileSize = 48;
 
 // Position and scale of the avatar
-conf.avatar = {x: 10, y: 35, scale: 2};
+conf.avatar = {x: 40, y: 53, scale: 2};
 
 // Position and scale of the text
-conf.dialogText = {x: 70, y: 50, dy: 10};
+conf.dialogText = {x: 80, y: 50, dy: 10};
 
 // Position and scale of the dialog background
-conf.dialogBg = {x: 0, y: 0};
+conf.dialogBg = {x: 240, y: 53};
 
 // Position of the bubble
 conf.bubbleOffset = {dx: 14, dy: -15};
