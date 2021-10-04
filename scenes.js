@@ -423,7 +423,7 @@ class MainScene extends Phaser.Scene {
 			const dx = Math.abs(newX * conf.tileSize - this.player.x);
 			const dy = Math.abs(newY * conf.tileSize - this.player.y);
 			const distance = dx + dy;
-			if (distance < 2 * conf.tileSize)
+			if (distance < 2 * conf.tileSize && (this.grassMask[y + 1][x] == 0 || this.grassMask[y + 1][x + 1] == 0))
 				healPoints.push({tree, crackPoint: {x: newX, y: -newY}, distance});
 		});
 		return healPoints.sort((a, b) => a.distance - b.distance)[0];
