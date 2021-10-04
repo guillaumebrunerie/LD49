@@ -217,7 +217,7 @@ class MainScene extends Phaser.Scene {
 				};
 				let tile = tiles[value];
 				if (value == "1111") {
-					tile = pick([0, 1, 13, 14]);
+					tile = pick([0, 1, 13, 14, 0, 1, 13, 14, 0, 1, 13, 14, 0, 1, 13, 14, 0, 1, 13, 14, 0, 1, 13, 14, 0, 1, 13, 14, 35, 36, 35+13, 36+13]);
 				}
 				groundLayerData[y][x] = tile;
 			}
@@ -382,7 +382,9 @@ class MainScene extends Phaser.Scene {
 			return tile + 67;
 		if (col <= 2)
 			return tile + 36;
-		return tile + 44;
+		if (col <= 4)
+			return tile + 44;
+		return tile + 2;
 	}
 
 	updateForGrass() {
