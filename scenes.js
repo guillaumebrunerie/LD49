@@ -64,6 +64,12 @@ class StartScene extends Phaser.Scene {
 		});
 
 		this.anims.create({
+			key: "CrackPointTree",
+			frameRate: (42 - 27) / conf.crackResistance,
+			frames: this.anims.generateFrameNames("CrackPoints", {start: 27, end: 42}),
+		});
+
+		this.anims.create({
 			key: "BubbleStart",
 			frameRate: 15,
 			frames: this.anims.generateFrameNames("Bubble", {frames: [0, 1, 2]}),
@@ -444,7 +450,7 @@ class MainScene extends Phaser.Scene {
 			const x = this.pointBeingHealed.crackPoint.x * conf.tileSize;
 			const y = -this.pointBeingHealed.crackPoint.y * conf.tileSize;
 			this.crackPointSprite = this.add.sprite(x, y, "CrackPoints", 18).setDepth(43);
-			this.crackPointSprite.play("CrackPoint");
+			this.crackPointSprite.play(healPoint.tree ? "CrackPointTree" : "CrackPoint");
 		}
 	}
 
