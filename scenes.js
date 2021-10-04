@@ -432,6 +432,17 @@ class MainScene extends Phaser.Scene {
 
 		this.cracks.forEach(c => c.update(time, delta));
 
+		if (this.waterLevel < this.waterCapacity) {
+			this.droplets.forEach(droplet => {
+				if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, droplet) < conf.dropletHitboxSize) {
+					this.droplets = this.droplets.filter(d => d !== droplet);
+					droplet.destroy();
+					this.waterLevel++;
+					this.updateInventory();
+				}
+			});
+		}
+
 		this.timeLeft -= delta;
 		this.dropTimeLeft -= delta;
 
@@ -882,7 +893,7 @@ class Crack {
 		const pointsToWiden = this.crackPoints.filter(canBeWidened);
 		if (pointsToWiden.length > 0 && Math.random() < conf.widenProbability) {
 			const pointToWiden = pick(pointsToWiden);
-			if (pointToWiden == this.scene.pointBeingHealed.crackPoint)
+			if (pointToWiden == this.scene.pointBeingHealed?.crackPoint)
 				return false;
 			pointToWiden.size++;
 		} else if (Math.random() < 0.5) {

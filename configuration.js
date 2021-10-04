@@ -70,7 +70,7 @@ conf.levels[2] = {
 	crackDelay: {min: 2, max: 4}, // Time between two earthquakes, in seconds
 	crackMaxLength: 5,
 	dropsDelay: {min: 1, max: 4}, // Time between the appearance of droplets
-	waterCapacity: 3,
+	waterCapacity: 5,
 };
 
 conf.levels[3] = {
