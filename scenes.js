@@ -137,6 +137,7 @@ class StartScene extends Phaser.Scene {
 		startButton.on("pointerup", () => {
 			if (startButton.isDown) {
 				this.scene.start("MainScene");
+				this.scene.get("HUD").gameStarted();
 			}
 		});
 	}
@@ -1205,24 +1206,32 @@ class Crack {
 class HUD extends Phaser.Scene {
 	constructor() {
 		super({key: "HUD", active: true});
+		this.suffix = "";
+	}
+
+	gameStarted() {
+		this.suffix = "_Small";
+		this.button.setTexture(this.button.texture.key + this.suffix);
+		this.button.x = conf.smallSoundButton.x;
+		this.button.y = conf.smallSoundButton.y;
 	}
 
 	preload() {
 		this.load.setPath("assets/UI");
 		this.load.image(["Btn_Sound_ON", "Btn_Sound_OFF"]);
+		this.load.image(["Btn_Sound_ON_Small", "Btn_Sound_OFF_Small"]);
 	}
 
 	create() {
 		this.sound.mute = false;
 
-		let button = this.add.image(conf.soundButton.x, conf.soundButton.y, "Btn_Sound_ON");
-
+		const button = this.button = this.add.image(conf.soundButton.x, conf.soundButton.y, "Btn_Sound_ON");
 		window.btn = button;
 
 		button.setInteractive();
 		button.on("pointerdown", () => {
 			this.sound.mute = !this.sound.mute;
-			button.setTexture("Btn_Sound_" + (this.sound.mute ? "ON" : "OFF"));
+			button.setTexture("Btn_Sound_" + (this.sound.mute ? "ON" : "OFF") + this.suffix);
 		});
 	}
 }

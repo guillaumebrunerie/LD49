@@ -37,6 +37,7 @@ conf.bubbleOffset = {dx: 14, dy: -15};
 // Buttons
 conf.startButton = {x: 239, y: 198};
 conf.soundButton = {x: 442, y: 9};
+conf.smallSoundButton = {x: 467, y: 14};
 
 conf.inventory = {
 	x: 12,
