@@ -24,7 +24,7 @@ dialogs.levels[1].start = [
 						  "unstable than what they thought."]},
 	{type: "them", text: ["It made the planet unstable and",
 						  "it risks exploding very soon."]},
-	{type: "callback", callback: (scene) => scene.initLevel(4)},
+	{type: "callback", callback: (scene) => scene.initLevel(1)},
 	{type: "them", text: ["Look! Here are a crack!"]},
 	{type: "you",  text: ["Oh..."]},
 	{type: "them", text: ["Go next to it and keep pressing SPACE",
