@@ -464,8 +464,8 @@ class MainScene extends Phaser.Scene {
 			crack.destroy();
 			this.cracks = this.cracks.filter(c => c !== crack);
 			this.cracks.push(...newCracks);
-			this.updateInventory();
 		}
+		this.updateInventory();
 		this.pointBeingHealed = null;
 	}
 
