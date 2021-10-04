@@ -25,13 +25,19 @@ class StartScene extends Phaser.Scene {
 		this.load.setPath("assets/Audio");
 		this.load.audio("music", "Music/Exploration_Dark (loop).mp3");
 
-		// this.load.audio("Beep1", "Fx/sci-fi_beep_computer_ui_01.mp3");
-		// this.load.audio("Beep2", "Fx/sci-fi_beep_computer_ui_02.mp3");
-		// this.load.audio("Beep3", "Fx/sci-fi_beep_computer_ui_03.mp3");
-		// this.load.audio("Beep4", "Fx/sci-fi_beep_computer_ui_04.mp3");
-		// this.load.audio("Beep5", "Fx/sci-fi_beep_computer_ui_05.mp3");
+		this.load.audio("Beep1", "Fx/sci-fi_beep_computer_ui_01.mp3");
+		this.load.audio("Beep2", "Fx/sci-fi_beep_computer_ui_02.mp3");
+		this.load.audio("Beep3", "Fx/sci-fi_beep_computer_ui_03.mp3");
+		this.load.audio("Beep4", "Fx/sci-fi_beep_computer_ui_04.mp3");
+		this.load.audio("Beep5", "Fx/sci-fi_beep_computer_ui_05.mp3");
 
-		// this.load.audio("Water", "Fx/GunShot.mp3");
+		this.load.audio("Water", "Fx/GunShot.mp3");
+
+		this.load.audio("Crack", "Fx/Crack.mp3");
+
+		this.load.audio("Droplet", "Fx/PickUpDroplet.mp3");
+
+		this.load.audio("Tree", "Fx/PickUpDroplet2.mp3");
 
 		this.load.setPath("assets/UI");
 		this.load.image("Start_Screen");
@@ -515,6 +521,7 @@ class MainScene extends Phaser.Scene {
 		}
 		this.updateInventory();
 		this.pointBeingHealed = null;
+		this.sound.play("Tree");
 	}
 
 	fireEnd() {
@@ -539,7 +546,13 @@ class MainScene extends Phaser.Scene {
 		} = conf.levels[level];
 
 		for (let i = 0; i < numberOfCracks; i++) {
-			this.cracks.push(new Crack({scene: this}));
+			let x, y, tries = 0;
+			do {
+				x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
+				y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
+				tries++;
+			} while (!this.isValidPosition(x, -y, true) && tries < 100)
+			this.cracks.push(new Crack({scene: this, x, y}));
 		}
 
 		this.crackDelay = crackDelay;
@@ -563,6 +576,7 @@ class MainScene extends Phaser.Scene {
 		this.updateInventory();
 
 		this.cameras.main.shake(500, 0.008);
+		this.sound.play("Crack");
 	}
 
 	talkToIntroGuide() {
@@ -672,6 +686,7 @@ class MainScene extends Phaser.Scene {
 					droplet.destroy();
 					this.waterLevel++;
 					this.updateInventory();
+					this.sound.play("Droplet");
 				}
 			});
 		}
@@ -698,8 +713,10 @@ class MainScene extends Phaser.Scene {
 				if (tries < 100)
 					this.cracks.push(new Crack({scene: this, x, y}));
 			}
-			if (shouldShake)
+			if (shouldShake) {
 				this.cameras.main.shake(200, 0.008);
+				this.sound.play("Crack");
+			}
 
 			this.fixPlayerPosition();
 		}
@@ -914,6 +931,7 @@ class Player {
 		this.laser.y = this.sprite.y + laserOffset[this.direction].dy;
 		this.isFiring = true;
 		this.sprite.stop();
+		this.scene.sound.play("Water", {loop: true});
 	}
 
 	fireEnd() {
@@ -922,6 +940,7 @@ class Player {
 		this.isFiring = false;
 		this.sprite.setFrame(idleFrame[this.direction]);
 		this.firingAmount = 0;
+		this.scene.sound.stopByKey("Water");
 	}
 
 	update(time, delta) {
