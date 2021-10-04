@@ -38,6 +38,7 @@ class StartScene extends Phaser.Scene {
 
 		this.load.image("Water_Bullet", "UI/Water_Bullet.png");
 		this.load.image("Water_Inventory", "UI/Water_Inventory.png");
+		this.load.image("WaterDroplet", "Collectables/Droplet.png");
 
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", tileConf);
 		this.load.spritesheet("SpaceTiles", "SpriteSheets/BgSpace.png", tileConf);
@@ -244,6 +245,8 @@ class MainScene extends Phaser.Scene {
 
 		this.level = 0;
 
+		this.droplets = [];
+
 		// Background
 
 		const backgroundLayerData = [];
@@ -341,12 +344,12 @@ class MainScene extends Phaser.Scene {
 		}
 
 		this.crackDelay = crackDelay;
-		this.timeLeft = random(crackDelay);
+		this.timeLeft = random(crackDelay) * 1000;
 
 		this.crackMaxLength = crackMaxLength;
 
 		this.dropsDelay = dropsDelay;
-		this.dropTimeLeft = random(dropsDelay);
+		this.dropTimeLeft = random(dropsDelay) * 1000;
 
 		this.allowNewCracks = allowNewCracks;
 
@@ -430,6 +433,7 @@ class MainScene extends Phaser.Scene {
 		this.cracks.forEach(c => c.update(time, delta));
 
 		this.timeLeft -= delta;
+		this.dropTimeLeft -= delta;
 
 		if (this.timeLeft < 0) {
 			this.timeLeft = random(this.crackDelay) * 1000;
@@ -446,6 +450,20 @@ class MainScene extends Phaser.Scene {
 				this.cameras.main.shake(200, 0.008);
 
 			this.fixPlayerPosition();
+		}
+
+		if (this.dropTimeLeft < 0) {
+			this.dropTimeLeft = random(this.dropsDelay) * 1000;
+
+			if (this.droplets.length < this.waterCapacity) {
+				let x, y;
+				do {
+					x = Math.floor((Math.random() - 0.5) * conf.worldSize) * conf.tileSize;
+					y = Math.floor((Math.random() - 0.5) * conf.worldSize) * conf.tileSize;
+				} while (!this.isValidPosition(x / conf.tileSize, -y / conf.tileSize))
+				const newDrop = this.add.image(x, y, "WaterDroplet");
+				this.droplets.push(newDrop);
+			}
 		}
 	}
 }
@@ -864,7 +882,7 @@ class Crack {
 		const pointsToWiden = this.crackPoints.filter(canBeWidened);
 		if (pointsToWiden.length > 0 && Math.random() < conf.widenProbability) {
 			const pointToWiden = pick(pointsToWiden);
-			if (pointToWiden == this.pointBeingHealed)
+			if (pointToWiden == this.scene.pointBeingHealed.crackPoint)
 				return false;
 			pointToWiden.size++;
 		} else if (Math.random() < 0.5) {

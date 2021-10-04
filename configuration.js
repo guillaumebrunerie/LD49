@@ -51,6 +51,7 @@ conf.widenProbability = 0.8;
 
 conf.crackHitboxSize = 14;
 conf.introGuideHitboxSize = 18;
+conf.dropletHitboxSize = 12;
 
 // Level specific configurations
 
@@ -61,6 +62,7 @@ conf.levels[1] = {
 	crackDelay: Infinity,
 	waterCapacity: 1,
 	// crackDelay: 0.5,
+	dropsDelay: 0.5
 };
 
 conf.levels[2] = {
