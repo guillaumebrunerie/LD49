@@ -290,6 +290,8 @@ class MainScene extends Phaser.Scene {
 
 		this.droplets = [];
 
+		this.crackPointIndicator = this.add.sprite(0, 0, "CrackPoints", 0).setVisible(false);
+
 		// Background
 
 		const backgroundLayerData = [];
@@ -430,11 +432,6 @@ class MainScene extends Phaser.Scene {
 	}
 
 	interaction() {
-		// const tileX = Math.round((this.player.x / conf.tileSize) + conf.worldWidth / 2);
-		// const tileY = Math.round((this.player.y / conf.tileSize) + conf.worldWidth / 2);
-		// this.grassMask[tileY][tileX] = 1;
-		// this.updateForGrass();
-
 		if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize) {
 			this.talkToIntroGuide();
 			return;
@@ -587,6 +584,16 @@ class MainScene extends Phaser.Scene {
 				this.introGuideBubble.play("BubbleEnd");
 				this.introGuideBubble.isBubbling = false;
 			}
+		}
+
+		const healPoint = this.getCloseCrackPoint();
+		if (healPoint && !this.player.isFiring) {
+			this.crackPointIndicator.x = healPoint.crackPoint.x * conf.tileSize;
+			this.crackPointIndicator.y = -healPoint.crackPoint.y * conf.tileSize;
+			this.crackPointIndicator.setVisible(true);
+			this.crackPointIndicator.setFrame(healPoint.tree ? 26 : 0);
+		} else {
+			this.crackPointIndicator.setVisible(false);
 		}
 
 		if (!this.scene.isActive("DialogScene"))
@@ -1007,13 +1014,11 @@ class Crack {
 		} while (!scene.isValidPosition(x, -y))
 		this.crackPoints = crackPoints || this.generateRandomCrack(1, {x, y});
 		this.crackSegments = [];
-		this.crackPointsSprites = [];
 		this.regenerateAll();
 	}
 
 	destroy() {
 		this.crackSegments.forEach(s => s.destroy());
-		this.crackPointsSprites.forEach(s => s.destroy());
 	}
 
 	regenerateAll() {
@@ -1021,11 +1026,6 @@ class Crack {
 
 		this.crackSegments.forEach(s => s.destroy());
 		this.crackSegments = this.generateCrackSegments(this.crackSegmentData);
-
-		this.crackPointsSprites.forEach(s => s.destroy());
-		this.crackPointsSprites = this.crackPoints.map(({x, y}) => (
-			this.scene.add.sprite(x * conf.tileSize, -y * conf.tileSize, "CrackPoints", 17).setDepth(43)
-		));
 	}
 
 	extend() {
@@ -1170,12 +1170,5 @@ class Crack {
 
 	update(time, delta) {
 		this.crackSegments.forEach(cs => cs.update(time, delta));
-		this.crackPointsSprites.forEach(cs => {
-			if (this.isCloseToPlayer(cs) && !this.scene.player.isFiring)
-				cs.setFrame(0);
-			else
-				cs.setFrame(17);
-			cs.update(time, delta);
-		});
 	}
 }
