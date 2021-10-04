@@ -403,17 +403,27 @@ class MainScene extends Phaser.Scene {
 		const m = this.grassMask;
 		for (let y = 1; y < conf.worldHeight - 1; y++) {
 			for (let x = 1; x < conf.worldWidth - 1; x++) {
-				if (m[y][x + 1] == 1 || m[y][x - 1] == 1 || m[y - 1][x] == 1 || m[y + 1][x] == 1) {
+				if (m[y][x] == 0 && (m[y][x + 1] == 1 || m[y][x - 1] == 1 || m[y - 1][x] == 1 || m[y + 1][x] == 1)) {
 					if (Math.random() < this.extendProbability)
 						m[y][x] = 2;
 				}
 			}
 		}
 
+		const distanceSquared = ({x: x1, y: y1}, {x: x2, y: y2}) => (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+
+		const hasCrack = (x, y) => (
+			this.cracks.some(crack => (
+				crack.crackPoints.some(crackPoint => (
+					distanceSquared(crackPoint, {x: x - conf.worldWidth / 2, y: conf.worldHeight / 2 - y}) < 3
+				))
+			))
+		);
+
 		for (let y = 0; y < conf.worldHeight; y++) {
 			for (let x = 0; x < conf.worldWidth; x++) {
 				if (m[y][x] == 2)
-					m[y][x] = 1;
+					m[y][x] = hasCrack(x, y) ? 0 : 1;
 			}
 		}
 
@@ -578,6 +588,14 @@ class MainScene extends Phaser.Scene {
 
 		if (Phaser.Math.Distance.Between(x * conf.tileSize, y * conf.tileSize, this.introGuide.x, this.introGuide.y) <= conf.introGuideHitboxSize)
 			return false;
+
+		const isGrassForbidden = !!crackToIgnore;
+		if (isGrassForbidden) {
+			let maskX = Math.round(x + (conf.worldSize - 1) / 2);
+			let maskY = Math.round(y + 0.5 + (conf.worldSize - 1) / 2);
+			if (this.grassMask[maskY]?.[maskX])
+				return false;
+		}
 
 		return true;
 	}
@@ -1041,7 +1059,7 @@ class Crack {
 		do {
 			x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
 			y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
-		} while (!scene.isValidPosition(x, -y))
+		} while (!scene.isValidPosition(x, -y, true))
 		this.crackPoints = crackPoints || this.generateRandomCrack(1, {x, y});
 		this.crackSegments = [];
 		this.regenerateAll();

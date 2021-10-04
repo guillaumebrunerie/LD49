@@ -74,7 +74,11 @@ conf.levels[1] = {
 	dropsDelay: 0.5,
 	treesEnabled: true,
 	extendDelay: 2,
-	extendProbability: 0.2,
+	extendProbability: 0.3,
+
+	// crackDelay: {min: 1, max: 1}, // Time between two earthquakes, in seconds
+	// dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
+	// allowNewCracks: true,
 };
 
 conf.levels[2] = {
