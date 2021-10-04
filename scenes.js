@@ -127,9 +127,9 @@ const generateWorldMask = (size) => {
 	const radius = size / 2 - 1;
 	const center = (size - 1) / 2;
 	const result = [];
-	for (let i = 0; i < size; i++) {
+	for (let i = 0; i < size + 1; i++) {
 		result[i] = [];
-		for (let j = 0; j < size; j++) {
+		for (let j = 0; j < size + 1; j++) {
 			const distance = (j - center) * (j - center) + (i - center) * (i - center);
 			result[i][j] = distance < radius * radius ? 1 : 0;
 		}
@@ -148,34 +148,32 @@ class MainScene extends Phaser.Scene {
 		for (let y = 0; y < conf.worldHeight; y++) {
 			groundLayerData[y] = [];
 			for (let x = 0; x < conf.worldWidth; x++) {
-				let tile;
-				if (mask[y][x] == 1) {
+				let maskNW = mask[y][x];
+				let maskNE = mask[y][x + 1];
+				let maskSE = mask[y + 1][x + 1];
+				let maskSW = mask[y + 1][x];
+				let value = `${maskNW}${maskNE}${maskSE}${maskSW}`;
+				const tiles = {
+					"0010": 26,
+					"0011": 27,
+					"0001": 28,
+					"1101": 29,
+					"1110": 30,
+					"0110": 39,
+					"0000": 40,
+					"1001": 41,
+					"1011": 42,
+					"0111": 43,
+					"0100": 52,
+					"1100": 53,
+					"1000": 54,
+					"1111": null,
+					"1010": null,
+					"0101": null,
+				};
+				let tile = tiles[value];
+				if (value == "1111") {
 					tile = pick([0, 1, 13, 14]);
-				} else {
-					if (mask[y][x + 1] && mask[y + 1]?.[x])
-						tile = 43;
-					else if (mask[y][x + 1] && mask[y - 1]?.[x])
-						tile = 30;
-					else if (mask[y][x + 1])
-						tile = 39;
-					else if (mask[y][x - 1] && mask[y + 1]?.[x])
-						tile = 42;
-					else if (mask[y][x - 1] && mask[y - 1]?.[x])
-						tile = 29;
-					else if (mask[y][x - 1])
-						tile = 41;
-					else if (mask[y + 1]?.[x])
-						tile = 27;
-					else if (mask[y - 1]?.[x])
-						tile = 53;
-					else if (mask[y + 1]?.[x + 1])
-						tile = 26;
-					else if (mask[y + 1]?.[x - 1])
-						tile = 28;
-					else if (mask[y - 1]?.[x + 1])
-						tile = 52;
-					else if (mask[y - 1]?.[x - 1])
-						tile = 54;
 				}
 				groundLayerData[y][x] = tile;
 			}
@@ -187,13 +185,49 @@ class MainScene extends Phaser.Scene {
 			width: conf.worldWidth,
 			height: conf.worldHeight,
 		});
+		this.groundTilemap = groundTilemap;
 		const groundTileset = groundTilemap.addTilesetImage("tileset", "Tiles");
 		const groundLayer = groundTilemap.createLayer(0, groundTileset);
 
 		groundLayer.x = -groundLayer.width / 2;
 		groundLayer.y = -groundLayer.height / 2;
 
-		const liveTrees = [2, 3, 4, 5, 6, 7, 8, 33, 34];
+
+
+
+		const grassLayerData = [];
+		for (let y = 0; y < conf.worldHeight; y++) {
+			grassLayerData[y] = [];
+			for (let x = 0; x < conf.worldWidth; x++) {
+				grassLayerData[y][x] = 70;
+			}
+		}
+		this.grassMask = [];
+		for (let y = 0; y < conf.worldHeight + 1; y++) {
+			this.grassMask[y] = [];
+			for (let x = 0; x < conf.worldWidth + 1; x++) {
+				this.grassMask[y][x] = 0;
+			}
+		}
+		const grassTilemap = this.make.tilemap({
+			data: grassLayerData,
+			tileWidth: conf.tileSize,
+			tileHeight: conf.tileSize,
+			width: conf.worldWidth,
+			height: conf.worldHeight,
+		});
+		this.grassTilemap = grassTilemap;
+		const grassTileset = grassTilemap.addTilesetImage("tileset", "Tiles");
+		const grassLayer = grassTilemap.createLayer(0, grassTileset);
+
+		grassLayer.x = -grassLayer.width / 2;
+		grassLayer.y = -grassLayer.height / 2;
+
+
+
+		this.treePositions = [];
+
+		const liveTrees = [2, 3, 4, 5, 6, 7, 8, 33, 34, 59];
 		const deadTrees = liveTrees.map(x => x + 13);
 		const otherStuff = [9, 10, 11, 12, 22, 23, 24, 25, 31, 32, 44, 45];
 		const nothing = new Array(100).fill(40);
@@ -202,9 +236,11 @@ class MainScene extends Phaser.Scene {
 		for (let y = 0; y < conf.worldHeight; y++) {
 			stuffLayerData[y] = [];
 			for (let x = 0; x < conf.worldWidth; x++) {
-				if (mask[y][x]) {
+				if (mask[y][x] && mask[y + 1][x] && mask[y + 1][x + 1] && mask[y][x + 1]) {
 					const stuff = pick(stuffToPickFrom);
 					stuffLayerData[y][x] = stuff;
+					if (deadTrees.includes(stuff))
+						this.treePositions.push({x, y});
 				} else {
 					stuffLayerData[y][x] = 40;
 				}
@@ -217,6 +253,7 @@ class MainScene extends Phaser.Scene {
 			width: conf.worldWidth,
 			height: conf.worldHeight,
 		});
+		this.stuffTilemap = stuffTilemap;
 		const stuffTileset = stuffTilemap.addTilesetImage("tileset", "Tiles");
 		const stuffLayer = stuffTilemap.createLayer(0, stuffTileset);
 
@@ -273,6 +310,70 @@ class MainScene extends Phaser.Scene {
 		this.cameras.cameras.reverse();
 	}
 
+	makeStuffTileAlive(tile) {
+		const liveTrees = [2, 3, 4, 5, 6, 7, 8, 33, 34, 59];
+		const deadTrees = liveTrees.map(x => x + 13);
+		if (deadTrees.includes(tile))
+			return (tile - 13);
+		else
+			return tile;
+	}
+
+	turnGroundToGrass(tile) {
+		const row = Math.floor(tile / 13);
+		const col = tile - row * 13;
+		if (row <= 1)
+			return tile + 67;
+		if (col <= 2)
+			return tile + 36;
+		return tile + 44;
+	}
+
+	updateForGrass() {
+		const m = this.grassMask;
+		for (let y = 0; y < conf.worldHeight; y++) {
+			for (let x = 0; x < conf.worldWidth; x++) {
+				let maskNW = this.grassMask[y][x];
+				let maskNE = this.grassMask[y][x + 1];
+				let maskSE = this.grassMask[y + 1][x + 1];
+				let maskSW = this.grassMask[y + 1][x];
+				let value = `${maskNW}${maskNE}${maskSE}${maskSW}`;
+				const tiles = {
+					"1101": 65,
+					"1110": 66,
+					"1111": null,
+					"0110": 69,
+					"1001": 71,
+					"1010": 55,
+					"0010": 56,
+					"0011": 57,
+					"0001": 58,
+					"1011": 78,
+					"0111": 79,
+					"0100": 82,
+					"1100": 83,
+					"1000": 84,
+					"0101": 85,
+					"0000": 70,
+				};
+				let tile = tiles[value];
+				let wMaskNW = this.worldMask[y][x];
+				let wMaskNE = this.worldMask[y][x + 1];
+				let wMaskSE = this.worldMask[y + 1][x + 1];
+				let wMaskSW = this.worldMask[y + 1][x];
+				if (wMaskNW <= maskNW && wMaskNE <= maskNE && wMaskSE <= maskSE && wMaskSW <= maskSW) {
+					tile = this.turnGroundToGrass(this.groundTilemap.getTileAt(x, y).index);
+				}
+				this.grassTilemap.putTileAt(tile, x, y);
+
+				if (maskSE && maskSW) {
+					const stuff = this.stuffTilemap.getTileAt(x, y).index;
+					this.stuffTilemap.putTileAt(this.makeStuffTileAlive(stuff), x, y);
+				}
+			}
+		}
+	}
+
 	updateInventory() {
 		if (!this.scene.isActive("InventoryScene"))
 			this.scene.run("InventoryScene");
@@ -283,14 +384,30 @@ class MainScene extends Phaser.Scene {
 		const healPoints = [];
 		this.cracks.forEach(crack => {
 			crack.crackPoints.forEach(crackPoint => {
-				if (crack.isCloseToPlayer({x: crackPoint.x * conf.tileSize, y: -crackPoint.y * conf.tileSize}))
-					healPoints.push({crack, crackPoint});
+				const distance = crack.distanceToPlayer({x: crackPoint.x * conf.tileSize, y: -crackPoint.y * conf.tileSize});
+				if (distance < 2 * conf.tileSize)
+					healPoints.push({crack, crackPoint, distance});
 			});
 		});
-		return healPoints[0];
+		this.treePositions.forEach(tree => {
+			const {x, y} = tree;
+			const newX = (x + 0.5 - conf.worldWidth / 2);
+			const newY = (y + 0.5 - conf.worldWidth / 2);
+			const dx = Math.abs(newX * conf.tileSize - this.player.x);
+			const dy = Math.abs(newY * conf.tileSize - this.player.y);
+			const distance = dx + dy;
+			if (distance < 2 * conf.tileSize)
+				healPoints.push({tree, crackPoint: {x: newX, y: -newY}, distance});
+		});
+		return healPoints.sort((a, b) => a.distance - b.distance)[0];
 	}
 
 	interaction() {
+		// const tileX = Math.round((this.player.x / conf.tileSize) + conf.worldWidth / 2);
+		// const tileY = Math.round((this.player.y / conf.tileSize) + conf.worldWidth / 2);
+		// this.grassMask[tileY][tileX] = 1;
+		// this.updateForGrass();
+
 		if (Phaser.Math.Distance.BetweenPoints(this.player.sprite, this.introGuide) < conf.tileSize) {
 			this.talkToIntroGuide();
 			return;
@@ -302,7 +419,7 @@ class MainScene extends Phaser.Scene {
 		const healPoint = this.getCloseCrackPoint();
 		if (healPoint) {
 			this.pointBeingHealed = healPoint;
-			this.player.fireStart(this.pointBeingHealed);
+			this.player.fireStart(this.pointBeingHealed.crackPoint);
 			const x = this.pointBeingHealed.crackPoint.x * conf.tileSize;
 			const y = -this.pointBeingHealed.crackPoint.y * conf.tileSize;
 			this.crackPointSprite = this.add.sprite(x, y, "CrackPoints", 18).setDepth(43);
@@ -312,13 +429,20 @@ class MainScene extends Phaser.Scene {
 
 	heal() {
 		this.waterLevel--;
-		const {crack, crackPoint} = this.pointBeingHealed;
-		const newCracks = healAt(this, crack, crackPoint);
-		crack.destroy();
-		this.cracks = this.cracks.filter(c => c !== crack);
-		this.cracks.push(...newCracks);
+		if (this.pointBeingHealed.tree) {
+			const {x, y} = this.pointBeingHealed.tree;
+			this.grassMask[y + 1][x] = 1;
+			this.grassMask[y + 1][x + 1] = 1;
+			this.updateForGrass();
+		} else {
+			const {crack, crackPoint} = this.pointBeingHealed;
+			const newCracks = healAt(this, crack, crackPoint);
+			crack.destroy();
+			this.cracks = this.cracks.filter(c => c !== crack);
+			this.cracks.push(...newCracks);
+			this.updateInventory();
+		}
 		this.pointBeingHealed = null;
-		this.updateInventory();
 	}
 
 	fireEnd() {
@@ -373,8 +497,12 @@ class MainScene extends Phaser.Scene {
 	}
 
 	isValidPosition(x, y, crackToIgnore) {
-		if (!this.worldMask[Math.round(y + (conf.worldSize - 1) / 2)]?.[Math.round(x + (conf.worldSize - 1) / 2)])
-			return false;
+		{
+			let maskX = Math.round(x + (conf.worldSize - 1) / 2);
+			let maskY = Math.round(y + (conf.worldSize - 1) / 2);
+			if (!this.worldMask[maskX]?.[maskY] || !this.worldMask[maskX + 1]?.[maskY] || !this.worldMask[maskX]?.[maskY + 1] || !this.worldMask[maskX + 1]?.[maskY + 1])
+				return false;
+		}
 
 		for (let i = 0; i < this.cracks.length; i++) {
 			if (this.cracks[i] === crackToIgnore)
@@ -608,8 +736,8 @@ const laserOffset = {
 class Player {
 	constructor(scene) {
 		this.scene = scene;
-		this.laser = scene.add.sprite(0, 0).setDepth(42);
-		this.sprite = scene.add.sprite(0, 0, "Player", 0).setDepth(41);
+		this.laser = scene.add.sprite(0, 0).setDepth(41);
+		this.sprite = scene.add.sprite(0, 0, "Player", 0).setDepth(42);
 
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
 		this.direction = "N";
@@ -623,8 +751,8 @@ class Player {
 
 	fireStart(pointBeingHealed) {
 		// Pick direction
-		const dx = pointBeingHealed.crackPoint.x * conf.tileSize - this.x;
-		const dy = - pointBeingHealed.crackPoint.y * conf.tileSize - this.y;
+		const dx = pointBeingHealed.x * conf.tileSize - this.x;
+		const dy = - pointBeingHealed.y * conf.tileSize - this.y;
 		const angle = (Math.atan2(dy, dx) + Math.PI) * 180 / Math.PI;
 		const directionIndex = Math.round(angle / 45);
 
@@ -661,10 +789,13 @@ class Player {
 		const down  = this.cursorKeys.down.isDown;
 		const left  = this.cursorKeys.left.isDown;
 		const right = this.cursorKeys.right.isDown;
-		let deltaPos = conf.tileSize * conf.speed * delta / 1000;
+		// let deltaPos = conf.tileSize * conf.speed * delta / 1000;
+		// if ((up || down) && (left || right))
+		// 	deltaPos /= Math.sqrt(2);
+		// deltaPos = Math.ceil(deltaPos);
+		let deltaPos = 3;
 		if ((up || down) && (left || right))
-			deltaPos /= Math.sqrt(2);
-		deltaPos = Math.ceil(deltaPos);
+			deltaPos = 2;
 
 		let direction = "";
 		let x = this.sprite.x;
@@ -983,6 +1114,12 @@ class Crack {
 			result.push(segment);
 		});
 		return result;
+	}
+
+	distanceToPlayer({x, y}) {
+		const dx = Math.abs(x - this.scene.player.x);
+		const dy = Math.abs(y - this.scene.player.y);
+		return (dx + dy);
 	}
 
 	isCloseToPlayer({x, y}) {

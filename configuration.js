@@ -40,8 +40,9 @@ conf.inventory = {
 	dx: 13,
 };
 
-// Speed of the robot, in tiles/second
-conf.speed = 4;
+// Unused
+// // Speed of the robot, in tiles/second
+// conf.speed = 4;
 
 // Time it takes to heal a crack, in seconds
 conf.crackResistance = 2;
