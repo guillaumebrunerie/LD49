@@ -723,8 +723,8 @@ class MainScene extends Phaser.Scene {
 					x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
 					y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
 					tries++;
-				} while (!this.isValidPosition(x, -y, true) && tries < 100)
-				if (tries < 100)
+				} while (!this.isValidPosition(x, -y, true) && tries < 5)
+				if (tries < 5)
 					this.cracks.push(new Crack({scene: this, x, y}));
 			}
 			if (shouldShake) {
