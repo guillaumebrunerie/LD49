@@ -25,6 +25,14 @@ class StartScene extends Phaser.Scene {
 		this.load.setPath("assets/Audio");
 		this.load.audio("music", "Music/Exploration_Dark (loop).mp3");
 
+		// this.load.audio("Beep1", "Fx/sci-fi_beep_computer_ui_01.mp3");
+		// this.load.audio("Beep2", "Fx/sci-fi_beep_computer_ui_02.mp3");
+		// this.load.audio("Beep3", "Fx/sci-fi_beep_computer_ui_03.mp3");
+		// this.load.audio("Beep4", "Fx/sci-fi_beep_computer_ui_04.mp3");
+		// this.load.audio("Beep5", "Fx/sci-fi_beep_computer_ui_05.mp3");
+
+		// this.load.audio("Water", "Fx/GunShot.mp3");
+
 		this.load.setPath("assets/UI");
 		this.load.image("Start_Screen");
 		this.load.image("Btn_Start");
@@ -426,16 +434,18 @@ class MainScene extends Phaser.Scene {
 					healPoints.push({crack, crackPoint, distance});
 			});
 		});
-		this.treePositions.forEach(tree => {
-			const {x, y} = tree;
-			const newX = (x + 0.5 - conf.worldWidth / 2);
-			const newY = (y + 0.5 - conf.worldWidth / 2);
-			const dx = Math.abs(newX * conf.tileSize - this.player.x);
-			const dy = Math.abs(newY * conf.tileSize - this.player.y);
-			const distance = dx + dy;
-			if (distance < 2 * conf.tileSize && (this.grassMask[y + 1][x] == 0 || this.grassMask[y + 1][x + 1] == 0))
-				healPoints.push({tree, crackPoint: {x: newX, y: -newY}, distance});
-		});
+		if (this.treesEnabled) {
+			this.treePositions.forEach(tree => {
+				const {x, y} = tree;
+				const newX = (x + 0.5 - conf.worldWidth / 2);
+				const newY = (y + 0.5 - conf.worldWidth / 2);
+				const dx = Math.abs(newX * conf.tileSize - this.player.x);
+				const dy = Math.abs(newY * conf.tileSize - this.player.y);
+				const distance = dx + dy;
+				if (distance < 2 * conf.tileSize && (this.grassMask[y + 1][x] == 0 || this.grassMask[y + 1][x + 1] == 0))
+					healPoints.push({tree, crackPoint: {x: newX, y: -newY}, distance});
+			});
+		}
 		return healPoints.sort((a, b) => a.distance - b.distance)[0];
 	}
 
@@ -494,6 +504,7 @@ class MainScene extends Phaser.Scene {
 			extendDelay = Infinity,
 			allowNewCracks = false,
 			extendProbability = 0.5,
+			treesEnabled = false,
 			waterCapacity,
 		} = conf.levels[level];
 
@@ -515,6 +526,8 @@ class MainScene extends Phaser.Scene {
 		this.allowNewCracks = allowNewCracks;
 
 		this.extendProbability = extendProbability;
+
+		this.treesEnabled = treesEnabled;
 
 		this.waterCapacity = this.waterLevel = waterCapacity;
 		this.updateInventory();
@@ -647,10 +660,10 @@ class MainScene extends Phaser.Scene {
 			if (this.droplets.length < this.waterCapacity) {
 				let x, y;
 				do {
-					x = Math.floor((Math.random() - 0.5) * conf.worldSize) * conf.tileSize;
-					y = Math.floor((Math.random() - 0.5) * conf.worldSize) * conf.tileSize;
+					x = Math.floor((Math.random() - 0.5) * conf.worldSize * conf.tileSize);
+					y = Math.floor((Math.random() - 0.5) * conf.worldSize * conf.tileSize);
 				} while (!this.isValidPosition(x / conf.tileSize, -y / conf.tileSize))
-				const newDrop = this.add.image(x, y, "WaterDroplet");
+				const newDrop = this.add.image(x, y - conf.tileSize, "WaterDroplet");
 				this.droplets.push(newDrop);
 			}
 		}

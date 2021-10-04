@@ -68,6 +68,7 @@ conf.levels[1] = {
 	waterCapacity: 1,
 	// crackDelay: 0.5,
 	dropsDelay: 0.5,
+	treesEnabled: true,
 	extendDelay: 2,
 	extendProbability: 0.2,
 };
