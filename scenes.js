@@ -555,11 +555,16 @@ class MainScene extends Phaser.Scene {
 
 		for (let i = 0; i < numberOfCracks; i++) {
 			let x, y, tries = 0;
-			do {
-				x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
-				y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
-				tries++;
-			} while (!this.isValidPosition(x, -y, true) && tries < 100)
+			if (level == 1) {
+				x = 3;
+				y = 0;
+			} else {
+				do {
+					x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
+					y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
+					tries++;
+				} while (!this.isValidPosition(x, -y, true) && tries < 100)
+			}
 			this.cracks.push(new Crack({scene: this, x, y}));
 		}
 
@@ -732,7 +737,7 @@ class MainScene extends Phaser.Scene {
 		if (this.dropTimeLeft < 0) {
 			this.dropTimeLeft = random(this.dropsDelay) * 1000;
 
-			if (this.droplets.length < this.waterCapacity * 2) {
+			if (this.level > 1 && this.droplets.length < this.waterCapacity * 2) {
 				let x, y;
 				do {
 					x = Math.floor((Math.random() - 0.5) * conf.worldSize * conf.tileSize);
