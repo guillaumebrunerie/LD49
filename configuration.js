@@ -95,12 +95,12 @@ conf.levels[3] = {
 
 conf.levels[4] = {
 	numberOfCracks: 1,
-	crackDelay: {min: 1, max: 3}, // Time between two earthquakes, in seconds
+	crackDelay: {min: 0.5, max: 2}, // Time between two earthquakes, in seconds
 	dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
 	allowNewCracks: true,
 	waterCapacity: 5,
 
 	treesEnabled: true,
-	extendDelay: 4,
-	extendProbability: 0.5,
+	extendDelay: 5,
+	extendProbability: 0.4,
 };
