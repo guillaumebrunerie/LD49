@@ -36,6 +36,9 @@ class StartScene extends Phaser.Scene {
 
 		this.load.image("DialogBackground");
 
+		this.load.image("Water_Bullet", "UI/Water_Bullet.png");
+		this.load.image("Water_Inventory", "UI/Water_Inventory.png");
+
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", tileConf);
 		this.load.spritesheet("SpaceTiles", "SpriteSheets/BgSpace.png", tileConf);
 
@@ -234,8 +237,8 @@ class MainScene extends Phaser.Scene {
 		this.cameras.main.centerOn(0, 0);
 		this.cameras.main.startFollow(this.player.sprite);
 
-		this.batteryLevel = 50;
-		this.batteryCapacity = 5;
+		this.waterLevel = 50;
+		this.waterCapacity = 5;
 
 		this.level = 0;
 
@@ -265,8 +268,10 @@ class MainScene extends Phaser.Scene {
 		this.cameras.cameras.reverse();
 	}
 
-	upgradeBattery(value) {
-		this.batteryLevel = this.batteryCapacity = value;
+	updateInventory() {
+		if (!this.scene.isActive("InventoryScene"))
+			this.scene.run("InventoryScene");
+		this.scene.get("InventoryScene").updateInventory(this.waterCapacity, this.waterLevel);
 	}
 
 	getCloseCrackPoint() {
@@ -286,8 +291,8 @@ class MainScene extends Phaser.Scene {
 			return;
 		}
 
-		if (this.batteryLevel == 0)
-			return; // No battery
+		if (this.waterLevel == 0)
+			return; // No water
 
 		const healPoint = this.getCloseCrackPoint();
 		if (healPoint) {
@@ -301,13 +306,14 @@ class MainScene extends Phaser.Scene {
 	}
 
 	heal() {
-		this.batteryLevel--;
+		this.waterLevel--;
 		const {crack, crackPoint} = this.pointBeingHealed;
 		const newCracks = healAt(this, crack, crackPoint);
 		crack.destroy();
 		this.cracks = this.cracks.filter(c => c !== crack);
 		this.cracks.push(...newCracks);
 		this.pointBeingHealed = null;
+		this.updateInventory();
 	}
 
 	fireEnd() {
@@ -325,6 +331,7 @@ class MainScene extends Phaser.Scene {
 			crackMaxLength = Infinity,
 			dropsDelay = Infinity,
 			allowNewCracks = false,
+			waterCapacity,
 		} = conf.levels[level];
 
 		for (let i = 0; i < numberOfCracks; i++) {
@@ -340,6 +347,9 @@ class MainScene extends Phaser.Scene {
 		this.dropTimeLeft = random(dropsDelay);
 
 		this.allowNewCracks = allowNewCracks;
+
+		this.waterCapacity = this.waterLevel = waterCapacity;
+		this.updateInventory();
 
 		this.cameras.main.shake(500, 0.008);
 	}
@@ -434,6 +444,27 @@ class MainScene extends Phaser.Scene {
 				this.cameras.main.shake(200, 0.008);
 
 			this.fixPlayerPosition();
+		}
+	}
+}
+
+class InventoryScene extends Phaser.Scene {
+	constructor() {
+		super("InventoryScene");
+		this.inventorySprites = [];
+	}
+
+	updateInventory(capacity, level) {
+		this.inventorySprites.forEach(s => s.destroy());
+		this.inventorySprites = [];
+
+		let x = conf.inventory.x;
+		const y = conf.inventory.y;
+		for (let i = 0; i < capacity; i++) {
+			this.add.image(x, y, "Water_Inventory");
+			if (level > i)
+				this.add.image(x, y, "Water_Bullet");
+			x += conf.inventory.dx;
 		}
 	}
 }

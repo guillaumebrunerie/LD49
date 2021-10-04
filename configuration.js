@@ -34,6 +34,12 @@ conf.dialogBg = {x: 240, y: 53};
 // Position of the bubble
 conf.bubbleOffset = {dx: 14, dy: -15};
 
+conf.inventory = {
+	x: 12,
+	y: 10,
+	dx: 13,
+};
+
 // Speed of the robot, in tiles/second
 conf.speed = 4;
 
@@ -53,6 +59,7 @@ conf.levels = [];
 conf.levels[1] = {
 	numberOfCracks: 1,
 	crackDelay: Infinity,
+	waterCapacity: 1,
 	// crackDelay: 0.5,
 };
 
@@ -61,12 +68,14 @@ conf.levels[2] = {
 	crackDelay: {min: 2, max: 4}, // Time between two earthquakes, in seconds
 	crackMaxLength: 5,
 	dropsDelay: {min: 1, max: 4}, // Time between the appearance of droplets
+	waterCapacity: 3,
 };
 
 conf.levels[3] = {
 	numberOfCracks: 4,
 	crackDelay: {min: 1, max: 3}, // Time between two earthquakes, in seconds
 	dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
+	waterCapacity: 5,
 };
 
 conf.levels[4] = {
@@ -74,4 +83,5 @@ conf.levels[4] = {
 	crackDelay: {min: 1, max: 3}, // Time between two earthquakes, in seconds
 	dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
 	allowNewCracks: true,
+	waterCapacity: 7,
 };

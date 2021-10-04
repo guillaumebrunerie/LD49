@@ -10,5 +10,5 @@ new Phaser.Game({
 		width: conf.viewportWidth * conf.tileSize,
 		height: conf.viewportHeight * conf.tileSize,
 	},
-	scene: [StartScene, MainScene, DialogScene],
+	scene: [StartScene, MainScene, InventoryScene, DialogScene],
 });
