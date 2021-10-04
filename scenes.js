@@ -374,6 +374,27 @@ class MainScene extends Phaser.Scene {
 		}
 	}
 
+	extendGrass() {
+		const m = this.grassMask;
+		for (let y = 1; y < conf.worldHeight - 1; y++) {
+			for (let x = 1; x < conf.worldWidth - 1; x++) {
+				if (m[y][x + 1] == 1 || m[y][x - 1] == 1 || m[y - 1][x] == 1 || m[y + 1][x] == 1) {
+					if (Math.random() < this.extendProbability)
+						m[y][x] = 2;
+				}
+			}
+		}
+
+		for (let y = 0; y < conf.worldHeight; y++) {
+			for (let x = 0; x < conf.worldWidth; x++) {
+				if (m[y][x] == 2)
+					m[y][x] = 1;
+			}
+		}
+
+		this.updateForGrass();
+	}
+
 	updateInventory() {
 		if (!this.scene.isActive("InventoryScene"))
 			this.scene.run("InventoryScene");
@@ -459,7 +480,9 @@ class MainScene extends Phaser.Scene {
 			crackDelay = Infinity,
 			crackMaxLength = Infinity,
 			dropsDelay = Infinity,
+			extendDelay = Infinity,
 			allowNewCracks = false,
+			extendProbability = 0.5,
 			waterCapacity,
 		} = conf.levels[level];
 
@@ -475,7 +498,12 @@ class MainScene extends Phaser.Scene {
 		this.dropsDelay = dropsDelay;
 		this.dropTimeLeft = random(dropsDelay) * 1000;
 
+		this.extendDelay = extendDelay;
+		this.extendTimeLeft = random(extendDelay) * 1000;
+
 		this.allowNewCracks = allowNewCracks;
+
+		this.extendProbability = extendProbability;
 
 		this.waterCapacity = this.waterLevel = waterCapacity;
 		this.updateInventory();
@@ -573,6 +601,7 @@ class MainScene extends Phaser.Scene {
 
 		this.timeLeft -= delta;
 		this.dropTimeLeft -= delta;
+		this.extendTimeLeft -= delta;
 
 		if (this.timeLeft < 0) {
 			this.timeLeft = random(this.crackDelay) * 1000;
@@ -603,6 +632,11 @@ class MainScene extends Phaser.Scene {
 				const newDrop = this.add.image(x, y, "WaterDroplet");
 				this.droplets.push(newDrop);
 			}
+		}
+
+		if (this.extendTimeLeft < 0) {
+			this.extendTimeLeft = random(this.extendDelay) * 1000;
+			this.extendGrass();
 		}
 	}
 }

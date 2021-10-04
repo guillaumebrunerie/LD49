@@ -63,7 +63,9 @@ conf.levels[1] = {
 	crackDelay: Infinity,
 	waterCapacity: 1,
 	// crackDelay: 0.5,
-	dropsDelay: 0.5
+	dropsDelay: 0.5,
+	extendDelay: 2,
+	extendProbability: 0.2,
 };
 
 conf.levels[2] = {
