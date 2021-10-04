@@ -227,13 +227,15 @@ class MainScene extends Phaser.Scene {
 		this.lastEarthquake = 0;
 
 		this.introGuide = this.add.sprite(0, -4 * conf.tileSize, "Characters", 0);
-		this.introGuideBubble = this.add.sprite(this.introGuide.x + conf.bubbleOffset.dx, this.introGuide.y + conf.bubbleOffset.dy);
-		this.introGuideBubble.isBubbling = false;
 
 		this.input.keyboard.on('keydown-SPACE', (event) => this.interaction(event));
 		this.input.keyboard.on('keyup-SPACE', (event) => this.fireEnd(event));
 
 		this.player = new Player(this);
+
+		this.introGuideBubble = this.add.sprite(this.introGuide.x + conf.bubbleOffset.dx, this.introGuide.y + conf.bubbleOffset.dy);
+		this.introGuideBubble.isBubbling = false;
+
 		this.cameras.main.centerOn(0, 0);
 		this.cameras.main.startFollow(this.player.sprite);
 
