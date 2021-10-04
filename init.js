@@ -1,6 +1,6 @@
 new Phaser.Game({
-	title: "Ludum Dare #49",
-	url: "",
+	title: "Space Cracks!",
+	url: "https://latcarf.itch.io/space-cracks",
 	type: Phaser.AUTO,
 	transparent: true,
 	pixelArt: true,

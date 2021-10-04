@@ -80,15 +80,15 @@ conf.levels[1] = {
 
 conf.levels[2] = {
 	numberOfCracks: 3,
-	crackDelay: {min: 2, max: 4}, // Time between two earthquakes, in seconds
+	crackDelay: {min: 3, max: 5}, // Time between two earthquakes, in seconds
 	crackMaxLength: 5,
-	dropsDelay: {min: 1, max: 4}, // Time between the appearance of droplets
+	dropsDelay: {min: 1, max: 3}, // Time between the appearance of droplets
 	waterCapacity: 5,
 };
 
 conf.levels[3] = {
 	numberOfCracks: 4,
-	crackDelay: {min: 1, max: 3}, // Time between two earthquakes, in seconds
+	crackDelay: {min: 2, max: 5}, // Time between two earthquakes, in seconds
 	dropsDelay: {min: 0.5, max: 1.5}, // Time between the appearance of droplets
 	waterCapacity: 5,
 };
@@ -98,9 +98,9 @@ conf.levels[4] = {
 	crackDelay: {min: 1, max: 3}, // Time between two earthquakes, in seconds
 	dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
 	allowNewCracks: true,
-	waterCapacity: 7,
+	waterCapacity: 5,
 
 	treesEnabled: true,
-	extendDelay: 2,
-	extendProbability: 0.6,
+	extendDelay: 4,
+	extendProbability: 0.5,
 };
