@@ -305,7 +305,7 @@ class MainScene extends Phaser.Scene {
 			this.player.fireStart(this.pointBeingHealed);
 			const x = this.pointBeingHealed.crackPoint.x * conf.tileSize;
 			const y = -this.pointBeingHealed.crackPoint.y * conf.tileSize;
-			this.crackPointSprite = this.add.sprite(x, y, "CrackPoints", 18);
+			this.crackPointSprite = this.add.sprite(x, y, "CrackPoints", 18).setDepth(43);
 			this.crackPointSprite.play("CrackPoint");
 		}
 	}
@@ -608,8 +608,8 @@ const laserOffset = {
 class Player {
 	constructor(scene) {
 		this.scene = scene;
-		this.laser = scene.add.sprite(0, 0);
-		this.sprite = scene.add.sprite(0, 0, "Player", 0);
+		this.laser = scene.add.sprite(0, 0).setDepth(42);
+		this.sprite = scene.add.sprite(0, 0, "Player", 0).setDepth(41);
 
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
 		this.direction = "N";
@@ -777,34 +777,6 @@ const initialCrackTilesData = [
 	{tile: 17, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5},
 ];
 
-// // Reverse the direction
-// const firstIntermediateCrackTilesData = [];
-// initialCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
-// 	firstIntermediateCrackTilesData.push({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY});
-// 	firstIntermediateCrackTilesData.push({
-// 		tile,
-// 		dx: -dx, dy: -dy,
-// 		from: reverseDirection(to), fromSize: toSize,
-// 		to: reverseDirection(from), toSize: fromSize,
-// 		pivotX: pivotX - dx,
-// 		pivotY: pivotY - dy,
-// 	});
-// });
-
-// // Flip horizontally
-// const intermediateCrackTilesData = [];
-// firstIntermediateCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
-// 	intermediateCrackTilesData.push({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY});
-// 	intermediateCrackTilesData.push({
-// 		tile,
-// 		dx: -dx, dy,
-// 		from: flipXDirection(from), fromSize,
-// 		to: flipXDirection(to), toSize,
-// 		pivotX: -pivotX, pivotY,
-// 		flipX: true
-// 	});
-// });
-
 // Flip horizontally and reverse the direction
 const intermediateCrackTilesData = [];
 initialCrackTilesData.forEach(({tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY}) => {
@@ -881,7 +853,7 @@ class Crack {
 
 		this.crackPointsSprites.forEach(s => s.destroy());
 		this.crackPointsSprites = this.crackPoints.map(({x, y}) => (
-			this.scene.add.sprite(x * conf.tileSize, -y * conf.tileSize, "CrackPoints", 17)
+			this.scene.add.sprite(x * conf.tileSize, -y * conf.tileSize, "CrackPoints", 17).setDepth(43)
 		));
 	}
 
