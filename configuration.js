@@ -53,7 +53,7 @@ conf.inventory = {
 conf.dropletTimeout = 5;
 
 // Time it takes to heal a crack, in seconds
-conf.crackResistance = 2;
+conf.crackResistance = 1;
 
 // Probability that a crack will widen instead of extending (if possible)
 conf.widenProbability = 0.8;
@@ -72,9 +72,6 @@ conf.levels[1] = {
 	waterCapacity: 1,
 	// crackDelay: 0.5,
 	dropsDelay: 0.5,
-	treesEnabled: true,
-	extendDelay: 2,
-	extendProbability: 0.3,
 
 	// crackDelay: {min: 1, max: 1}, // Time between two earthquakes, in seconds
 	// dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
@@ -92,7 +89,7 @@ conf.levels[2] = {
 conf.levels[3] = {
 	numberOfCracks: 4,
 	crackDelay: {min: 1, max: 3}, // Time between two earthquakes, in seconds
-	dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
+	dropsDelay: {min: 0.5, max: 1.5}, // Time between the appearance of droplets
 	waterCapacity: 5,
 };
 
@@ -102,4 +99,8 @@ conf.levels[4] = {
 	dropsDelay: {min: 0.5, max: 3}, // Time between the appearance of droplets
 	allowNewCracks: true,
 	waterCapacity: 7,
+
+	treesEnabled: true,
+	extendDelay: 2,
+	extendProbability: 0.6,
 };

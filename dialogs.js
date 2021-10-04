@@ -4,73 +4,76 @@
 
 let dialogs = {};
 
-dialogs.levels = [null, {}, {}, {}, {}];
+dialogs.levels = [null, {}, {}, {}, {}, {}];
 
 dialogs.levels[1].start = [
 	{type: "you",  text: ["Who am I??", "Where am I??"]},
 	{type: "them", text: ["Thank goodness, you are here!"]},
-	{type: "them", text: ["You have been sent by our gods",
-						  "to save us all!"]},
-	{type: "them", text: ["One of our scientists was studying",
-						  "the core of this planet"]},
-	{type: "them", text: ["But unfortunately, someone spilled",
-						  "their tea into the cracks."]},
+	{type: "them", text: ["You have been sent to save us all!"]},
+	{type: "them", text: ["Our scientists were studying",
+						  "the core of this planet."]},
+	{type: "them", text: ["But unfortunately it is much more",
+						  "unstable than what they thought."]},
 	{type: "them", text: ["It made the planet unstable and",
 						  "it risks exploding very soon."]},
 	{type: "callback", callback: (scene) => scene.initLevel(1)},
-	{type: "them", text: ["See? Here are some more cracks!"]},
+	{type: "them", text: ["Look! Here are a crack!"]},
 	{type: "you",  text: ["Oh..."]},
-	{type: "them", text: ["You need to go stitch the cracks",
-						  "before it's too late"]},
+	{type: "them", text: ["Go next to it and keep pressing SPACE",
+						  "until it is gone!"]},
 	{type: "you",  text: ["But..."]},
-	{type: "them", text: ["Thank you so much for accepting this mission!",
-						  "Good luck!"]},
-	{type: "you",  text: ["..."]},
+	{type: "them", text: ["And come back to me afterwards!"]},
+	{type: "you",  text: ["Ok"]},
 ];
 
 dialogs.levels[1].loop = [
 	{type: "them", text: ["Will you help us?",
-						  "It's not like you have much choice anyway."]},
+						  "The planet won’t make it without you."]},
+	{type: "them", text: ["Hold SPACE next to the crack until it disappears"]},
 ];
 
 dialogs.levels[2].start = [
-	{type: "them", text: ["Awesome! You seem to be up to the task!",
+	{type: "them", text: ["Good job! You managed to close it!",
 						  "But the cracks will keep coming..."]},
 	{type: "callback", callback: (scene) => scene.initLevel(2)},
-	{type: "them", text: ["If you need more water, you'll find some"]}
+	{type: "them", text: ["Oh no, more cracks!",
+						  "Those are unstable, they may grow!"]},
+	{type: "them", text: ["Collect the drops to recharge your tank."]}
 ];
 
 dialogs.levels[2].loop = [
-	{type: "them", text: ["If you need more water, collect the drops"]}
+	{type: "them", text: ["Did you manage to fix all the cracks yet?"]},
+	{type: "them", text: ["If you need more water, find some drops to collect."]}
 ];
 
 dialogs.levels[3].start = [
-	{type: "them", text: ["Good job, please continue."]},
+	{type: "them", text: ["Awesome!! I wonder if it will ever end..."]},
 	{type: "callback", callback: (scene) => scene.initLevel(3)},
+	{type: "them", text: ["Again?? So many cracks this time...",
+						  "I hope the planet won't explode..."]},
 ];
 
 dialogs.levels[3].loop = [
-	{type: "them", text: ["What are you waiting for?", "The planet is burning!"]}
+	{type: "them", text: ["What are you waiting for?", "The planet is burning!"]},
+	{type: "them", text: ["If you don't close the cracks,", "the planet might explode!"]},
 ];
 
 dialogs.levels[4].start = [
-	{type: "them", text: ["Trees and stuff."]},
+	{type: "them", text: ["Back in the days, this planet was green",
+						  "and full of trees and flowers."]},
 	{type: "callback", callback: (scene) => scene.initLevel(4)},
+	{type: "them", text: ["It was beautiful..."]},
+	{type: "them", text: ["Maybe you could try to water those plants..."]},
 ];
 
 dialogs.levels[4].loop = [
-	{type: "them", text: ["Trees and stuff, I said!!"]}
+	{type: "them", text: ["Water the trees and the flowers", "and save the planet."]},
 ];
 
-
-// dialogs.howToStitchCracks = [
-// 	{type: "them", text: ["You can press the SPACE key",
-// 						  "when you are close to a crack,"]},
-// 	{type: "them", text: ["It will close the crack, but",
-// 						  "you need to stay long enough."]}
-// ];
-
-// dialogs.howToRecharge = [
-// 	{type: "them", text: ["I just went to the charging station,",
-// 						  "my batteries were empty."]},
-// ];
+dialogs.levels[5].start = [
+	{type: "them", text: ["You made it!"]},
+	{type: "them", text: ["I can’t believe my eyes!"]},
+	{type: "them", text: ["Our planet is green again!"]},
+	{type: "them", text: ["Thank you so much for everything!", "You will always be welcome here!"]},
+	{type: "callback", callback: (scene) => scene.winGame()},
+];

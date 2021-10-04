@@ -57,10 +57,19 @@ class StartScene extends Phaser.Scene {
 		this.load.spritesheet("Laser", "SpriteSheets/Laser.png", tileConf);
 
 		this.load.spritesheet("Font", "Font.png", {frameWidth: 8, frameHeight: 8});
+
+		this.load.spritesheet("GameWon", "SpriteSheets/WinScreen.png", {frameWidth: 480, frameHeight: 240});
+		this.load.spritesheet("GameLost", "LoadingScreen.png", {frameWidth: 480, frameHeight: 240});
 	}
 
 	create() {
 		this.add.image(0, 0, "Start_Screen").setOrigin(0, 0);
+
+		this.anims.create({
+			key: "GameWon",
+			frameRate: 5,
+			frames: this.anims.generateFrameNames("GameWon", {start: 0, end: 8}),
+		});
 
 		this.anims.create({
 			key: "CrackPoint",
@@ -335,6 +344,16 @@ class MainScene extends Phaser.Scene {
 		this.cameras.cameras.reverse();
 	}
 
+	winGame() {
+		this.scene.stop("DialogScene");
+		this.scene.start("GameWon");
+	}
+
+	loseGame() {
+		this.scene.stop("DialogScene");
+		this.scene.start("GameLost");
+	}
+
 	makeStuffTileAlive(tile) {
 		const liveTrees = [2, 3, 4, 5, 6, 7, 8, 33, 34, 59];
 		const deadTrees = liveTrees.map(x => x + 13);
@@ -358,10 +377,10 @@ class MainScene extends Phaser.Scene {
 		const m = this.grassMask;
 		for (let y = 0; y < conf.worldHeight; y++) {
 			for (let x = 0; x < conf.worldWidth; x++) {
-				let maskNW = this.grassMask[y][x];
-				let maskNE = this.grassMask[y][x + 1];
-				let maskSE = this.grassMask[y + 1][x + 1];
-				let maskSW = this.grassMask[y + 1][x];
+				let maskNW = this.grassMask[y][x] * this.worldMask[y][x];
+				let maskNE = this.grassMask[y][x + 1] * this.worldMask[y][x + 1];
+				let maskSE = this.grassMask[y + 1][x + 1] * this.worldMask[y + 1][x + 1];
+				let maskSW = this.grassMask[y + 1][x] * this.worldMask[y + 1][x];
 				let value = `${maskNW}${maskNE}${maskSE}${maskSW}`;
 				const tiles = {
 					"1101": 65,
@@ -550,7 +569,12 @@ class MainScene extends Phaser.Scene {
 		if (this.scene.isActive("DialogScene"))
 			return;
 
-		const isLevelOver = this.cracks.length == 0;
+		const onlyGreen = this.worldMask.every((line, y) => (
+			line.every((point, x) => (
+				this.grassMask[y][x] >= this.worldMask[y][x]
+			))
+		));
+		const isLevelOver = onlyGreen || (this.cracks.length == 0 && !this.allowNewCracks);
 		if (isLevelOver)
 			this.level++;
 		const levelDialogs = dialogs.levels[this.level];
@@ -665,7 +689,14 @@ class MainScene extends Phaser.Scene {
 					shouldShake = crack.extend();
 				}
 			} else if (this.allowNewCracks) {
-				this.cracks.push(new Crack({scene: this}));
+				let x, y, tries = 0;
+				do {
+					x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
+					y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
+					tries++;
+				} while (!this.isValidPosition(x, -y, true) && tries < 100)
+				if (tries < 100)
+					this.cracks.push(new Crack({scene: this, x, y}));
 			}
 			if (shouldShake)
 				this.cameras.main.shake(200, 0.008);
@@ -770,6 +801,30 @@ class DialogScene extends Phaser.Scene {
 				currentDialog.callback(mainScene);
 				break;
 		}
+	}
+}
+
+class GameWon extends Phaser.Scene {
+	constructor() {
+		super("GameWon");
+	}
+
+	create() {
+		// this.cameras.main.fadeFrom(200, 255, 255, 255);
+
+		this.add.sprite(0, 0, "GameWon", 1).setOrigin(0, 0).play("GameWon");
+	}
+}
+
+class GameLost extends Phaser.Scene {
+	constructor() {
+		super("GameLost");
+	}
+
+	create() {
+		// this.cameras.main.fadeFrom(200, 255, 255, 255);
+
+		this.add.sprite(0, 0).setOrigin(0, 0).play("GameLost");
 	}
 }
 
@@ -1053,13 +1108,8 @@ const random = (value) => {
 }
 
 class Crack {
-	constructor({scene, crackPoints}) {
+	constructor({scene, crackPoints, x, y}) {
 		this.scene = scene;
-		let x, y;
-		do {
-			x = Math.floor((Math.random() - 0.5) * conf.viewportWidth);
-			y = Math.floor((Math.random() - 0.5) * conf.viewportHeight);
-		} while (!scene.isValidPosition(x, -y, true))
 		this.crackPoints = crackPoints || this.generateRandomCrack(1, {x, y});
 		this.crackSegments = [];
 		this.regenerateAll();
