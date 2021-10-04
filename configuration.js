@@ -34,6 +34,10 @@ conf.dialogBg = {x: 240, y: 53};
 // Position of the bubble
 conf.bubbleOffset = {dx: 14, dy: -15};
 
+// Buttons
+conf.startButton = {x: 239, y: 198};
+conf.soundButton = {x: 442, y: 9};
+
 conf.inventory = {
 	x: 12,
 	y: 10,

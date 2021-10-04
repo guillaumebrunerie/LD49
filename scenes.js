@@ -19,21 +19,18 @@ class StartScene extends Phaser.Scene {
 		super("StartScene");
 	}
 
-	loadPNGSequence(name, duration) {
-		for (const i = 0; i < duration; i++) {
-			const istr = ("000" + i).substr(-3);
-			const key = name + "_" + istr;
-			this.load.image(key);
-		}
-	}
-
 	preload() {
 		const tileConf = {frameWidth: conf.tileSize, frameHeight: conf.tileSize};
 
-		this.load.setPath("assets");
-		this.load.image("StartScreen", "StartScreen.jpg");
-		this.load.image("StartButton", "StartButton.jpg");
+		this.load.setPath("assets/Audio");
+		this.load.audio("music", "Music/Exploration_Dark (loop).mp3");
 
+		this.load.setPath("assets/UI");
+		this.load.image("Start_Screen");
+		this.load.image("Btn_Start");
+		this.load.image("Btn_Start_Active");
+
+		this.load.setPath("assets");
 		this.load.image("DialogBackground");
 
 		this.load.image("Water_Bullet", "UI/Water_Bullet.png");
@@ -55,7 +52,7 @@ class StartScene extends Phaser.Scene {
 	}
 
 	create() {
-		this.add.image(0, 0, "StartScreen").setOrigin(0, 0);
+		this.add.image(0, 0, "Start_Screen").setOrigin(0, 0);
 
 		this.anims.create({
 			key: "CrackPoint",
@@ -118,13 +115,22 @@ class StartScene extends Phaser.Scene {
 			});
 		});
 
-		// const startButton = this.add.image(0, 0, "StartButton");
-		// startButton.setInteractive();
-		// startButton.on("pointerdown", () => {
-		// 	this.scene.start("MainScene");
-		// });
-
-		this.scene.start("MainScene");
+		const startButton = this.add.image(conf.startButton.x, conf.startButton.y, "Btn_Start");
+		window.sb = startButton;
+		startButton.setInteractive();
+		startButton.on("pointerdown", () => {
+			startButton.isDown = true;
+			startButton.setTexture("Btn_Start_Active");
+		});
+		startButton.on("pointerout", () => {
+			startButton.isDown = false;
+			startButton.setTexture("Btn_Start");
+		});
+		startButton.on("pointerup", () => {
+			if (startButton.isDown) {
+				this.scene.start("MainScene");
+			}
+		});
 	}
 }
 
@@ -149,6 +155,8 @@ class MainScene extends Phaser.Scene {
 	}
 
 	create() {
+		this.sound.play("music", {loop: true});
+
 		const groundLayerData = [];
 		const mask = this.worldMask = generateWorldMask(conf.worldSize);
 		for (let y = 0; y < conf.worldHeight; y++) {
@@ -1170,5 +1178,30 @@ class Crack {
 
 	update(time, delta) {
 		this.crackSegments.forEach(cs => cs.update(time, delta));
+	}
+}
+
+class HUD extends Phaser.Scene {
+	constructor() {
+		super({key: "HUD", active: true});
+	}
+
+	preload() {
+		this.load.setPath("assets/UI");
+		this.load.image(["Btn_Sound_ON", "Btn_Sound_OFF"]);
+	}
+
+	create() {
+		this.sound.mute = false;
+
+		let button = this.add.image(conf.soundButton.x, conf.soundButton.y, "Btn_Sound_ON");
+
+		window.btn = button;
+
+		button.setInteractive();
+		button.on("pointerdown", () => {
+			this.sound.mute = !this.sound.mute;
+			button.setTexture("Btn_Sound_" + (this.sound.mute ? "ON" : "OFF"));
+		});
 	}
 }
