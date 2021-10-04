@@ -11,7 +11,7 @@ conf.tileSize = 24;
 conf.tileScaleFactor = 3;
 
 // Total size (in tiles) of the world
-conf.worldSize = 35;
+conf.worldSize = 30;
 conf.worldWidth = conf.worldSize;
 conf.worldHeight = conf.worldSize;
 
@@ -50,7 +50,7 @@ conf.inventory = {
 // conf.speed = 4;
 
 // Time after which a droplet will disappear
-conf.dropletTimeout = 5;
+conf.dropletTimeout = 15;
 
 // Time it takes to heal a crack, in seconds
 conf.crackResistance = 1;

@@ -6,6 +6,14 @@ let dialogs = {};
 
 dialogs.levels = [null, {}, {}, {}, {}, {}];
 
+// dialogs.levels[1].start = [
+// 	{type: "them", text: ["You made it!"]},
+// 	{type: "them", text: ["I can’t believe my eyes!"]},
+// 	{type: "them", text: ["Our planet is green again!"]},
+// 	{type: "them", text: ["Thank you so much for everything!", "You will always be welcome here!"]},
+// 	{type: "callback", callback: (scene) => scene.loseGame()},
+// ];
+
 dialogs.levels[1].start = [
 	{type: "you",  text: ["Who am I??", "Where am I??"]},
 	{type: "them", text: ["Thank goodness, you are here!"]},
@@ -16,7 +24,7 @@ dialogs.levels[1].start = [
 						  "unstable than what they thought."]},
 	{type: "them", text: ["It made the planet unstable and",
 						  "it risks exploding very soon."]},
-	{type: "callback", callback: (scene) => scene.initLevel(1)},
+	{type: "callback", callback: (scene) => scene.initLevel(4)},
 	{type: "them", text: ["Look! Here are a crack!"]},
 	{type: "you",  text: ["Oh..."]},
 	{type: "them", text: ["Go next to it and keep pressing SPACE",

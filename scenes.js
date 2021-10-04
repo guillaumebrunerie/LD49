@@ -65,7 +65,7 @@ class StartScene extends Phaser.Scene {
 		this.load.spritesheet("Font", "Font.png", {frameWidth: 8, frameHeight: 8});
 
 		this.load.spritesheet("GameWon", "SpriteSheets/WinScreen.png", {frameWidth: 480, frameHeight: 240});
-		this.load.spritesheet("GameLost", "LoadingScreen.png", {frameWidth: 480, frameHeight: 240});
+		this.load.spritesheet("GameLost", "SpriteSheets/LostScreen.png", {frameWidth: 480, frameHeight: 240});
 	}
 
 	create() {
@@ -73,8 +73,14 @@ class StartScene extends Phaser.Scene {
 
 		this.anims.create({
 			key: "GameWon",
-			frameRate: 5,
+			frameRate: 10,
 			frames: this.anims.generateFrameNames("GameWon", {start: 0, end: 8}),
+		});
+
+		this.anims.create({
+			key: "GameLost",
+			frameRate: 10,
+			frames: this.anims.generateFrameNames("GameLost", {start: 0, end: 15}),
 		});
 
 		this.anims.create({
@@ -724,7 +730,7 @@ class MainScene extends Phaser.Scene {
 		if (this.dropTimeLeft < 0) {
 			this.dropTimeLeft = random(this.dropsDelay) * 1000;
 
-			if (this.droplets.length < this.waterCapacity) {
+			if (this.droplets.length < this.waterCapacity * 2) {
 				let x, y;
 				do {
 					x = Math.floor((Math.random() - 0.5) * conf.worldSize * conf.tileSize);
