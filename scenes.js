@@ -24,6 +24,7 @@ class StartScene extends Phaser.Scene {
 
 		this.load.setPath("assets/Audio");
 		this.load.audio("music", "Music/Exploration_Dark (loop).mp3");
+		this.load.audio("WinScreen", "Music/WinScreen.mp3");
 
 		this.load.audio("Beep1", "Fx/sci-fi_beep_computer_ui_01.mp3");
 		this.load.audio("Beep2", "Fx/sci-fi_beep_computer_ui_02.mp3");
@@ -842,6 +843,7 @@ class GameWon extends Phaser.Scene {
 	create() {
 		// this.cameras.main.fadeFrom(200, 255, 255, 255);
 
+		this.sound.play("WinScreen");
 		this.add.sprite(0, 0, "GameWon", 1).setOrigin(0, 0).play("GameWon");
 	}
 }
