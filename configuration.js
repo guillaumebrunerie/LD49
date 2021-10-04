@@ -48,6 +48,9 @@ conf.inventory = {
 // // Speed of the robot, in tiles/second
 // conf.speed = 4;
 
+// Time after which a droplet will disappear
+conf.dropletTimeout = 5;
+
 // Time it takes to heal a crack, in seconds
 conf.crackResistance = 2;
 

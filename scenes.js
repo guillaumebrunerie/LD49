@@ -311,9 +311,9 @@ class MainScene extends Phaser.Scene {
 		// Background
 
 		const backgroundLayerData = [];
-		for (let y = 0; y < conf.worldHeight; y++) {
+		for (let y = 0; y < conf.viewportHeight; y++) {
 			backgroundLayerData[y] = [];
-			for (let x = 0; x < conf.worldWidth; x++) {
+			for (let x = 0; x < conf.viewportWidth; x++) {
 				backgroundLayerData[y][x] = pick([...new Array(15).fill(0), 1, 2, 3, 4, 5, 6, 7, 8]);
 			}
 		}
@@ -664,9 +664,17 @@ class MainScene extends Phaser.Scene {
 					y = Math.floor((Math.random() - 0.5) * conf.worldSize * conf.tileSize);
 				} while (!this.isValidPosition(x / conf.tileSize, -y / conf.tileSize))
 				const newDrop = this.add.image(x, y - conf.tileSize, "WaterDroplet");
+				newDrop.appearingTime = time;
 				this.droplets.push(newDrop);
 			}
 		}
+
+		this.droplets.forEach(droplet => {
+			if (time > droplet.appearingTime + conf.dropletTimeout * 1000) {
+				droplet.destroy();
+				this.droplets = this.droplets.filter(d => d !== droplet);
+			}
+		});
 
 		if (this.extendTimeLeft < 0) {
 			this.extendTimeLeft = random(this.extendDelay) * 1000;
