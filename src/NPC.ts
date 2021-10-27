@@ -2,21 +2,21 @@ import * as Phaser from "phaser";
 
 import * as Conf from "./configuration";
 import {Dialog} from "./dialogs";
+import MainScene from "./MainScene";
 
-export default class {
-	scene: Phaser.Scenes.ScenePlugin;
+export default class extends Phaser.GameObjects.Container {
+	scene: MainScene;
 	sprite: Phaser.GameObjects.Sprite;
 	bubble: Phaser.GameObjects.Sprite;
 	isBubbling: boolean;
 	dialog: Dialog;
 
-	get x() { return this.sprite.x };
-	get y() { return this.sprite.y };
-
 	constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame: number) {
-		this.scene = scene.scene;
-		this.sprite = scene.add.sprite(x, y, texture, frame);
-		this.bubble = scene.add.sprite(x + Conf.bubbleOffset.dx, y + Conf.bubbleOffset.dy, "Bubble", 6);
+		super(scene, x, y);
+		scene.add.existing(this);
+		this.sprite = scene.add.sprite(0, 0, texture, frame);
+		this.bubble = scene.add.sprite(Conf.bubbleOffset.dx, Conf.bubbleOffset.dy, "Bubble", 6);
+		this.add([this.sprite, this.bubble]);
 		this.isBubbling = false;
 	}
 
@@ -25,10 +25,10 @@ export default class {
 	}
 
 	interact() {
-		if (this.scene.isActive("DialogScene"))
+		if (this.scene.scene.isActive("DialogScene"))
 			return;
 
-		this.scene.run("DialogScene", this.dialog);
+		this.scene.scene.run("DialogScene", this.dialog);
 	}
 
 	isAtBlockingDistance(position: Phaser.Types.Math.Vector2Like): boolean {
@@ -46,7 +46,8 @@ export default class {
 		this.bubble.destroy();
 	}
 
-	update(playerPosition: { x: number, y: number }) {
+	update() {
+		const playerPosition = this.scene.player;
 		if (this.isAtInteractionDistance(playerPosition)) {
 			if (!this.isBubbling) {
 				this.isBubbling = true;

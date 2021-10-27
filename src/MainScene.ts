@@ -587,10 +587,10 @@ export default class extends Phaser.Scene {
 		}
 
 
-        this.demons.forEach(demon => demon.update(time, delta));
+		this.demons.forEach(demon => demon.update(time, delta));
 
 
-		this.introGuide.update(this.player);
+		this.introGuide.update();
 
 		if (!this.scene.isActive("DialogScene"))
 			this.player.update(time, delta);
