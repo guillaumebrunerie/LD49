@@ -4,7 +4,7 @@ import * as Conf from "./configuration";
 
 export default class extends Phaser.Scene {
 	suffix: string;
-	button: Phaser.GameObjects.Image;
+	button?: Phaser.GameObjects.Image;
 
 	constructor() {
 		super({key: "SoundButtonScene", active: true});
@@ -12,6 +12,8 @@ export default class extends Phaser.Scene {
 	}
 
 	gameStarted() {
+		if (!this.button) return;
+
 		this.suffix = "_Small";
 		this.button.setTexture(this.button.texture.key + this.suffix);
 		this.button.x = Conf.smallSoundButton.x;

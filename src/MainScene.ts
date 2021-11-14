@@ -1,110 +1,102 @@
 import * as Phaser from "phaser";
 
 import * as Conf from "./configuration";
-import Crack, { CrackPoint } from "./Crack";
+import Crack, {healAt} from "./Crack";
 import Droplet from "./Droplet";
 import dialogs from "./dialogs";
 import InventoryScene from "./InventoryScene";
 import NPC from "./NPC";
 import Player from "./Player";
-import { milliseconds, pick, random } from "./utils";
+import {MaybeRandomNumber, pick, random, Position} from "./utils";
 import Demon from "./Demon";
+import {Mask, generateWorldMask} from "./Masks";
 
+type Target = {x: number, y: number, distance: number, sort: "crack" | "tree"};
 
-type Mask = (0 | 1)[][];
+export default class MainScene extends Phaser.Scene {
+	worldMask: Mask = [];
+	grassMask: Mask = [];
+	groundTilemap!: Phaser.Tilemaps.Tilemap;
+	grassTilemap!: Phaser.Tilemaps.Tilemap;
+	stuffTilemap!: Phaser.Tilemaps.Tilemap;
+	treePositions: Position[] = [];
 
-// Returns a 2D mask of size [size × size] that represents a circle
-const generateWorldMask = (size: number): Mask => {
-	const radius = size / 2 - 1;
-	const center = (size - 1) / 2;
-	const result: Mask = [];
-	for (let i = 0; i < size + 1; i++) {
-		result[i] = [];
-		for (let j = 0; j < size + 1; j++) {
-			const distance = (j - center) * (j - center) + (i - center) * (i - center);
-			result[i][j] = distance < radius * radius ? 1 : 0;
-		}
-	}
-	return result;
-};
+	player!: Player;
+	cracks: Crack[] = [];
+	introGuide!: NPC;
 
-const healAt = (scene: Phaser.Scene, crack: Crack, crackPoint: CrackPoint) => {
-	const crackPoints = [...crack.crackPoints];
-	const index = crackPoints.indexOf(crackPoint);
+	waterLevel!: number;
 
-	if (crackPoint.size > 1) {
-		crackPoint.size--;
-		return [new Crack({ scene, crackPoints })];
-	} else if (crackPoints.length == 1) {
-		return [];
-	} else if (index == 0) {
-		return [new Crack({ scene, crackPoints: crackPoints.slice(1) })];
-	} else if (index == crackPoints.length - 1) {
-		return [new Crack({ scene, crackPoints: crackPoints.slice(0, index) })];
-	} else {
-		return [
-			new Crack({ scene, crackPoints: crackPoints.slice(0, index) }),
-			new Crack({ scene, crackPoints: crackPoints.slice(index + 1) }),
-		];
-	}
-};
-
-export default class extends Phaser.Scene {
-	worldMask: Mask;
-	grassMask: Mask;
-	groundTilemap: Phaser.Tilemaps.Tilemap;
-	grassTilemap: Phaser.Tilemaps.Tilemap;
-	stuffTilemap: Phaser.Tilemaps.Tilemap;
-	treePositions: { x: number, y: number }[];
-
-	player: Player;
-	cracks: Crack[];
-	lastEarthquake: number;
-	introGuide: NPC;
-
-	waterLevel: number;
-	waterCapacity: number;
-
-	level: number;
 	droplets: Droplet[] = [];
-	crackPointIndicator: Phaser.GameObjects.Sprite;
 	demons: Demon[] = [];
 
-	extendProbability: number;
-	treesEnabled: boolean;
-	crackDelay: Conf.MaybeRandomNumber;
-	crackMaxLength: number;
-	dropsDelay: Conf.MaybeRandomNumber;
-	extendDelay: number;
-	allowNewCracks: boolean;
+	targetSprite!: Phaser.GameObjects.Sprite;
+	pointTargeted?: Target;
 
-	crackPointSprite: Phaser.GameObjects.Sprite;
+	levelNum!: number;
+	level!: Conf.LevelConfiguration;
+	isLevelStarted = false;
 
-	pointBeingHealed: { crack: Crack, crackPoint: CrackPoint, tree: { x: number, y: number } };
-
-	timeLeft: number;
-	dropTimeLeft: number;
-	demonTimeLeft: number = 1000;
-	extendTimeLeft: number;
+	isLevelOver = false;
 
 	constructor() {
 		super("MainScene");
 	}
 
-	create() {
-		this.sound.play("music", { loop: true });
+	getValidPosition(flag: true | Crack | undefined): Position | null {
+		for (let tries = 0; tries < 100; tries++) {
+			const x = Math.random() * this.level.worldSize * Conf.tileSize;
+			const y = Math.random() * this.level.worldSize * Conf.tileSize;
+			if (this.isValidPosition({x, y}, flag))
+				return {x, y}
+		}
+		return null;
+	}
 
-		const groundLayerData = [];
-		const mask = this.worldMask = generateWorldMask(Conf.worldSize);
-		for (let y = 0; y < Conf.worldHeight; y++) {
+	init(data: {level: number}) {
+		this.levelNum = data.level;
+		this.level = Conf.levels[this.levelNum];
+	}
+
+	createStarryBackground() {
+		const backgroundLayerData: number[][] = [];
+		for (let y = 0; y < Conf.viewportHeight; y++) {
+			backgroundLayerData[y] = [];
+			for (let x = 0; x < Conf.viewportWidth; x++) {
+				backgroundLayerData[y][x] = pick([...new Array(15).fill(0), 1, 2, 3, 4, 5, 6, 7, 8]);
+			}
+		}
+		const backgroundTilemap = this.make.tilemap({
+			data: backgroundLayerData,
+			tileWidth: Conf.tileSize,
+			tileHeight: Conf.tileSize,
+			width: this.level.worldSize,
+			height: this.level.worldSize,
+		});
+		const backgroundTileset = backgroundTilemap.addTilesetImage("tileset", "SpaceTiles");
+		const backgroundLayer = backgroundTilemap.createLayer(0, backgroundTileset);
+
+		backgroundLayer.x = 1000;
+		backgroundLayer.y = 1000;
+
+		this.cameras.add(0, 0, undefined, undefined, false, "Background").setScroll(1000, 1000);
+		this.cameras.cameras.reverse();
+	}
+
+	create() {
+		this.sound.play("Music", { loop: true });
+
+		const groundLayerData: number[][] = [];
+		const mask = this.worldMask = generateWorldMask(this.level.worldSize);
+		for (let y = 0; y < this.level.worldSize; y++) {
 			groundLayerData[y] = [];
-			for (let x = 0; x < Conf.worldWidth; x++) {
+			for (let x = 0; x < this.level.worldSize; x++) {
 				let maskNW = mask[y][x];
 				let maskNE = mask[y][x + 1];
 				let maskSE = mask[y + 1][x + 1];
 				let maskSW = mask[y + 1][x];
 				let value = `${maskNW}${maskNE}${maskSE}${maskSW}`;
-				const tiles = {
+				const tiles: {[key: string]: number} = {
 					"0010": 26,
 					"0011": 27,
 					"0001": 28,
@@ -118,9 +110,9 @@ export default class extends Phaser.Scene {
 					"0100": 52,
 					"1100": 53,
 					"1000": 54,
-					"1111": null,
-					"1010": null,
-					"0101": null,
+					"1111": 0,
+					"1010": 0,
+					"0101": 0,
 				};
 				let tile = tiles[value];
 				if (value == "1111") {
@@ -134,30 +126,24 @@ export default class extends Phaser.Scene {
 			data: groundLayerData,
 			tileWidth: Conf.tileSize,
 			tileHeight: Conf.tileSize,
-			width: Conf.worldWidth,
-			height: Conf.worldHeight,
+			width: this.level.worldSize,
+			height: this.level.worldSize,
 		});
 		this.groundTilemap = groundTilemap;
 		const groundTileset = groundTilemap.addTilesetImage("tileset", "Tiles");
-		const groundLayer = groundTilemap.createLayer(0, groundTileset);
+		groundTilemap.createLayer(0, groundTileset);
 
-		groundLayer.x = -groundLayer.width / 2;
-		groundLayer.y = -groundLayer.height / 2;
-
-
-
-
-		const grassLayerData = [];
-		for (let y = 0; y < Conf.worldHeight; y++) {
+		const grassLayerData: number[][] = [];
+		for (let y = 0; y < this.level.worldSize; y++) {
 			grassLayerData[y] = [];
-			for (let x = 0; x < Conf.worldWidth; x++) {
+			for (let x = 0; x < this.level.worldSize; x++) {
 				grassLayerData[y][x] = 70;
 			}
 		}
 		this.grassMask = [];
-		for (let y = 0; y < Conf.worldHeight + 1; y++) {
+		for (let y = 0; y < this.level.worldSize + 2; y++) {
 			this.grassMask[y] = [];
-			for (let x = 0; x < Conf.worldWidth + 1; x++) {
+			for (let x = 0; x < this.level.worldSize + 2; x++) {
 				this.grassMask[y][x] = 0;
 			}
 		}
@@ -165,15 +151,12 @@ export default class extends Phaser.Scene {
 			data: grassLayerData,
 			tileWidth: Conf.tileSize,
 			tileHeight: Conf.tileSize,
-			width: Conf.worldWidth,
-			height: Conf.worldHeight,
+			width: this.level.worldSize,
+			height: this.level.worldSize,
 		});
 		this.grassTilemap = grassTilemap;
 		const grassTileset = grassTilemap.addTilesetImage("tileset", "Tiles");
-		const grassLayer = grassTilemap.createLayer(0, grassTileset);
-
-		grassLayer.x = -grassLayer.width / 2;
-		grassLayer.y = -grassLayer.height / 2;
+		grassTilemap.createLayer(0, grassTileset);
 
 
 
@@ -184,17 +167,17 @@ export default class extends Phaser.Scene {
 		const otherStuff = [9, 10, 11, 12, 22, 23, 24, 25, 31, 32, 44, 45];
 		const nothing = new Array(100).fill(40);
 		const stuffToPickFrom = [...deadTrees, ...otherStuff, ...nothing];
-		const stuffLayerData = [];
-		for (let y = 0; y < Conf.worldHeight; y++) {
-			stuffLayerData[y] = [];
-			for (let x = 0; x < Conf.worldWidth; x++) {
-				if (mask[y][x] && mask[y + 1][x] && mask[y + 1][x + 1] && mask[y][x + 1]) {
+		const stuffLayerData: number[][] = [];
+		for (let i = 0; i < this.level.worldSize; i++) {
+			stuffLayerData[i] = [];
+			for (let j = 0; j < this.level.worldSize; j++) {
+				if (mask[i][j] && mask[i + 1][j] && mask[i + 1][j + 1] && mask[i][j + 1]) {
 					const stuff = pick(stuffToPickFrom);
-					stuffLayerData[y][x] = stuff;
+					stuffLayerData[i][j] = stuff;
 					if (deadTrees.includes(stuff))
-						this.treePositions.push({ x, y });
+						this.treePositions.push({x: (j + 0.5) * Conf.tileSize, y: (i + 0.5) * Conf.tileSize });
 				} else {
-					stuffLayerData[y][x] = 40;
+					stuffLayerData[i][j] = 40;
 				}
 			}
 		}
@@ -202,67 +185,93 @@ export default class extends Phaser.Scene {
 			data: stuffLayerData,
 			tileWidth: Conf.tileSize,
 			tileHeight: Conf.tileSize,
-			width: Conf.worldWidth,
-			height: Conf.worldHeight,
+			width: this.level.worldSize,
+			height: this.level.worldSize,
 		});
 		const stuffTileset = this.stuffTilemap.addTilesetImage("tileset", "Tiles");
-		const stuffLayer = this.stuffTilemap.createLayer(0, stuffTileset);
+		this.stuffTilemap.createLayer(0, stuffTileset);
 
-		stuffLayer.x = -stuffLayer.width / 2;
-		stuffLayer.y = -stuffLayer.height / 2;
-
-		this.cracks = [];
-
-		this.lastEarthquake = 0;
-
-		this.introGuide = new NPC(this, 0, -4 * Conf.tileSize, "Characters", 0);
 
 		this.input.keyboard.on('keydown-SPACE', () => this.interaction());
 		this.input.keyboard.on('keyup-SPACE', () => this.fireEnd());
 
-		this.player = new Player(this);
+		this.player = new Player(this, this.level.worldSize * Conf.tileSize / 2, this.level.worldSize * Conf.tileSize / 2);
+		this.introGuide = new NPC(this, this.level.worldSize * Conf.tileSize / 2, (this.level.worldSize - 4) * Conf.tileSize / 2, "Characters", this.levelNum * 13);
 
-		this.cameras.main.centerOn(0, 0);
-		this.cameras.main.startFollow(this.player.sprite);
+		this.cameras.main.startFollow(this.player);
 
-		this.waterLevel = 50;
-		this.waterCapacity = 5;
+		this.createStarryBackground();
 
-		this.level = -1;
+		this.targetSprite = this.add.sprite(0, 0, "CrackPoints", 0).setVisible(false);
 
-		this.crackPointIndicator = this.add.sprite(0, 0, "CrackPoints", 0).setVisible(false);
 
-		// Background
-
-		const backgroundLayerData = [];
-		for (let y = 0; y < Conf.viewportHeight; y++) {
-			backgroundLayerData[y] = [];
-			for (let x = 0; x < Conf.viewportWidth; x++) {
-				backgroundLayerData[y][x] = pick([...new Array(15).fill(0), 1, 2, 3, 4, 5, 6, 7, 8]);
-			}
+		for (let i = 0; i < this.level.initialNumberOfCracks; i++) {
+			const position = this.getValidPosition(true);
+			if (position)
+				this.cracks.push(new Crack({ scene: this, ...position }));
 		}
-		const backgroundTilemap = this.make.tilemap({
-			data: backgroundLayerData,
-			tileWidth: Conf.tileSize,
-			tileHeight: Conf.tileSize,
-			width: Conf.worldWidth,
-			height: Conf.worldHeight,
+
+		this.waterLevel = this.level.waterCapacity;
+		this.updateInventory();
+
+		this.cameras.main.shake(500, 0.008);
+
+		const setRandomInterval = (interval: MaybeRandomNumber, callback: () => void) => {
+			const fun = () => {
+				callback();
+				this.time.delayedCall(random(interval) * 1000, fun)
+			};
+			this.time.delayedCall(random(interval) * 1000, fun);
+		}
+
+		setRandomInterval(this.level.extendDelay, () => {
+			this.extendGrass();
 		});
-		const backgroundTileset = backgroundTilemap.addTilesetImage("tileset", "SpaceTiles");
-		const backgroundLayer = backgroundTilemap.createLayer(0, backgroundTileset);
 
-		backgroundLayer.x = 1000;
-		backgroundLayer.y = 1000;
+		setRandomInterval(this.level.crackDelay, () => {
+			const crack = pick(this.level.allowNewCracks ? [null, ...this.cracks] : this.cracks);
+			let shouldShake = false;
+			if (crack) {
+				if (crack.crackPoints.length < (this.level.crackMaxLength || Infinity)) {
+					shouldShake = crack.extend();
+				}
+			} else if (this.level.allowNewCracks) {
+				const position = this.getValidPosition(true);
+				if (position)
+					this.cracks.push(new Crack({ scene: this, x: position.x, y: position.y }));
+			}
+			if (shouldShake) {
+				this.cameras.main.shake(200, 0.008);
+				this.sound.play("CrackAppears");
+			}
 
-		this.cameras.add(0, 0, undefined, undefined, false, "Background").setScroll(1000, 1000);
-		this.cameras.cameras.reverse();
+			this.fixPlayerPosition();
+		});
 
-		this.demons.push(new Demon(this, 0, 0));
-		this.demons[0].setDestination({x: 3 * 24, y: -2 * 24});
+		setRandomInterval(this.level.dropsDelay, () => {
+			if (this.droplets.length < this.level.waterCapacity * 2) {
+				const position = this.getValidPosition(undefined);
+				if (position) {
+					this.droplets.push(new Droplet(this, position.x, position.y));
+				}
+			}
+		});
+
+
+		// this.demons.push(new Demon(this, 0, 0));
+		// this.demons[0].setDestination({x: 3 * 24, y: -2 * 24});
 	}
 
-	requestNewDestination(demon: Demon) {
-		demon.setDestination({x: (Math.random() * 10 - 5) * 24, y: (Math.random() * 10 - 5) * 24});
+	// requestNewDestination(demon: Demon) {
+	// 	const trees = this.getTrees({alive: true});
+	// 	if (trees.length > 0) {
+	// 		const tree = pick(trees);
+	// 		demon.setDestination({x: tree.x, y: tree.y});
+	// 	}
+	// }
+
+	burnTreeAt(demon: Demon) {
+		debugger;
 	}
 
 	winGame() {
@@ -297,17 +306,16 @@ export default class extends Phaser.Scene {
 	}
 
 	updateForGrass() {
-		for (let y = 0; y < Conf.worldHeight; y++) {
-			for (let x = 0; x < Conf.worldWidth; x++) {
+		for (let y = 0; y < this.level.worldSize; y++) {
+			for (let x = 0; x < this.level.worldSize; x++) {
 				let maskNW = this.grassMask[y][x]         * this.worldMask[y][x];
 				let maskNE = this.grassMask[y][x + 1]     * this.worldMask[y][x + 1];
 				let maskSE = this.grassMask[y + 1][x + 1] * this.worldMask[y + 1][x + 1];
 				let maskSW = this.grassMask[y + 1][x]     * this.worldMask[y + 1][x];
 				let value = `${maskNW}${maskNE}${maskSE}${maskSW}`;
-				const tiles = {
+				const tiles: {[key: string]: number} = {
 					"1101": 65,
 					"1110": 66,
-					"1111": null,
 					"0110": 69,
 					"1001": 71,
 					"1010": 55,
@@ -338,31 +346,51 @@ export default class extends Phaser.Scene {
 				}
 			}
 		}
+
+		if (!this.isLevelOver) {
+			this.isLevelOver = this.worldMask.every((line, i) => (
+				line.every((_, j) => (
+					this.grassMask[i][j] >= this.worldMask[i][j]
+				))
+			));
+			if (this.isLevelOver) {
+				this.add.image(this.player.x, this.player.y, "LevelOver");
+				this.input.keyboard.on('keydown-SPACE', () => this.nextLevel());
+			}
+		}
+	}
+
+	nextLevel() {
+		this.scene.stop();
+		this.scene.wake("LevelSelect", {type: "complete", payload: this.levelNum});
 	}
 
 	extendGrass() {
 		const m: number[][] = this.grassMask;
-		for (let y = 1; y < Conf.worldHeight - 1; y++) {
-			for (let x = 1; x < Conf.worldWidth - 1; x++) {
+		for (let y = 1; y < m.length - 1; y++) {
+			for (let x = 1; x < m[0].length - 1; x++) {
 				if (m[y][x] == 0 && (m[y][x + 1] == 1 || m[y][x - 1] == 1 || m[y - 1][x] == 1 || m[y + 1][x] == 1)) {
-					if (Math.random() < this.extendProbability)
+					if (Math.random() < this.level.extendProbability)
 						m[y][x] = 2;
 				}
 			}
 		}
 
-		const distanceSquared = ({ x: x1, y: y1 }, { x: x2, y: y2 }) => (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+		const distanceSquared = (
+			({x: x1, y: y1}: Position, {x: x2, y: y2}: Position) =>
+				(x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)
+		);
 
 		const hasCrack = (x: number, y: number) => (
 			this.cracks.some(crack => (
 				crack.crackPoints.some(crackPoint => (
-					distanceSquared(crackPoint, { x: x - Conf.worldWidth / 2, y: Conf.worldHeight / 2 - y }) < 3
+					distanceSquared(crackPoint, {x: x * Conf.tileSize, y: y * Conf.tileSize}) < Conf.tileSize * Conf.tileSize * 4
 				))
 			))
 		);
 
-		for (let y = 0; y < Conf.worldHeight; y++) {
-			for (let x = 0; x < Conf.worldWidth; x++) {
+		for (let y = 0; y < this.level.worldSize; y++) {
+			for (let x = 0; x < this.level.worldSize; x++) {
 				if (m[y][x] == 2)
 					m[y][x] = hasCrack(x, y) ? 0 : 1;
 			}
@@ -374,31 +402,43 @@ export default class extends Phaser.Scene {
 	updateInventory() {
 		if (!this.scene.isActive("InventoryScene"))
 			this.scene.run("InventoryScene");
-		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(this.waterCapacity, this.waterLevel);
+		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(this.level.waterCapacity, this.waterLevel);
 	}
 
-	getCloseCrackPoint() {
-		const healPoints = [];
+	getTrees({dead = false, alive = false}) {
+		const result: Position[] = [];
+		this.treePositions.forEach(({x, y}) => {
+			const i = Math.floor(y / Conf.tileSize);
+			const j = Math.floor(x / Conf.tileSize);
+			if (dead && (this.grassMask[i + 1][j] == 0 || this.grassMask[i + 1][j + 1] == 0))
+				result.push({x, y});
+			else if (alive && (this.grassMask[i + 1][j] == 1 && this.grassMask[i + 1][j + 1] == 1))
+				result.push({x, y});
+		});
+		return result;
+	}
+
+	getTarget() {
+		const possibleTargets: Target[] = [];
+
 		this.cracks.forEach(crack => {
 			crack.crackPoints.forEach(crackPoint => {
-				const distance = crack.distanceToPlayer({ x: crackPoint.x * Conf.tileSize, y: -crackPoint.y * Conf.tileSize });
-				if (distance < 2 * Conf.tileSize)
-					healPoints.push({ crack, crackPoint, distance });
+				const x = crackPoint.x;
+				const y = crackPoint.y;
+				const distance = crack.distanceToPlayer({x, y});
+				if (distance < 1.5 * Conf.tileSize)
+					possibleTargets.push({x, y, distance, sort: "crack"});
 			});
 		});
-		if (this.treesEnabled) {
-			this.treePositions.forEach(tree => {
-				const { x, y } = tree;
-				const newX = (x + 0.5 - Conf.worldWidth / 2);
-				const newY = (y + 0.5 - Conf.worldWidth / 2);
-				const dx = Math.abs(newX * Conf.tileSize - this.player.x);
-				const dy = Math.abs(newY * Conf.tileSize - this.player.y);
-				const distance = dx + dy;
-				if (distance < 2 * Conf.tileSize && (this.grassMask[y + 1][x] == 0 || this.grassMask[y + 1][x + 1] == 0))
-					healPoints.push({ tree, crackPoint: { x: newX, y: -newY }, distance });
-			});
-		}
-		return healPoints.sort((a, b) => a.distance - b.distance)[0];
+
+		this.getTrees({dead: true}).forEach(({x, y}) => {
+			const dx = Math.abs(x - this.player.x);
+			const dy = Math.abs(y - this.player.y);
+			const distance = dx + dy;
+			if (distance < 1.5 * Conf.tileSize)
+				possibleTargets.push({x, y, distance, sort: "tree"});
+		});
+		return possibleTargets.sort((a, b) => a.distance - b.distance)[0];
 	}
 
 	interaction() {
@@ -410,185 +450,145 @@ export default class extends Phaser.Scene {
 		if (this.waterLevel == 0)
 			return; // No water
 
-		const healPoint = this.getCloseCrackPoint();
-		if (healPoint) {
-			this.pointBeingHealed = healPoint;
-			this.player.fireStart(this.pointBeingHealed.crackPoint);
-			const x = this.pointBeingHealed.crackPoint.x * Conf.tileSize;
-			const y = -this.pointBeingHealed.crackPoint.y * Conf.tileSize;
-			this.crackPointSprite = this.add.sprite(x, y, "CrackPoints", 18).setDepth(43);
-			this.crackPointSprite.play(healPoint.tree ? "CrackPointTree" : "CrackPoint");
+		const target = this.getTarget();
+		if (target && !this.player.isFiring) {
+			this.pointTargeted = target;
+			this.player.fireStart(target);
+			this.targetSprite.setVisible(true);
+			this.targetSprite.play(target.sort == "tree" ? "CrackPointTree" : "CrackPoint");
 		}
 	}
 
 	heal() {
+		if (!this.pointTargeted)
+			return;
+
+		const {sort, x, y} = this.pointTargeted;
+		const i = Math.floor(y / Conf.tileSize);
+		const j = Math.floor(x / Conf.tileSize);
 		this.waterLevel--;
-		if (this.pointBeingHealed.tree) {
-			const { x, y } = this.pointBeingHealed.tree;
-			this.grassMask[y + 1][x] = 1;
-			this.grassMask[y + 1][x + 1] = 1;
-			this.updateForGrass();
-		} else {
-			const { crack, crackPoint } = this.pointBeingHealed;
-			const newCracks = healAt(this, crack, crackPoint);
-			crack.destroy();
-			this.cracks = this.cracks.filter(c => c !== crack);
-			this.cracks.push(...newCracks);
+		switch (sort) {
+			case "tree":
+				this.grassMask[i + 1][j] = 1;
+				this.grassMask[i + 1][j + 1] = 1;
+				this.updateForGrass();
+				this.sound.play("TreeHealed");
+				break;
+			case "crack":
+				const crack = this.cracks.find(c => c.crackPoints.some(cp => cp.x == x && cp.y == y));
+				if (!crack)
+					break;
+				const crackPoint = crack.crackPoints.find(cp => cp.x == x && cp.y == y);
+				if (!crackPoint)
+					break;
+				const newCracks = healAt(this, crack, crackPoint);
+				crack.destroy();
+				this.cracks = this.cracks.filter(c => c !== crack);
+				this.cracks.push(...newCracks);
+				this.sound.play("CrackHealed");
+				break;
 		}
 		this.updateInventory();
-		this.pointBeingHealed = null;
-		this.sound.play("Tree");
+		this.pointTargeted = undefined;
 	}
 
 	fireEnd() {
 		this.player.fireEnd();
-		this.pointBeingHealed = null;
-		this.crackPointSprite?.stop();
-		this.crackPointSprite?.destroy();
-		this.crackPointSprite = null;
-	}
-
-	initLevel(level: number) {
-		const {
-			numberOfCracks,
-			crackDelay = Infinity,
-			crackMaxLength = Infinity,
-			dropsDelay = Infinity,
-			extendDelay = Infinity,
-			allowNewCracks = false,
-			extendProbability = 0.5,
-			treesEnabled = false,
-			waterCapacity,
-		} = Conf.levels[level];
-
-		for (let i = 0; i < numberOfCracks; i++) {
-			let x: number, y: number, tries = 0;
-			if (level == 1) {
-				x = 3;
-				y = 0;
-			} else {
-				do {
-					x = Math.floor((Math.random() - 0.5) * Conf.viewportWidth);
-					y = Math.floor((Math.random() - 0.5) * Conf.viewportHeight);
-					tries++;
-				} while (!this.isValidPosition({x, y: -y}, true) && tries < 100)
-			}
-			this.cracks.push(new Crack({ scene: this, x, y }));
-		}
-
-		this.crackDelay = crackDelay;
-		this.timeLeft = random(crackDelay) * 1000;
-
-		this.crackMaxLength = crackMaxLength;
-
-		this.dropsDelay = dropsDelay;
-		this.dropTimeLeft = random(dropsDelay) * 1000;
-
-		this.demonTimeLeft = random(1) * 1000;
-
-		this.extendDelay = extendDelay;
-		this.extendTimeLeft = random(extendDelay) * 1000;
-
-		this.allowNewCracks = allowNewCracks;
-
-		this.extendProbability = extendProbability;
-
-		this.treesEnabled = treesEnabled;
-
-		this.waterCapacity = this.waterLevel = waterCapacity;
-		this.updateInventory();
-
-		this.cameras.main.shake(500, 0.008);
-		this.sound.play("Crack");
+		this.pointTargeted = undefined;
+		this.targetSprite.stop();
+		this.targetSprite.setVisible(false);
 	}
 
 	talkToIntroGuide() {
 		if (this.scene.isActive("DialogScene"))
 			return;
 
-		const onlyGreen = this.worldMask.every((line, y) => (
-			line.every((_, x) => (
-				this.grassMask[y][x] >= this.worldMask[y][x]
-			))
-		));
-		const isLevelOver = onlyGreen || (this.cracks.length == 0 && !this.allowNewCracks);
-		if (isLevelOver)
-			this.level++;
-		const levelDialogs = dialogs[this.level];
-		const dialog = isLevelOver ? levelDialogs.start : levelDialogs.loop;
+		const levelDialogs = dialogs[this.levelNum];
+		const dialog = this.isLevelStarted ? levelDialogs.loop : levelDialogs.start;
 
 		this.introGuide.setDialog(dialog);
 		this.introGuide.interact();
+
+		this.isLevelStarted = true;
 	}
 
-	isValidPosition(position: {x: number, y: number}, crackToIgnore = null) {
+	isValidPosition(position: Position, crackToIgnore?: true | Crack) {
 		const {x, y} = position;
-		{
-			let maskX = Math.round(x + (Conf.worldSize - 1) / 2);
-			let maskY = Math.round(y + (Conf.worldSize - 1) / 2);
-			if (!this.worldMask[maskX]?.[maskY] || !this.worldMask[maskX + 1]?.[maskY] || !this.worldMask[maskX]?.[maskY + 1] || !this.worldMask[maskX + 1]?.[maskY + 1])
-				return false;
+
+		let j = Math.floor(x / Conf.tileSize);
+		let i = Math.floor(y / Conf.tileSize);
+		if (!this.worldMask[i]?.[j]
+			|| !this.worldMask[i + 1]?.[j]
+			|| !this.worldMask[i]?.[j + 1]
+			|| !this.worldMask[i + 1]?.[j + 1]) {
+			return false;
+		}
+
+		const isGrassForbidden = !!crackToIgnore;
+		if (isGrassForbidden && (
+			this.grassMask[i]?.[j]
+				|| this.grassMask[i + 1]?.[j]
+				|| this.grassMask[i]?.[j + 1]
+				|| this.grassMask[i + 1]?.[j + 1])) {
+			return false;
 		}
 
 		for (let i = 0; i < this.cracks.length; i++) {
 			if (this.cracks[i] === crackToIgnore)
 				continue;
 			const crackPoints = this.cracks[i].crackPoints;
-			const circle = new Phaser.Geom.Circle(x * Conf.tileSize, y * Conf.tileSize, Conf.crackHitboxSize);
+			const circle = new Phaser.Geom.Circle(x, y, Conf.crackHitboxSize);
 			for (let j = 0; j < crackPoints.length - 1; j++) {
 				const line = new Phaser.Geom.Line(
-					crackPoints[j].x * Conf.tileSize,
-					crackPoints[j].y * -Conf.tileSize,
-					crackPoints[j + 1].x * Conf.tileSize,
-					crackPoints[j + 1].y * -Conf.tileSize,
+					crackPoints[j].x,
+					crackPoints[j].y,
+					crackPoints[j + 1].x,
+					crackPoints[j + 1].y,
 				);
 				if (Phaser.Geom.Intersects.LineToCircle(line, circle))
 					return false;
 			}
-			if (crackPoints.length == 1 && Phaser.Geom.Circle.Contains(circle, crackPoints[0].x * Conf.tileSize, crackPoints[0].y * -Conf.tileSize))
+			if (crackPoints.length == 1 && Phaser.Geom.Circle.Contains(circle, crackPoints[0].x, crackPoints[0].y))
 				return false;
 		}
 
-		if (this.introGuide.isAtBlockingDistance({x: position.x * Conf.tileSize, y: position.y * Conf.tileSize}))
+		if (this.introGuide.isAtBlockingDistance({x, y}))
 			return false;
-
-		const isGrassForbidden = !!crackToIgnore;
-		if (isGrassForbidden) {
-			let maskX = Math.round(x + (Conf.worldSize - 1) / 2);
-			let maskY = Math.round(y + 0.5 + (Conf.worldSize - 1) / 2);
-			if (this.grassMask[maskY]?.[maskX])
-				return false;
-		}
 
 		return true;
 	}
 
-	fixPlayerPosition(iterations = 0) {
-		if (iterations === 100)
-			this.player.sprite.x = this.player.sprite.y = 0;
+	fixPlayerPosition() {
+		if (this.isValidPosition(this.player))
+			return;
 
-		if (!this.isValidPosition({x: this.player.x / Conf.tileSize, y: this.player.y / Conf.tileSize})) {
-			this.player.sprite.x += Math.random() * Conf.tileSize;
-			this.player.sprite.y += Math.random() * Conf.tileSize;
-			this.fireEnd();
-			this.fixPlayerPosition(iterations + 1);
-		}
+		let tries = 0;
+		do {
+			this.player.x += (Math.random() - 0.5) * Conf.tileSize;
+			this.player.y += (Math.random() - 0.5) * Conf.tileSize;
+			tries++;
+		} while (!this.isValidPosition(this.player) && tries < 100)
+		console.log(`Fixed player position after ${tries} tries`);
+		if (tries == 100)
+			this.player.x = this.player.y = this.level.worldSize * Conf.tileSize / 2;
+		this.fireEnd();
 	}
 
-	update(time: milliseconds, delta: milliseconds) {
-		const healPoint = this.getCloseCrackPoint();
-		if (healPoint && !this.player.isFiring) {
-			this.crackPointIndicator.x = healPoint.crackPoint.x * Conf.tileSize;
-			this.crackPointIndicator.y = -healPoint.crackPoint.y * Conf.tileSize;
-			this.crackPointIndicator.setVisible(true);
-			this.crackPointIndicator.setFrame(healPoint.tree ? 26 : 0);
-		} else {
-			this.crackPointIndicator.setVisible(false);
+	update(time: number, delta: number) {
+		if (this.isLevelOver)
+			return;
+
+		const target = this.getTarget();
+		if (target && !this.player.isFiring) {
+			this.targetSprite.x = target.x;
+			this.targetSprite.y = target.y;
+			this.targetSprite.setVisible(true);
+			this.targetSprite.setFrame(target.sort == "tree" ? 26 : 0);
+		} else if (!target) {
+			this.targetSprite.setVisible(false);
 		}
 
-
 		this.demons.forEach(demon => demon.update(time, delta));
-
 
 		this.introGuide.update();
 
@@ -598,81 +598,30 @@ export default class extends Phaser.Scene {
 		this.cracks.forEach(c => c.update(time, delta));
 
 		this.droplets.forEach(droplet => {
-			if (this.waterLevel < this.waterCapacity) {
+			if (this.waterLevel < this.level.waterCapacity) {
 				if (droplet.isCloseTo(this.player)) {
 					this.droplets = this.droplets.filter(d => d !== droplet);
 					droplet.destroy();
 					this.waterLevel++;
 					this.updateInventory();
-					this.sound.play("Droplet");
+					this.sound.play("DropletCollected");
 				}
 			}
-		});
 
-		this.timeLeft -= delta;
-		this.dropTimeLeft -= delta;
-		this.demonTimeLeft -= delta;
-		this.extendTimeLeft -= delta;
-
-		if (this.timeLeft < 0) {
-			this.timeLeft = random(this.crackDelay) * 1000;
-			const crack = pick(this.allowNewCracks ? [null, ...this.cracks] : this.cracks);
-			let shouldShake: boolean;
-			if (crack) {
-				if (crack.crackPoints.length < this.crackMaxLength) {
-					shouldShake = crack.extend();
-				}
-			} else if (this.allowNewCracks) {
-				let x: number, y: number, tries = 0;
-				do {
-					x = Math.floor((Math.random() - 0.5) * Conf.viewportWidth);
-					y = Math.floor((Math.random() - 0.5) * Conf.viewportHeight);
-					tries++;
-				} while (!this.isValidPosition({x, y: -y}, true) && tries < 5)
-				if (tries < 5)
-					this.cracks.push(new Crack({ scene: this, x, y }));
-			}
-			if (shouldShake) {
-				this.cameras.main.shake(200, 0.008);
-				this.sound.play("Crack");
-			}
-
-			this.fixPlayerPosition();
-		}
-
-		// if (this.demonTimeLeft < 0) {
-		// 	this.demonTimeLeft = random(4) * 1000;
-        //     let x: number, y: number;
-		// 	do {
-		// 		x = Math.floor((Math.random() - 0.5) * Conf.worldSize * Conf.tileSize);
-		// 		y = Math.floor((Math.random() - 0.5) * Conf.worldSize * Conf.tileSize);
-		// 	} while (!this.isValidPosition({x: x / Conf.tileSize, y: -y / Conf.tileSize}))
-        //     this.demons[0].setDestination({x, y});
-        // }
-
-		if (this.dropTimeLeft < 0) {
-			this.dropTimeLeft = random(this.dropsDelay) * 1000;
-
-			if (this.level > 1 && this.droplets.length < this.waterCapacity * 2) {
-				let x: number, y: number;
-				do {
-					x = Math.floor((Math.random() - 0.5) * Conf.worldSize * Conf.tileSize);
-					y = Math.floor((Math.random() - 0.5) * Conf.worldSize * Conf.tileSize);
-				} while (!this.isValidPosition({x: x / Conf.tileSize, y: -y / Conf.tileSize}))
-				this.droplets.push(new Droplet(this, x, y, time));
-			}
-		}
-
-		this.droplets.forEach(droplet => {
 			if (time > droplet.appearingTime + Conf.dropletTimeout * 1000) {
 				droplet.image.destroy();
 				this.droplets = this.droplets.filter(d => d !== droplet);
 			}
 		});
 
-		if (this.extendTimeLeft < 0) {
-			this.extendTimeLeft = random(this.extendDelay) * 1000;
-			this.extendGrass();
-		}
+		// if (this.demonTimeLeft < 0) {
+		// 	this.demonTimeLeft = random(4) * 1000;
+		//     let x: number, y: number;
+		// 	do {
+		// 		x = Math.floor((Math.random() - 0.5) * Conf.worldSize * Conf.tileSize);
+		// 		y = Math.floor((Math.random() - 0.5) * Conf.worldSize * Conf.tileSize);
+		// 	} while (!this.isValidPosition({x: x / Conf.tileSize, y: -y / Conf.tileSize}))
+		//     this.demons[0].setDestination({x, y});
+		// }
 	}
 }

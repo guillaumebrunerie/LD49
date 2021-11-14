@@ -1,5 +1,5 @@
 import * as Conf from "./configuration";
-import {pick, Direction} from "./utils";
+import {pick, Direction, Position} from "./utils";
 import MainScene from "./MainScene";
 
 const rotateDirection = (direction: Direction, rotation: number): Direction => {
@@ -23,12 +23,12 @@ const rotateDirection = (direction: Direction, rotation: number): Direction => {
 	}
 };
 
-const rotateDxDy = ({ dx, dy }, rotation: (0 | 1 | 2 | 3)) => {
+const rotateDxDy = ({dx, dy}: {dx: number, dy: number}, rotation: number) => {
 	return [
 		{ dx, dy },
-		{ dx: dy, dy: -dx },
-		{ dx: -dx, dy: -dy },
 		{ dx: -dy, dy: dx },
+		{ dx: -dx, dy: -dy },
+		{ dx: dy, dy: -dx },
 	][rotation];
 };
 
@@ -59,36 +59,36 @@ type CrackTileData = {
 	dx: number;
 	dy: number;
 	from: Direction;
-	fromSize?: number;
+	fromSize: number;
 	to: Direction;
-	toSize?: number;
+	toSize: number;
 	pivotX: number;
 	pivotY: number;
 	flipX?: boolean;
 };
 
 const initialCrackTilesData: CrackTileData[] = [
-	{ tile: 0, dx: 0, dy: 0, from: "", to: "Right", toSize: 1, pivotX: -1, pivotY: 0.5 },
-	{ tile: 1, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: 0.5 },
-	{ tile: 2, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: -0.5 },
-	{ tile: 3, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5 },
-	{ tile: 4, dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5 },
-	{ tile: 5, dx: 2, dy: 1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5 },
+	{ tile: 0, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: -0.5 },
+	{ tile: 1, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: -0.5 },
+	{ tile: 2, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5 },
+	{ tile: 3, dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: -0.5 },
+	{ tile: 4, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5 },
+	{ tile: 5, dx: 2, dy: -1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5 },
 
-	{ tile: 6, dx: 0, dy: 0, from: "", to: "Right", toSize: 1, pivotX: -1, pivotY: 0.5 },
-	{ tile: 7, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: -0.5 },
-	{ tile: 8, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5 },
-	{ tile: 9, dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: -0.5 },
-	{ tile: 10, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5 },
-	{ tile: 11, dx: 2, dy: -1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5 },
+	{ tile: 6, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: -0.5 },
+	{ tile: 7, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: 0.5 },
+	{ tile: 8, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: -0.5 },
+	{ tile: 9, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5 },
+	{ tile: 10, dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5 },
+	{ tile: 11, dx: 2, dy: 1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5 },
 
-	{ tile: 12, dx: 0, dy: 0, from: "", to: "Right", toSize: 2, pivotX: -1, pivotY: 0.5 },
-	{ tile: 13, dx: 0, dy: 0, from: "", to: "Right", toSize: 3, pivotX: -1, pivotY: 0.5 },
-	{ tile: 14, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5 },
+	{ tile: 12, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 2, pivotX: -1, pivotY: -0.5 },
+	{ tile: 13, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 3, pivotX: -1, pivotY: -0.5 },
+	{ tile: 14, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5 },
 
-	{ tile: 15, dx: 0, dy: 0, from: "", to: "Right", toSize: 2, pivotX: -1, pivotY: -0.5 },
-	{ tile: 16, dx: 0, dy: 0, from: "", to: "Right", toSize: 3, pivotX: -1, pivotY: -0.5 },
-	{ tile: 17, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5 },
+	{ tile: 15, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 2, pivotX: -1, pivotY: 0.5 },
+	{ tile: 16, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 3, pivotX: -1, pivotY: 0.5 },
+	{ tile: 17, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5 },
 ];
 
 // Flip horizontally and reverse the direction
@@ -107,9 +107,12 @@ initialCrackTilesData.forEach(({ tile, dx, dy, from, fromSize, to, toSize, pivot
 });
 
 // Rotate
-const finalCrackTilesData = [];
+type FinalCrackTileData = CrackTileData & {
+	rotation: number,
+};
+const finalCrackTilesData: FinalCrackTileData[] = [];
 intermediateCrackTilesData.forEach(({ tile, dx, dy, from, fromSize, to, toSize, pivotX, pivotY, flipX }) => {
-	[0, 3].forEach((rotation: (0 | 3)) => {
+	[0, 3].forEach((rotation: number) => {
 		const { dx: newDx, dy: newDy } = rotateDxDy({ dx, dy }, rotation);
 		const { dx: newPivotX, dy: newPivotY } = rotateDxDy({ dx: pivotX, dy: pivotY }, rotation);
 		finalCrackTilesData.push({
@@ -129,19 +132,18 @@ intermediateCrackTilesData.forEach(({ tile, dx, dy, from, fromSize, to, toSize, 
 // 	return array[Math.floor(Math.random() * array.length)];
 // };
 
-export type CrackPoint = { x: number, y: number, direction: Direction, size: (1 | 2 | 3) };
-type CrackSegmentData = { x: number, y: number, tile: number, flipX: boolean, rotation: number };
+export type CrackPoint = {x: number, y: number, direction: Direction, size: number};
+type CrackSegmentData = {x: number, y: number, tile: number, flipX: boolean, rotation: number};
 
 export default class Crack {
 	crackPoints: CrackPoint[];
 	scene: MainScene;
-	crackSegments: Phaser.GameObjects.Sprite[];
-	crackSegmentData: CrackSegmentData[];
+	crackSegments: Phaser.GameObjects.Sprite[] = [];
+	crackSegmentData: CrackSegmentData[] = [];
 
-	constructor({ scene, x = 0, y = 0, crackPoints = undefined }) {
+	constructor({scene, x = 0, y = 0, crackPoints = undefined}: {scene: MainScene, x?: number, y?: number, crackPoints?: CrackPoint[]}) {
 		this.scene = scene;
 		this.crackPoints = crackPoints || this.generateRandomCrack(1, {x, y});
-		this.crackSegments = [];
 		this.regenerateAll();
 	}
 
@@ -157,27 +159,25 @@ export default class Crack {
 	}
 
 	extend() {
-		const teste = (i: number, j: number) => (i < j);
-        const test2 = (i: number, j: number) => (i < j);
-
 		const canBeWidened = (crackPoint: CrackPoint, i: number, array: CrackPoint[]) => (
 			i > 0 && i < array.length - 1 && crackPoint.size <= array[i - 1].size && crackPoint.size <= array[i + 1].size && crackPoint.size <= 2
 		);
 
 		const pointsToWiden = this.crackPoints.filter(canBeWidened);
+		const target = this.scene.pointTargeted;
 		if (pointsToWiden.length > 0 && Math.random() < Conf.widenProbability) {
 			const pointToWiden = pick(pointsToWiden);
-			if (pointToWiden == this.scene.pointBeingHealed?.crackPoint)
+			if (pointToWiden == this.scene.pointTargeted)
 				return false;
 			pointToWiden.size++;
 		} else if (Math.random() < 0.5) {
 			const lastPoint = this.crackPoints[this.crackPoints.length - 1];
-			if (lastPoint == this.scene.pointBeingHealed?.crackPoint)
+			if (target && lastPoint.x == target.x && lastPoint.y == target.y)
 				return false;
 			const tile = pick(finalCrackTilesData.filter(data => data.from == lastPoint.direction && data.toSize == 1));
-			const x = lastPoint.x + tile.dx;
-			const y = lastPoint.y + tile.dy;
-			if ([0.25, 0.5, 0.75, 1].every(k => this.scene.isValidPosition({x: lastPoint.x + tile.dx * k, y: -(lastPoint.y + tile.dy * k)}, this))) {
+			const x = lastPoint.x + tile.dx * Conf.tileSize;
+			const y = lastPoint.y + tile.dy * Conf.tileSize;
+			if ([0.25, 0.5, 0.75, 1].every(k => this.scene.isValidPosition({x: lastPoint.x + tile.dx * k * Conf.tileSize, y: lastPoint.y + tile.dy * k * Conf.tileSize}, this))) {
 				this.crackPoints.push({
 					x,
 					y,
@@ -187,12 +187,12 @@ export default class Crack {
 			} else return false;
 		} else {
 			const firstPoint = this.crackPoints[0];
-			if (firstPoint == this.scene.pointBeingHealed?.crackPoint)
+			if (target && firstPoint.x == target.x && firstPoint.y == target.y)
 				return false;
 			const tile = pick(finalCrackTilesData.filter(data => data.fromSize == 1 && data.to == firstPoint.direction));
-			const x = firstPoint.x - tile.dx;
-			const y = firstPoint.y - tile.dy;
-			if ([0.25, 0.5, 0.75, 1].every(k => this.scene.isValidPosition({x: firstPoint.x - tile.dx * k, y: -(firstPoint.y - tile.dy * k)}, this)))  {
+			const x = firstPoint.x - tile.dx * Conf.tileSize;
+			const y = firstPoint.y - tile.dy * Conf.tileSize;
+			if ([0.25, 0.5, 0.75, 1].every(k => this.scene.isValidPosition({x: firstPoint.x - tile.dx * k * Conf.tileSize, y: firstPoint.y - tile.dy * k * Conf.tileSize}, this)))  {
 				this.crackPoints.unshift({
 					x,
 					y,
@@ -205,32 +205,32 @@ export default class Crack {
 		return true;
 	}
 
-	generateRandomCrack(length: number, {x: initialX, y: initialY}) {
+	generateRandomCrack(length: number, {x: initialX, y: initialY}: Position) : CrackPoint[] {
 		const result = [];
-		let direction = "";
+		let direction : Direction = "";
 		let x = initialX;
 		let y = initialY;
 
 		for (let i = 0; i < length; i++) {
 			const tile = pick(finalCrackTilesData.filter(data => data.from == direction && data.to !== ""));
-			x += tile.dx;
-			y += tile.dy;
+			x += tile.dx * Conf.tileSize;
+			y += tile.dy * Conf.tileSize;
 			direction = tile.to;
-			result.push({x, y, direction, size: 1});
+			result.push({x, y, direction, size: 1 as 1});
 		}
 
 		return result;
 	}
 
-	generateCrackSegmentData(crackPoints: CrackPoint[]) {
+	generateCrackSegmentData(crackPoints: CrackPoint[]): CrackSegmentData[] {
 		const result = [];
 
 		const pick = (array: any[]) => array[0];
 
 		const firstTile = pick(finalCrackTilesData.filter(data => data.from == "" && data.to == crackPoints[0].direction && data.toSize == crackPoints[0].size));
 		result.push({
-			x: crackPoints[0].x + firstTile.pivotX,
-			y: crackPoints[0].y + firstTile.pivotY,
+			x: crackPoints[0].x + firstTile.pivotX * Conf.tileSize,
+			y: crackPoints[0].y + firstTile.pivotY * Conf.tileSize,
 			tile: firstTile.tile,
 			flipX: firstTile.flipX,
 			rotation: firstTile.rotation,
@@ -247,13 +247,13 @@ export default class Crack {
 			const to = crackPoint.direction;
 			const toSize = crackPoint.size;
 			const tileData = pick(finalCrackTilesData.filter(data => (
-				Math.abs(data.dx - dx) < 0.1 && Math.abs(data.dy - dy) < 0.1
+				Math.abs(data.dx * Conf.tileSize - dx) < 0.1 && Math.abs(data.dy * Conf.tileSize - dy) < 0.1
 					&& data.from == from && data.fromSize == fromSize
 					&& data.to == to && data.toSize == toSize
 			)));
 			result.push({
-				x: previousCrackPoint.x + tileData.pivotX,
-				y: previousCrackPoint.y + tileData.pivotY,
+				x: previousCrackPoint.x + tileData.pivotX * Conf.tileSize,
+				y: previousCrackPoint.y + tileData.pivotY * Conf.tileSize,
 				tile: tileData.tile,
 				flipX: tileData.flipX,
 				rotation: tileData.rotation,
@@ -263,8 +263,8 @@ export default class Crack {
 		const lastPoint = crackPoints[crackPoints.length - 1];
 		const lastTile = pick(finalCrackTilesData.filter(data => data.from == lastPoint.direction && data.fromSize == lastPoint.size && data.to == ""));
 		result.push({
-			x: lastPoint.x + lastTile.pivotX,
-			y: lastPoint.y + lastTile.pivotY,
+			x: lastPoint.x + lastTile.pivotX * Conf.tileSize,
+			y: lastPoint.y + lastTile.pivotY * Conf.tileSize,
 			tile: lastTile.tile,
 			flipX: lastTile.flipX,
 			rotation: lastTile.rotation,
@@ -273,12 +273,12 @@ export default class Crack {
 		return result;
 	}
 
-	generateCrackSegments(crackSegmentData) {
-		const result = [];
+	generateCrackSegments(crackSegmentData: CrackSegmentData[]) {
+		const result: Phaser.GameObjects.Sprite[] = [];
 		crackSegmentData.forEach(({x, y, tile, flipX = false, rotation = 0}) => {
 			const segment = this.scene.add.sprite(
-				x * Conf.tileSize,
-				-y * Conf.tileSize,
+				x,
+				y,
 				"CracksTiles",
 				tile,
 			).setFlipX(flipX).setAngle(rotation * 90);
@@ -287,13 +287,13 @@ export default class Crack {
 		return result;
 	}
 
-	distanceToPlayer({x, y}) {
+	distanceToPlayer({x, y}: Position) {
 		const dx = Math.abs(x - this.scene.player.x);
 		const dy = Math.abs(y - this.scene.player.y);
 		return (dx + dy);
 	}
 
-	isCloseToPlayer({x, y}) {
+	isCloseToPlayer({x, y}: Position) {
 		const dx = Math.abs(x - this.scene.player.x);
 		const dy = Math.abs(y - this.scene.player.y);
 		return (dx + dy < 2 * Conf.tileSize);
@@ -303,3 +303,24 @@ export default class Crack {
 		this.crackSegments.forEach(cs => cs.update(time, delta));
 	}
 }
+
+export const healAt = (scene: MainScene, crack: Crack, crackPoint: CrackPoint) => {
+	const crackPoints = [...crack.crackPoints];
+	const index = crackPoints.indexOf(crackPoint);
+
+	if (crackPoint.size > 1) {
+		crackPoint.size--;
+		return [new Crack({scene, crackPoints})];
+	} else if (crackPoints.length == 1) {
+		return [];
+	} else if (index == 0) {
+		return [new Crack({scene, crackPoints: crackPoints.slice(1)})];
+	} else if (index == crackPoints.length - 1) {
+		return [new Crack({scene, crackPoints: crackPoints.slice(0, index)})];
+	} else {
+		return [
+			new Crack({scene, crackPoints: crackPoints.slice(0, index)}),
+			new Crack({scene, crackPoints: crackPoints.slice(index + 1)}),
+		];
+	}
+};

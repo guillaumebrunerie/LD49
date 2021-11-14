@@ -2,16 +2,13 @@
  * Configuration variables
  */
 
+import {MaybeRandomNumber} from "./utils";
+
 // Size (in pixels) of one tile
 export const tileSize = 24;
 
 // How many times should the tiles be scaled up
 export const tileScaleFactor = 3;
-
-// Total size (in tiles) of the world
-export const worldSize = 30;
-export const worldWidth = worldSize;
-export const worldHeight = worldSize;
 
 // Size (in tiles) of the viewport
 export const viewportWidth = 20;
@@ -43,9 +40,8 @@ export const inventory = {
 	dx: 13,
 };
 
-// Unused
-// // Speed of the robot, in tiles/second
-// conf.speed = 4;
+// Speed of the robot, in tiles/second
+export const playerSpeed = 5;
 
 // Time after which a droplet will disappear
 export const dropletTimeout = 15;
@@ -62,45 +58,95 @@ export const dropletHitboxSize = 12;
 
 // Level specific configurations
 
-export type MaybeRandomNumber = number | {min: number, max: number};
-
-type LevelConfiguration = {
-	numberOfCracks: number,
-	crackDelay: MaybeRandomNumber,
+export type LevelConfiguration = {
+	worldSize: number,
+	initialNumberOfCracks: number,
+	crackDelay: MaybeRandomNumber, // Time between two earthquakes, in seconds
 	waterCapacity: number,
-	dropsDelay: MaybeRandomNumber,
+	dropsDelay: MaybeRandomNumber, // Time between the appearance of droplets
 	crackMaxLength?: number,
 	allowNewCracks?: boolean,
-	treesEnabled?: boolean,
-	extendDelay?: number,
-	extendProbability?: number,
+	extendDelay: number,
+	extendProbability: number,
 }
 
 export const levels: LevelConfiguration[] = [
-	null, {
-		numberOfCracks: 1,
+	{ // Only trees
+		worldSize: 10,
+		initialNumberOfCracks: 0,
 		crackDelay: Infinity,
-		waterCapacity: 1,
-		dropsDelay: 0.5,
-	}, {
-		numberOfCracks: 3,
-		crackDelay: { min: 3, max: 5 }, // Time between two earthquakes, in seconds
-		crackMaxLength: 5,
-		dropsDelay: { min: 1, max: 3 }, // Time between the appearance of droplets
+		dropsDelay: Infinity,
+		allowNewCracks: false,
 		waterCapacity: 5,
-	}, {
-		numberOfCracks: 4,
-		crackDelay: { min: 2, max: 5 }, // Time between two earthquakes, in seconds
-		dropsDelay: { min: 0.5, max: 1.5 }, // Time between the appearance of droplets
+		extendDelay: 1,
+		extendProbability: 0.5,
+	}, { // First crack
+		worldSize: 15,
+		initialNumberOfCracks: 1,
+		crackDelay: Infinity,
+		dropsDelay: Infinity,
 		waterCapacity: 5,
-	}, {
-		numberOfCracks: 1,
-		crackDelay: { min: 0.5, max: 2 }, // Time between two earthquakes, in seconds
-		dropsDelay: { min: 0.5, max: 3 }, // Time between the appearance of droplets
-		allowNewCracks: true,
+		extendDelay: 1,
+		extendProbability: 0.5,
+	}, { // Many cracks and droplets
+		worldSize: 20,
+		initialNumberOfCracks: 10,
+		crackDelay: Infinity,
+		dropsDelay: { min: 2, max: 3 },
 		waterCapacity: 5,
-		treesEnabled: true,
-		extendDelay: 5,
-		extendProbability: 0.4,
+		extendDelay: 1,
+		extendProbability: 0.5,
+	}, { // Cracks are now extending
+		worldSize: 25,
+		initialNumberOfCracks: 2,
+		crackDelay: { min: 2, max: 5 },
+		dropsDelay: { min: 1, max: 2 },
+		waterCapacity: 5,
+		extendDelay: 1,
+		extendProbability: 0.5,
+	}, { // Cracks are extending faster
+		worldSize: 30,
+		initialNumberOfCracks: 4,
+		crackDelay: { min: 0.5, max: 2 },
+		dropsDelay: { min: 1, max: 2 },
+		waterCapacity: 5,
+		extendDelay: 1,
+		extendProbability: 0.5,
+	}, { // Demon
+		worldSize: 35,
+		initialNumberOfCracks: 4,
+		crackDelay: { min: 0.5, max: 2 },
+		dropsDelay: { min: 1, max: 2 },
+		waterCapacity: 5,
+		extendDelay: 1,
+		extendProbability: 0.5,
 	}
 ];
+
+// export const levels: LevelConfiguration[] = [
+// 	{
+// 	}, {
+// 		numberOfCracks: 1,
+// 		dropsDelay: 0.5,
+// 	}, {
+// 		numberOfCracks: 3,
+// 		crackDelay: { min: 3, max: 5 },
+// 		crackMaxLength: 5,
+// 		dropsDelay: { min: 1, max: 3 },
+// 		waterCapacity: 5,
+// 	}, {
+// 		numberOfCracks: 4,
+// 		crackDelay: { min: 2, max: 5 },
+// 		dropsDelay: { min: 0.5, max: 1.5 },
+// 		waterCapacity: 5,
+// 	}, {
+// 		numberOfCracks: 1,
+// 		crackDelay: { min: 0.5, max: 2 },
+// 		dropsDelay: { min: 0.5, max: 3 },
+// 		allowNewCracks: true,
+// 		waterCapacity: 5,
+// 		extendDelay: 5,
+// 		extendProbability: 0.4,
+// 		treesEnabled: true,
+// 	}
+// ];

@@ -1,19 +1,28 @@
-import * as Conf from "./configuration";
+export type MaybeRandomNumber = number | {min: number, max: number};
 
 export const pick = (array: any[]) => (
 	array[Math.floor(Math.random() * array.length)]
 );
 
-export const random = (value: Conf.MaybeRandomNumber) => {
+export const random = (value?: MaybeRandomNumber) => {
 	if (typeof value == "number")
 		return value;
-	else
+	else if (value)
 		return (value.min + Math.random() * (value.max - value.min));
+	else
+		return 0;
 }
+
+export type Direction8 = ("N" | "NE" | "E" | "SE" | "S" | "SW" | "W" | "NW");
+export const dPosToDirection8 = (dy: number, dx: number) : Direction8 => {
+	const angle = (Math.atan2(dy, dx) + Math.PI) * 180 / Math.PI;
+	const directionIndex = Math.round(angle / 45);
+	const table: Direction8[] = ["W", "NW", "N", "NE", "E", "SE", "S", "SW", "W"];
+	return table[directionIndex];
+};
 
 export type Position = {x: number, y: number};
 export type Direction = ("" | "Right" | "Left" | "Up" | "Down");
-export type Direction8 = ("N" | "NE" | "E" | "SE" | "S" | "SW" | "W" | "NW");
 export type Direction4 = ("N" | "S" | "W" | "E");
 export type milliseconds = number;
 
@@ -74,4 +83,15 @@ export const findNewDirection = ({from, to, direction}: {from: Position, to: Pos
             else
                 return "N";
     }
+}
+
+type AnimationEntry = {
+    key: string,
+    anim: Phaser.Types.Animations.GenerateFrameNames,
+};
+
+export type AnimationEntries = {
+    key: string,
+    repeat: number,
+    entries: AnimationEntry[];
 }

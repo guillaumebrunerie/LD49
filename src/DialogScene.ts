@@ -7,9 +7,9 @@ import MainScene from "./MainScene";
 
 export default class extends Phaser.Scene {
 	lines: {destroy: () => void}[];
-	dialog: Dialog;
-	currentIndex: number;
-	avatar: Phaser.GameObjects.Sprite;
+	dialog!: Dialog;
+	currentIndex = 0;
+	avatar!: Phaser.GameObjects.Sprite;
 
 	constructor() {
 		super("DialogScene");

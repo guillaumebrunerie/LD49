@@ -1,9 +1,16 @@
 import * as Phaser from "phaser";
 
+import Sound from "./soundTriggers";
 import * as Conf from "./configuration";
-import * as Tiles from "./tiles";
 import SoundButtonScene from "./SoundButtonScene";
 import Demon from "./Demon";
+import Player from "./Player";
+
+const SOUNDS = [
+	"Beep1", "Beep2", "Beep3", "Beep4", "Beep5",
+	"CrackAppears", "CrackHealed", "DropletCollected", "TreeHealed", "Water",
+	"GameLost", "GameWon", "Music",
+];
 
 export default class extends Phaser.Scene {
 	constructor() {
@@ -14,22 +21,9 @@ export default class extends Phaser.Scene {
 		const tileConf = { frameWidth: Conf.tileSize, frameHeight: Conf.tileSize };
 
 		this.load.setPath("assets/Audio");
-		this.load.audio("music", "Music/Exploration_Dark (loop).mp3");
-		this.load.audio("WinScreen", "Music/WinScreen.mp3");
-
-		this.load.audio("Beep1", "Fx/sci-fi_beep_computer_ui_01.mp3");
-		this.load.audio("Beep2", "Fx/sci-fi_beep_computer_ui_02.mp3");
-		this.load.audio("Beep3", "Fx/sci-fi_beep_computer_ui_03.mp3");
-		this.load.audio("Beep4", "Fx/sci-fi_beep_computer_ui_04.mp3");
-		this.load.audio("Beep5", "Fx/sci-fi_beep_computer_ui_05.mp3");
-
-		this.load.audio("Water", "Fx/GunShot.mp3");
-
-		this.load.audio("Crack", "Fx/Crack.mp3");
-
-		this.load.audio("Droplet", "Fx/PickUpDroplet.mp3");
-
-		this.load.audio("Tree", "Fx/PickUpDroplet2.mp3");
+		for (const sound of SOUNDS) {
+			this.load.audio(sound, sound + ".mp3");
+		}
 
 		this.load.setPath("assets/UI");
 		this.load.image("Start_Screen");
@@ -59,12 +53,16 @@ export default class extends Phaser.Scene {
 		this.load.spritesheet("GameWon", "SpriteSheets/WinScreen.png", { frameWidth: 480, frameHeight: 240 });
 		this.load.spritesheet("GameLost", "SpriteSheets/LostScreen.png", { frameWidth: 480, frameHeight: 240 });
 
-        this.load.spritesheet("Demon", "SpriteSheets/Demon.png", tileConf);
+		this.load.spritesheet("Demon", "SpriteSheets/Demon.png", tileConf);
+
+		this.load.spritesheet("LevelLock", "SpriteSheets/LevelLock.png", {frameWidth: 48, frameHeight: 48});
+		this.load.image("SelectWorldTxt", "UI/SelectWorldTxt.png");
+		this.load.image("WorldLines", "UI/World_Lines.png");
+		this.load.image("LevelOver", "UI/Level_Complete_Txt.png");
+		this.load.atlas("Levels", "SpriteSheets/Levels.png", "SpriteSheets/Levels.json");
 	}
 
 	create() {
-		this.add.image(0, 0, "Start_Screen").setOrigin(0, 0);
-
 		this.anims.create({
 			key: "GameWon",
 			frameRate: 10,
@@ -108,25 +106,16 @@ export default class extends Phaser.Scene {
 			frames: this.anims.generateFrameNames("Bubble", { frames: [2, 1, 0, 6] }),
 		});
 
-		Tiles.laserAnimations.forEach(([suffix, anim]) => {
-			this.anims.create({
-				key: "Laser" + suffix,
-				frameRate: 5,
-				frames: this.anims.generateFrameNames("Laser", anim),
-				repeat: -1
-			});
-		});
+		Demon.createAnimations(this.anims);
+		Player.createAnimations(this.anims);
 
-		Tiles.playerWalkAnimations.forEach(([suffix, anim]) => {
-			this.anims.create({
-				key: "PlayerWalk" + suffix,
-				frameRate: 10,
-				frames: this.anims.generateFrameNames("Player", anim),
-				repeat: -1
-			});
-		});
+		this.add.image(0, 0, "Start_Screen").setOrigin(0, 0);
 
-        Demon.createAnimations(this.anims);
+
+
+		this.scene.start("LevelSelect");
+
+
 
 		const startButton = this.add.image(Conf.startButton.x, Conf.startButton.y, "Btn_Start");
 		let isStartButtonDown = false;
@@ -141,7 +130,7 @@ export default class extends Phaser.Scene {
 		});
 		startButton.on("pointerup", () => {
 			if (isStartButtonDown) {
-				this.scene.start("MainScene");
+				this.scene.start("LevelSelect");
 				(this.scene.get("SoundButtonScene") as SoundButtonScene).gameStarted();
 			}
 		});

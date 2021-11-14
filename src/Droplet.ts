@@ -8,9 +8,9 @@ export default class {
 	get x() { return this.image.x };
 	get y() { return this.image.y };
 
-	constructor(scene: Phaser.Scene, x: number, y: number, time: number) {
+	constructor(scene: Phaser.Scene, x: number, y: number) {
 		this.image = scene.add.image(x, y - Conf.tileSize, "WaterDroplet");
-		this.appearingTime = time;
+		this.appearingTime = scene.time.now;
 	}
 
 	destroy() {

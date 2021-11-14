@@ -4,7 +4,7 @@ const charsInFont = "ABCDEFGHIJKLMNOPQRSTUVWXYZ.:,;°×!?' ";
 
 // newTextLine
 export default (scene: Phaser.Scene, x: number, y: number, text: string) => {
-	const letters = [];
+	const letters: Phaser.GameObjects.Image[] = [];
 	let currentX = x;
 	[...text].forEach(letter => {
 		const frame = charsInFont.indexOf(letter.toUpperCase());

@@ -9,11 +9,12 @@ export default class extends Phaser.GameObjects.Container {
 	sprite: Phaser.GameObjects.Sprite;
 	bubble: Phaser.GameObjects.Sprite;
 	isBubbling: boolean;
-	dialog: Dialog;
+	dialog?: Dialog;
 
-	constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame: number) {
+	constructor(scene: MainScene, x: number, y: number, texture: string, frame: number) {
 		super(scene, x, y);
 		scene.add.existing(this);
+		this.scene = scene;
 		this.sprite = scene.add.sprite(0, 0, texture, frame);
 		this.bubble = scene.add.sprite(Conf.bubbleOffset.dx, Conf.bubbleOffset.dy, "Bubble", 6);
 		this.add([this.sprite, this.bubble]);

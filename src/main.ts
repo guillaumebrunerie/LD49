@@ -7,6 +7,7 @@ import InventoryScene from "./InventoryScene";
 import DialogScene from "./DialogScene";
 import GameWonScene from "./GameWonScene";
 import GameLostScene from "./GameLostScene";
+import LevelSelectScene from "./LevelSelectScene";
 import SoundButtonScene from "./SoundButtonScene";
 
 const gameConfig: Phaser.Types.Core.GameConfig = ({
@@ -28,6 +29,7 @@ const gameConfig: Phaser.Types.Core.GameConfig = ({
 		DialogScene,
 		GameWonScene,
 		GameLostScene,
+		LevelSelectScene,
 		SoundButtonScene
 	],
 });

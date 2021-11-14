@@ -9,7 +9,7 @@ export default class extends Phaser.Scene {
 		this.inventorySprites = [];
 	}
 
-	updateInventory(capacity, level) {
+	updateInventory(capacity: number, level: number) {
 		this.inventorySprites.forEach(s => s.destroy());
 		this.inventorySprites = [];
 

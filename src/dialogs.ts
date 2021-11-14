@@ -22,7 +22,7 @@ const dialogs: LevelDialogs = [{
 		{ type: "them", text: ["Our scientists were studying", "the core of this planet."] },
 		{ type: "them", text: ["But unfortunately it is much more", "unstable than what they thought."] },
 		{ type: "them", text: ["It made the planet unstable and", "it risks exploding very soon."] },
-		{ type: "callback", callback: (scene) => scene.initLevel(1) },
+		// { type: "callback", callback: (scene) => scene.initLevel(1) },
 		{ type: "them", text: ["Look! Here are a crack!"] },
 		{ type: "you", text: ["Oh..."] },
 		{ type: "them", text: ["Go next to it and keep pressing SPACE", "until it is gone!"] },
@@ -37,7 +37,7 @@ const dialogs: LevelDialogs = [{
 }, {
 	start: [
 		{ type: "them", text: ["Good job! You managed to close it!", "But the cracks will keep coming..."] },
-		{ type: "callback", callback: (scene) => scene.initLevel(2) },
+		// { type: "callback", callback: (scene) => scene.initLevel(2) },
 		{ type: "them", text: ["Oh no, more cracks!", "Those are unstable, they may grow!"] },
 		{ type: "them", text: ["Collect the drops to recharge your tank."] }
 	],
@@ -48,7 +48,7 @@ const dialogs: LevelDialogs = [{
 }, {
 	start: [
 		{ type: "them", text: ["Awesome!! I wonder if it will ever end..."] },
-		{ type: "callback", callback: (scene) => scene.initLevel(3) },
+		// { type: "callback", callback: (scene) => scene.initLevel(3) },
 		{ type: "them", text: ["Again?? So many cracks this time...", "I hope the planet won't explode..."] },
 	],
 	loop: [
@@ -58,7 +58,7 @@ const dialogs: LevelDialogs = [{
 }, {
 	start: [
 		{ type: "them", text: ["Back in the days, this planet was green", "and full of trees and flowers."] },
-		{ type: "callback", callback: (scene) => scene.initLevel(4) },
+		// { type: "callback", callback: (scene) => scene.initLevel(4) },
 		{ type: "them", text: ["It was beautiful..."] },
 		{ type: "them", text: ["Maybe you could try to water those plants..."] },
 	],
