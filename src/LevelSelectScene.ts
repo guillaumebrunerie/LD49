@@ -20,7 +20,7 @@ const statusToImage = {
 };
 
 export default class extends Phaser.Scene {
-	planetsStatus: Status[] = ["available", "locked", "locked", "locked", "locked", "locked"];
+	planetsStatus: Status[] = ["available", "available", "available", "available", "available", "available"];
 	planets: Phaser.GameObjects.Sprite[] = [];
 	locks: Phaser.GameObjects.Sprite[] = [];
 	selection!: Phaser.GameObjects.Sprite;

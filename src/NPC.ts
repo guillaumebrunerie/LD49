@@ -15,7 +15,7 @@ export default class extends Phaser.GameObjects.Container {
 		super(scene, x, y);
 		scene.add.existing(this);
 		this.scene = scene;
-		this.sprite = scene.add.sprite(0, 0, texture, frame);
+		this.sprite = scene.add.sprite(0, 0, texture).play("NPCIdle" + frame);
 		this.bubble = scene.add.sprite(Conf.bubbleOffset.dx, Conf.bubbleOffset.dy, "Bubble", 6);
 		this.add([this.sprite, this.bubble]);
 		this.isBubbling = false;

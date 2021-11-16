@@ -105,6 +105,17 @@ export default class extends Phaser.Scene {
 			frames: this.anims.generateFrameNames("Bubble", { frames: [2, 1, 0, 6] }),
 		});
 
+		for (let i = 0; i < 6; i++) {
+			this.anims.create({
+				key: "NPCIdle" + i,
+				frameRate: 3,
+				frames: this.anims.generateFrameNames("Characters", {
+					frames: [13 * i, 13 * i + 1, 13 * i, 13 * i + 2]
+				}),
+				repeat: -1,
+			});
+		}
+
 		Demon.createAnimations(this.anims);
 		Player.createAnimations(this.anims);
 

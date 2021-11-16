@@ -198,7 +198,7 @@ export default class MainScene extends Phaser.Scene {
 		this.input.keyboard.on('keyup-SPACE', () => this.fireEnd());
 
 		this.player = new Player(this, this.level.worldSize * Conf.tileSize / 2, this.level.worldSize * Conf.tileSize / 2);
-		this.introGuide = new NPC(this, this.level.worldSize * Conf.tileSize / 2, (this.level.worldSize - 4) * Conf.tileSize / 2, "Characters", this.levelNum * 13);
+		this.introGuide = new NPC(this, this.level.worldSize * Conf.tileSize / 2, (this.level.worldSize - 4) * Conf.tileSize / 2, "Characters", this.levelNum);
 
 		this.cameras.main.startFollow(this.player);
 
