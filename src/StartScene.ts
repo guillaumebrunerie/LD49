@@ -1,6 +1,5 @@
 import * as Phaser from "phaser";
 
-import Sound from "./soundTriggers";
 import * as Conf from "./configuration";
 import SoundButtonScene from "./SoundButtonScene";
 import Demon from "./Demon";
