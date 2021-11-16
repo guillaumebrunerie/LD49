@@ -105,11 +105,11 @@ export default class extends Phaser.GameObjects.Container {
 	constructor(scene: MainScene, x: number, y: number) {
 		super(scene, x, y);
 		this.scene = scene;
-		this.laser = scene.add.sprite(0, 0, "Laser", 12).setDepth(41);
+		this.laser = scene.add.sprite(0, 0, "Laser", 12).setDepth(Conf.zIndex.laser);
 		this.add(this.laser);
-		this.sprite = scene.add.sprite(0, 0, "Player", 0).setDepth(42);
+		this.sprite = scene.add.sprite(0, 0, "Player", 0).setDepth(Conf.zIndex.player);
 		this.add(this.sprite);
-		scene.add.existing(this);
+		scene.add.existing(this).setDepth(Conf.zIndex.player);
 
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
 	}

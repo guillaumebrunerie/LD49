@@ -191,7 +191,7 @@ export default class MainScene extends Phaser.Scene {
 			height: this.level.worldSize,
 		});
 		const stuffTileset = this.stuffTilemap.addTilesetImage("tileset", "Tiles");
-		this.stuffTilemap.createLayer(0, stuffTileset);
+		this.stuffTilemap.createLayer(0, stuffTileset).setDepth(Conf.zIndex.tree);
 
 
 		this.input.keyboard.on('keydown-SPACE', () => this.interaction());
@@ -204,7 +204,7 @@ export default class MainScene extends Phaser.Scene {
 
 		this.createStarryBackground();
 
-		this.targetSprite = this.add.sprite(0, 0, "CrackPoints", 0).setVisible(false);
+		this.targetSprite = this.add.sprite(0, 0, "CrackPoints", 0).setVisible(false).setDepth(Conf.zIndex.target);
 
 
 		for (let i = 0; i < this.level.initialNumberOfCracks; i++) {
@@ -356,7 +356,7 @@ export default class MainScene extends Phaser.Scene {
 				))
 			));
 			if (this.isLevelOver) {
-				this.add.image(this.player.x, this.player.y, "LevelOver");
+				this.add.image(this.player.x, this.player.y, "LevelOver").setDepth(Conf.zIndex.levelComplete);
 				this.input.keyboard.on('keydown-SPACE', () => this.nextLevel());
 			}
 		}

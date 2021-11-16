@@ -281,7 +281,7 @@ export default class Crack {
 				y,
 				"CracksTiles",
 				tile,
-			).setFlipX(flipX).setAngle(rotation * 90);
+			).setFlipX(flipX).setAngle(rotation * 90).setDepth(Conf.zIndex.crack);
 			result.push(segment);
 		});
 		return result;

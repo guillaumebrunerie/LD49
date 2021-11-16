@@ -123,6 +123,19 @@ export const levels: LevelConfiguration[] = [
 	}
 ];
 
+let counter = 0;
+export const zIndex = {
+	tree: counter++,
+	crack: counter++,
+	droplet: counter++,
+	target: counter++,
+	laser: counter++,
+	player: counter++,
+	npc: counter++,
+	levelComplete: counter++,
+}
+
+
 // export const levels: LevelConfiguration[] = [
 // 	{
 // 	}, {

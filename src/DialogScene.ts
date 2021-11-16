@@ -10,14 +10,16 @@ export default class extends Phaser.Scene {
 	dialog!: Dialog;
 	currentIndex = 0;
 	avatar!: Phaser.GameObjects.Sprite;
+	levelNum = 0;
 
 	constructor() {
 		super("DialogScene");
 		this.lines = [];
 	}
 
-	init(dialog: Dialog) {
+	init({dialog, levelNum} :{dialog: Dialog, levelNum: number}) {
 		this.dialog = dialog;
+		this.levelNum = levelNum;
 		this.currentIndex = 0;
 	}
 
@@ -47,7 +49,10 @@ export default class extends Phaser.Scene {
 		switch (currentDialog.type) {
 			case "you":
 			case "them":
-				this.avatar.setTexture(currentDialog.type == "you" ? "Player" : "Characters");
+				if (currentDialog.type == "you")
+					this.avatar.setTexture("Player");
+				else
+					this.avatar.setTexture("Characters", this.levelNum * 13);
 				this.lines = currentDialog.text.map((text, i) => (
 					newTextLine(this, cfg.x, cfg.y + cfg.dy * i, text)
 				));

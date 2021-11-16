@@ -13,7 +13,7 @@ export default class extends Phaser.GameObjects.Container {
 
 	constructor(scene: MainScene, x: number, y: number, texture: string, frame: number) {
 		super(scene, x, y);
-		scene.add.existing(this);
+		scene.add.existing(this).setDepth(Conf.zIndex.npc);
 		this.scene = scene;
 		this.sprite = scene.add.sprite(0, 0, texture).play("NPCIdle" + frame);
 		this.bubble = scene.add.sprite(Conf.bubbleOffset.dx, Conf.bubbleOffset.dy, "Bubble", 6);
@@ -29,7 +29,7 @@ export default class extends Phaser.GameObjects.Container {
 		if (this.scene.scene.isActive("DialogScene"))
 			return;
 
-		this.scene.scene.run("DialogScene", this.dialog);
+		this.scene.scene.run("DialogScene", {levelNum: this.scene.levelNum, dialog: this.dialog});
 	}
 
 	isAtBlockingDistance(position: Phaser.Types.Math.Vector2Like): boolean {

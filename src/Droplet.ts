@@ -9,7 +9,7 @@ export default class {
 	get y() { return this.image.y };
 
 	constructor(scene: Phaser.Scene, x: number, y: number) {
-		this.image = scene.add.image(x, y - Conf.tileSize, "WaterDroplet");
+		this.image = scene.add.image(x, y - Conf.tileSize, "WaterDroplet").setDepth(Conf.zIndex.droplet);
 		this.appearingTime = scene.time.now;
 	}
 
