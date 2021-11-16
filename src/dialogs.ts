@@ -71,9 +71,22 @@ const dialogs: LevelDialogs = [{
 		{ type: "them", text: ["I can’t believe my eyes!"] },
 		{ type: "them", text: ["Our planet is green again!"] },
 		{ type: "them", text: ["Thank you so much for everything!", "You will always be welcome here!"] },
-		{ type: "callback", callback: (scene) => scene.winGame() },
+		// { type: "callback", callback: (scene) => scene.winGame() },
 	],
-	loop: [],
+	loop: [
+		{ type: "them", text: ["Awesome!"] },
+	],
+}, {
+	start: [
+		{ type: "them", text: ["You made it again!"] },
+		{ type: "them", text: ["I can’t believe my eyes!"] },
+		{ type: "them", text: ["Our planet is green again!"] },
+		{ type: "them", text: ["Thank you so much for everything!", "You will always be welcome here!"] },
+		// { type: "callback", callback: (scene) => scene.winGame() },
+	],
+	loop: [
+		{ type: "them", text: ["Awesome again!"] },
+	],
 }];
 
 export default dialogs;
