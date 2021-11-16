@@ -56,6 +56,7 @@ export default class MainScene extends Phaser.Scene {
 	init(data: {level: number}) {
 		this.levelNum = data.level;
 		this.level = Conf.levels[this.levelNum];
+		this.isLevelOver = false;
 	}
 
 	createStarryBackground() {
