@@ -86,8 +86,6 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	create() {
-		this.sound.play("Music", { loop: true });
-
 		const groundLayerData: number[][] = [];
 		const mask = this.worldMask = generateWorldMask(this.level.worldSize);
 		for (let y = 0; y < this.level.worldSize; y++) {

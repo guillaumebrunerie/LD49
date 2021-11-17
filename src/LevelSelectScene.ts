@@ -25,6 +25,7 @@ export default class extends Phaser.Scene {
 	locks: Phaser.GameObjects.Sprite[] = [];
 	selection!: Phaser.GameObjects.Sprite;
 	selectedIndex = 0;
+	musicPlaying = false;
 
 	constructor() {
 		super("LevelSelect");
@@ -86,6 +87,11 @@ export default class extends Phaser.Scene {
 
 	startSelectedLevel() {
 		if (this.planetsStatus[this.selectedIndex] !== "locked") {
+			if (!this.musicPlaying) {
+				this.musicPlaying = true;
+				this.sound.play("Music", { loop: true });
+			}
+
 			this.scene.sleep();
 			this.scene.run("MainScene", {level: this.selectedIndex});
 		}
