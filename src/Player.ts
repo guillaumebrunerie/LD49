@@ -182,6 +182,8 @@ export default class extends Phaser.GameObjects.Container {
 		} else {
 			direction = "";
 		}
+		this.x = Math.round(this.x);
+		this.y = Math.round(this.y);
 
 		if (direction) {
 			if (!this.isWalking || direction !== this.direction) {

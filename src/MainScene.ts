@@ -257,21 +257,43 @@ export default class MainScene extends Phaser.Scene {
 			}
 		});
 
-
-		// this.demons.push(new Demon(this, 0, 0));
-		// this.demons[0].setDestination({x: 3 * 24, y: -2 * 24});
+		setRandomInterval(1, () => {
+			this.createNewDemon();
+		});
 	}
 
-	// requestNewDestination(demon: Demon) {
-	// 	const trees = this.getTrees({alive: true});
-	// 	if (trees.length > 0) {
-	// 		const tree = pick(trees);
-	// 		demon.setDestination({x: tree.x, y: tree.y});
-	// 	}
-	// }
+	createNewDemon() {
+		const spawnPoints = this.cracks.map(crack => (
+			crack.crackPoints.filter(crackPoint => crackPoint.size == 3)
+		)).flat();
+		if (spawnPoints.length > 0 && this.demons.length < 5) {
+			const spawnPoint = pick(spawnPoints);
+			this.demons.push(new Demon(this, spawnPoint.x, spawnPoint.y));
+		}
+	}
+
+	requestNewDestination(demon: Demon) {
+		const trees = this.getTrees({alive: true});
+		if (trees.length > 0) {
+			const tree = pick(trees);
+			demon.setDestination({x: tree.x, y: tree.y});
+		}
+	}
 
 	burnTreeAt(demon: Demon) {
-		debugger;
+		const j = Math.floor(demon.x / Conf.tileSize);
+		const i = Math.floor(demon.y / Conf.tileSize);
+		for (let k = 0; k < 2; k++)
+			this.grassMask[i - 1][j + k] = 0;
+		for (let k = -1; k < 3; k++)
+			this.grassMask[i][j + k] = 0;
+		for (let k = -2; k < 4; k++)
+			this.grassMask[i + 1][j + k] = 0;
+		for (let k = -1; k < 3; k++)
+			this.grassMask[i + 2][j + k] = 0;
+		for (let k = 0; k < 2; k++)
+			this.grassMask[i + 3][j + k] = 0;
+		this.updateForGrass();
 	}
 
 	winGame() {
@@ -609,7 +631,7 @@ export default class MainScene extends Phaser.Scene {
 			}
 
 			if (time > droplet.appearingTime + Conf.dropletTimeout * 1000) {
-				droplet.image.destroy();
+				droplet.destroy();
 				this.droplets = this.droplets.filter(d => d !== droplet);
 			}
 		});

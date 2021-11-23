@@ -34,7 +34,8 @@ export default class extends Phaser.Scene {
 
 		this.load.image("Water_Bullet", "UI/Water_Bullet.png");
 		this.load.image("Water_Inventory", "UI/Water_Inventory.png");
-		this.load.image("WaterDroplet", "Collectables/Droplet.png");
+
+		this.load.spritesheet("Droplet", "SpriteSheets/Droplet.png", tileConf);
 
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", tileConf);
 		this.load.spritesheet("SpaceTiles", "SpriteSheets/BgSpace.png", tileConf);
@@ -62,6 +63,13 @@ export default class extends Phaser.Scene {
 	}
 
 	create() {
+		this.anims.create({
+			key: "Droplet",
+			frameRate: 10,
+			frames: this.anims.generateFrameNames("Droplet", { start: 0, end: 7 }),
+			repeat: -1,
+		});
+
 		this.anims.create({
 			key: "GameWon",
 			frameRate: 10,

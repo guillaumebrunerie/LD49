@@ -6,6 +6,7 @@ import {Direction4, move, partialDistance, Position, findNewDirection, Animation
 const startAnimations: AnimationEntries = {
 	key: "Start",
 	repeat: 0,
+	frameRate: 5,
 	entries: [
 		{key: "N", anim: {start: 23, end: 25}},
 		{key: "S", anim: {start: 7 , end: 9}},
@@ -17,6 +18,7 @@ const startAnimations: AnimationEntries = {
 const walkAnimations: AnimationEntries = {
 	key: "Walk",
 	repeat: -1,
+	frameRate: 5,
 	entries: [
 		{key: "N", anim: {start: 54, end: 57}},
 		{key: "S", anim: {start: 0 , end: 3}},
@@ -28,6 +30,7 @@ const walkAnimations: AnimationEntries = {
 const attackAnimations: AnimationEntries = {
 	key: "Attack",
 	repeat: -1,
+	frameRate: 5,
 	entries: [
 		{key: "N", anim: {start: 58, end: 60}},
 		{key: "S", anim: {start: 4 , end: 6}},
@@ -39,6 +42,7 @@ const attackAnimations: AnimationEntries = {
 const dieAnimations: AnimationEntries = {
 	key: "Die",
 	repeat: 0,
+	frameRate: 5,
 	entries: [
 		{key: "N", anim: {start: 84, end: 89}},
 		{key: "S", anim: {start: 65, end: 70}},
@@ -50,6 +54,7 @@ const dieAnimations: AnimationEntries = {
 const idleAnimation: AnimationEntries = {
 	key: "Idle",
 	repeat: -1,
+	frameRate: 5,
 	entries: [
 		{key: "", anim: {start: 13, end: 19}},
 	]
@@ -58,6 +63,7 @@ const idleAnimation: AnimationEntries = {
 const turnAnimations: AnimationEntries = {
 	key: "Turn",
 	repeat: 0,
+	frameRate: 15,
 	entries: [
 		{key: "NE", anim: {start: 61, end: 62}},
 		{key: "NW", anim: {start: 53 , end: 52}},
@@ -97,11 +103,11 @@ export default class {
 	get y() { return this.sprite.y };
 
 	static createAnimations(anims: Phaser.Animations.AnimationManager) {
-		allAnimations.forEach(({key, entries, repeat}) => {
+		allAnimations.forEach(({key, entries, repeat, frameRate}) => {
 			entries.forEach(({key: key2, anim}) => {
 				anims.create({
 					key: `Demon${key}${key2}`,
-					frameRate: 5,
+					frameRate,
 					frames: anims.generateFrameNames("Demon", anim),
 					repeat,
 				});
@@ -111,10 +117,11 @@ export default class {
 
 	constructor(scene: MainScene, x: number, y: number, direction = <Direction4>"S") {
 		this.scene = scene;
-		this.sprite = scene.add.sprite(x, y, "Demon");
+		this.sprite = scene.add.sprite(x, y, "Demon").setDepth(Conf.zIndex.demon);
 		this.direction = direction;
 		this.state = "STARTING";
 		this.sprite.play("DemonStart" + direction).once("animationcomplete", () => this.startIdling());
+		this.scene.time.delayedCall(2000, () => this.scene.requestNewDestination(this));
 	}
 
 	setDestination(pos: Position) {
@@ -134,7 +141,7 @@ export default class {
 	finishAttack() {
 		this.startIdling();
 		this.scene.burnTreeAt(this);
-		// this.scene.time.delayedCall(2000, () => this.scene.requestNewDestination(this));
+		this.scene.time.delayedCall(2000, () => this.scene.requestNewDestination(this));
 	}
 
 	startIdling() {
@@ -150,7 +157,7 @@ export default class {
 			if (this.x == this.destination.x && this.y == this.destination.y) {
 				this.sprite.play("DemonAttack" + this.direction, true);
 				this.state = "ATTACKING";
-				this.scene.time.delayedCall(3000, () => this.finishAttack());
+				this.scene.time.delayedCall(2000, () => this.finishAttack());
 			} else {
 				const distance = partialDistance({from: this, to: this.destination, direction: this.direction});
 				const speed = 0.1;

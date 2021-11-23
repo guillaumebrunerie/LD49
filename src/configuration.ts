@@ -50,7 +50,7 @@ export const dropletTimeout = 15;
 export const crackResistance = 1;
 
 // Probability that a crack will widen instead of extending (if possible)
-export const widenProbability = 0.8;
+export const widenProbability = 0.9;
 
 export const crackHitboxSize = 14;
 export const introGuideHitboxSize = 18;
@@ -113,13 +113,14 @@ export const levels: LevelConfiguration[] = [
 		extendDelay: 1,
 		extendProbability: 0.5,
 	}, { // Demon
-		worldSize: 35,
-		initialNumberOfCracks: 4,
+		worldSize: 25,
+		initialNumberOfCracks: 1,
 		crackDelay: { min: 0.5, max: 2 },
 		dropsDelay: { min: 1, max: 2 },
 		waterCapacity: 5,
 		extendDelay: 1,
 		extendProbability: 0.5,
+		allowNewCracks: false
 	}
 ];
 
@@ -128,6 +129,7 @@ export const zIndex = {
 	tree: counter++,
 	crack: counter++,
 	droplet: counter++,
+	demon: counter++,
 	target: counter++,
 	laser: counter++,
 	player: counter++,

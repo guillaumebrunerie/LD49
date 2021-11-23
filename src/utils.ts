@@ -91,7 +91,8 @@ type AnimationEntry = {
 };
 
 export type AnimationEntries = {
-    key: string,
-    repeat: number,
-    entries: AnimationEntry[];
+	key: string,
+	repeat: number,
+	frameRate?: number,
+	entries: AnimationEntry[];
 }

@@ -2,22 +2,20 @@ import * as Phaser from "phaser";
 import * as Conf from "./configuration";
 
 export default class {
-	image: Phaser.GameObjects.Image
+	sprite: Phaser.GameObjects.Sprite
 	appearingTime: number
 
-	get x() { return this.image.x };
-	get y() { return this.image.y };
-
 	constructor(scene: Phaser.Scene, x: number, y: number) {
-		this.image = scene.add.image(x, y - Conf.tileSize, "WaterDroplet").setDepth(Conf.zIndex.droplet);
+		this.sprite = scene.add.sprite(x, y - Conf.tileSize, "Droplet").setDepth(Conf.zIndex.droplet);
+		this.sprite.play("Droplet");
 		this.appearingTime = scene.time.now;
 	}
 
 	destroy() {
-		this.image.destroy();
+		this.sprite.destroy();
 	}
 
 	isCloseTo(position: Phaser.Types.Math.Vector2Like): boolean {
-		return (Phaser.Math.Distance.BetweenPoints(position, this) < Conf.dropletHitboxSize);
+		return (Phaser.Math.Distance.BetweenPoints(position, this.sprite) < Conf.dropletHitboxSize);
 	}
 }
