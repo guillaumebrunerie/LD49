@@ -115,10 +115,10 @@ export const levels: LevelConfiguration[] = [
 	}, { // Demon
 		worldSize: 25,
 		initialNumberOfCracks: 1,
-		crackDelay: { min: 0.5, max: 2 },
+		crackDelay: { min: 1, max: 4 },
 		dropsDelay: { min: 1, max: 2 },
 		waterCapacity: 5,
-		extendDelay: 1,
+		extendDelay: 5,
 		extendProbability: 0.5,
 		allowNewCracks: false
 	}

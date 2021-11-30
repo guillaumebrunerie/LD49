@@ -208,7 +208,7 @@ export default class MainScene extends Phaser.Scene {
 		for (let i = 0; i < this.level.initialNumberOfCracks; i++) {
 			const position = this.getValidPosition(true);
 			if (position)
-				this.cracks.push(new Crack({ scene: this, ...position }));
+				this.cracks.push(new Crack({scene: this, ...position}));
 		}
 
 		this.waterLevel = this.level.waterCapacity;
@@ -273,26 +273,51 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	requestNewDestination(demon: Demon) {
-		const trees = this.getTrees({alive: true});
-		if (trees.length > 0) {
-			const tree = pick(trees);
-			demon.setDestination({x: tree.x, y: tree.y});
+		let position = null;
+		let distance = Infinity;
+		for (let i = 0; i < this.level.worldSize + 1; i++) {
+			const y = i * Conf.tileSize;
+			for (let j = 0; j < this.level.worldSize + 1; j++) {
+				const x = j * Conf.tileSize;
+				const newDistance = Math.pow(x - demon.x, 2) + Math.pow(y - demon.y, 2);
+				if (newDistance < distance && this.grassMask[i][j] && this.worldMask[i][j]) {
+					distance = newDistance;
+					position = {x, y};
+				}
+			}
 		}
+		if (position) {
+			demon.setDestination(position);
+		}
+		// const trees = this.getTrees({alive: true});
+		// if (trees.length > 0) {
+		// 	const tree = pick(trees);
+		// 	demon.setDestination({x: tree.x, y: tree.y});
+		// }
 	}
 
 	burnTreeAt(demon: Demon) {
 		const j = Math.floor(demon.x / Conf.tileSize);
 		const i = Math.floor(demon.y / Conf.tileSize);
-		for (let k = 0; k < 2; k++)
-			this.grassMask[i - 1][j + k] = 0;
-		for (let k = -1; k < 3; k++)
-			this.grassMask[i][j + k] = 0;
-		for (let k = -2; k < 4; k++)
-			this.grassMask[i + 1][j + k] = 0;
-		for (let k = -1; k < 3; k++)
-			this.grassMask[i + 2][j + k] = 0;
-		for (let k = 0; k < 2; k++)
-			this.grassMask[i + 3][j + k] = 0;
+		this.grassMask[i][j] = 0;
+
+		// for (let k = 0; k < 2; k++)
+		// 	this.grassMask[i][j + k] = 0;
+		// for (let k = -1; k < 3; k++)
+		// 	this.grassMask[i + 1][j + k] = 0;
+		// for (let k = 0; k < 2; k++)
+		// 	this.grassMask[i + 2][j + k] = 0;
+
+		// for (let k = 0; k < 2; k++)
+		// 	this.grassMask[i - 1][j + k] = 0;
+		// for (let k = -1; k < 3; k++)
+		// 	this.grassMask[i][j + k] = 0;
+		// for (let k = -2; k < 4; k++)
+		// 	this.grassMask[i + 1][j + k] = 0;
+		// for (let k = -1; k < 3; k++)
+		// 	this.grassMask[i + 2][j + k] = 0;
+		// for (let k = 0; k < 2; k++)
+		// 	this.grassMask[i + 3][j + k] = 0;
 		this.updateForGrass();
 	}
 
@@ -311,6 +336,14 @@ export default class MainScene extends Phaser.Scene {
 		const deadTrees = liveTrees.map(x => x + 13);
 		if (deadTrees.includes(tile))
 			return (tile - 13);
+		else
+			return tile;
+	}
+
+	makeStuffTileDead(tile: number) {
+		const liveTrees = [2, 3, 4, 5, 6, 7, 8, 33, 34, 59];
+		if (liveTrees.includes(tile))
+			return (tile + 13);
 		else
 			return tile;
 	}
@@ -362,9 +395,11 @@ export default class MainScene extends Phaser.Scene {
 				}
 				this.grassTilemap.putTileAt(tile, x, y);
 
+				const stuff = this.stuffTilemap.getTileAt(x, y).index;
 				if (maskSE && maskSW) {
-					const stuff = this.stuffTilemap.getTileAt(x, y).index;
 					this.stuffTilemap.putTileAt(this.makeStuffTileAlive(stuff), x, y);
+				} else {
+					this.stuffTilemap.putTileAt(this.makeStuffTileDead(stuff), x, y);
 				}
 			}
 		}

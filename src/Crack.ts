@@ -159,9 +159,12 @@ export default class Crack {
 	}
 
 	extend() {
-		const canBeWidened = (crackPoint: CrackPoint, i: number, array: CrackPoint[]) => (
-			i > 0 && i < array.length - 1 && crackPoint.size <= array[i - 1].size && crackPoint.size <= array[i + 1].size && crackPoint.size <= 2
+		const canBeWidened = (crackPoint: CrackPoint, _i: number, _array: CrackPoint[]) => (
+			crackPoint.size <= 2
 		);
+		// const canBeWidened = (crackPoint: CrackPoint, i: number, array: CrackPoint[]) => (
+		// 	i > 0 && i < array.length - 1 && crackPoint.size <= array[i - 1].size && crackPoint.size <= array[i + 1].size && crackPoint.size <= 2
+		// );
 
 		const pointsToWiden = this.crackPoints.filter(canBeWidened);
 		const target = this.scene.pointTargeted;
