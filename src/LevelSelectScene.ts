@@ -21,6 +21,7 @@ const statusToImage = {
 
 export default class extends Phaser.Scene {
 	planetsStatus: Status[] = ["available", "available", "available", "available", "available", "available"];
+	// planetsStatus: Status[] = ["available", "locked", "locked", "locked", "locked", "locked"];
 	planets: Phaser.GameObjects.Sprite[] = [];
 	locks: Phaser.GameObjects.Sprite[] = [];
 	selection!: Phaser.GameObjects.Sprite;
@@ -30,6 +31,31 @@ export default class extends Phaser.Scene {
 	constructor() {
 		super("LevelSelect");
 	}
+
+	// createStarryBackground() {
+	// 	const backgroundLayerData: number[][] = [];
+	// 	for (let y = 0; y < Conf.viewportHeight; y++) {
+	// 		backgroundLayerData[y] = [];
+	// 		for (let x = 0; x < Conf.viewportWidth; x++) {
+	// 			backgroundLayerData[y][x] = pick([...new Array(15).fill(0), 1, 2, 3, 4, 5, 6, 7, 8]);
+	// 		}
+	// 	}
+	// 	const backgroundTilemap = this.make.tilemap({
+	// 		data: backgroundLayerData,
+	// 		tileWidth: Conf.tileSize,
+	// 		tileHeight: Conf.tileSize,
+	// 		width: this.level.worldSize,
+	// 		height: this.level.worldSize,
+	// 	});
+	// 	const backgroundTileset = backgroundTilemap.addTilesetImage("tileset", "SpaceTiles");
+	// 	const backgroundLayer = backgroundTilemap.createLayer(0, backgroundTileset);
+
+	// 	backgroundLayer.x = 1000;
+	// 	backgroundLayer.y = 1000;
+
+	// 	this.cameras.add(0, 0, undefined, undefined, false, "Background").setScroll(1000, 1000);
+	// 	this.cameras.cameras.reverse();
+	// }
 
 	preload() {
 		this.load.image("Reference", "assets/SpriteSheets/LevelMap_LocksPlacement_prev.jpg");

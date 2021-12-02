@@ -65,8 +65,10 @@ export default class extends Phaser.Scene {
 	create() {
 		this.anims.create({
 			key: "Droplet",
-			frameRate: 10,
-			frames: this.anims.generateFrameNames("Droplet", { start: 0, end: 7 }),
+			frameRate: 5,
+			frames: this.anims.generateFrameNames("Droplet", {
+                start: 0, end: 12
+            }),
 			repeat: -1,
 		});
 
