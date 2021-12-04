@@ -1,0 +1,24 @@
+Level select:
+* Starry background
+* No selecting locked level
+* Level lock animation
+* Play button + mouse input
+
+Gameplay:
+* Ability to kill demons, and they do not move if we start shooting at them
+* Should not allow watering trees below cracks
+* Better movements when we're blocked by the edge of the planet
+* Droplets appear outside the screen
+* Game starts at some point in the dialog
+* Wrong position of the target sometimes
+* Assets for small cracks
+* Range for trees and grass extension
+* Demons burn trees
+* Grass decays when not next to a green tree
+* Implement life bar = number of burning trees
+* Implement losing animation
+* Can’t win a level if there are demons
+* Fixed pattern for trees
+
+Other:
+* Dialogs
