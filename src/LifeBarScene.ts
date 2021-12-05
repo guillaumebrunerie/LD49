@@ -14,6 +14,9 @@ export default class extends Phaser.Scene {
 	}
 
 	updateLifeBar(factor: number) {
+		this.lifeBarBg?.destroy();
+		this.lifeBar?.destroy();
+
 		this.lifeBarBg = this.add.sprite(lifeBarX, lifeBarY, "LifeBarBg");
 		this.lifeBar = this.add.sprite(lifeBarX, lifeBarY, "LifeBar");
 

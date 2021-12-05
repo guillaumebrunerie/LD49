@@ -772,7 +772,11 @@ export default class MainScene extends Phaser.Scene {
 			this.targetSprite.x = target.x;
 			this.targetSprite.y = target.y;
 			this.targetSprite.setVisible(true);
-			this.targetSprite.setFrame(target.sort == "tree" ? 26 : 0);
+			this.targetSprite.setFrame({
+				"crack": 0,
+				"tree": 26,
+				"demon": 52,
+			}[target.sort]);
 		} else if (!target) {
 			this.targetSprite.setVisible(false);
 		}
