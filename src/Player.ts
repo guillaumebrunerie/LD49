@@ -1,8 +1,8 @@
 import * as Phaser from "phaser";
 
 import * as Conf from "./configuration";
-import {Direction8, Position, dPosToDirection8, AnimationEntries} from "./utils";
-import MainScene from "./MainScene";
+import {Direction8, dPosToDirection8, AnimationEntries} from "./utils";
+import MainScene, {Target} from "./MainScene";
 
 const laserOffset = {
 	"N":  {dx:   2, dy: -17},
@@ -77,6 +77,9 @@ export default class extends Phaser.GameObjects.Container {
 	isWalking = false;
 	isFiring = false;
 	firingAmount = 0;
+	currentX: number;
+	currentY: number;
+	target: Target | null = null;
 
 	static createAnimations(anims: Phaser.Animations.AnimationManager) {
 		[playerWalkAnimations].forEach(({key, entries, repeat}) => {
@@ -104,6 +107,8 @@ export default class extends Phaser.GameObjects.Container {
 
 	constructor(scene: MainScene, x: number, y: number) {
 		super(scene, x, y);
+		this.currentX = x;
+		this.currentY = y;
 		this.scene = scene;
 		this.laser = scene.add.sprite(0, 0, "Laser", 12).setDepth(Conf.zIndex.laser);
 		this.add(this.laser);
@@ -114,7 +119,7 @@ export default class extends Phaser.GameObjects.Container {
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
 	}
 
-	fireStart(target: Position) {
+	fireStart(target: Target) {
 		// Pick direction
 		const dx = target.x - this.x;
 		const dy = target.y - this.y;
@@ -127,6 +132,7 @@ export default class extends Phaser.GameObjects.Container {
 		this.isFiring = true;
 		this.sprite.stop();
 		this.scene.sound.play("Water", {loop: true});
+		this.target = target;
 	}
 
 	fireEnd() {
@@ -136,12 +142,20 @@ export default class extends Phaser.GameObjects.Container {
 		this.sprite.setFrame(idleFrame[this.direction]);
 		this.firingAmount = 0;
 		this.scene.sound.stopByKey("Water");
+		this.target = null;
 	}
 
 	update(_time: number, delta: number) {
 		if (this.isFiring) {
 			this.firingAmount += delta;
-			if (this.firingAmount > Conf.crackResistance * 1000) {
+			if (!this.target)
+				throw new Error("No target");
+			const resistance = {
+				"crack": Conf.crackResistance,
+				"tree": Conf.treeResistance,
+				"demon": Conf.demonResistance,
+			}[this.target?.sort];
+			if (this.firingAmount > resistance * 1000) {
 				this.fireEnd();
 				this.scene.heal();
 			}
@@ -158,8 +172,8 @@ export default class extends Phaser.GameObjects.Container {
 			deltaPos /= Math.sqrt(2);
 
 		let direction: Direction8 | "" = "";
-		let x = this.x;
-		let y = this.y;
+		let x = this.currentX;
+		let y = this.currentY;
 		if (down) {
 			y += deltaPos;
 			direction = "S";
@@ -177,13 +191,13 @@ export default class extends Phaser.GameObjects.Container {
 		}
 
 		if (this.scene.isValidPosition({x, y})) {
-			this.x = x;
-			this.y = y;
+			this.x = Math.round(x);
+			this.y = Math.round(y);
+			this.currentX = x;
+			this.currentY = y;
 		} else {
 			direction = "";
 		}
-		this.x = Math.round(this.x);
-		this.y = Math.round(this.y);
 
 		if (direction) {
 			if (!this.isWalking || direction !== this.direction) {

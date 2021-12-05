@@ -49,6 +49,12 @@ export const dropletTimeout = 15;
 // Time it takes to heal a crack, in seconds
 export const crackResistance = 1;
 
+// Time it takes to heal a tree, in seconds
+export const treeResistance = 2;
+
+// Time it takes to kill a demon, in seconds
+export const demonResistance = 3;
+
 // Probability that a crack will widen instead of extending (if possible)
 export const widenProbability = 0.9;
 
@@ -69,7 +75,7 @@ export type LevelConfiguration = {
 	allowNewCracks?: boolean,
 	extendDelay: number,
 	extendProbability: number,
-	treePositions: {i: number, j: number, size: "small" | "big", treeId?: number, status?: string}[],
+	treePositions: {i: number, j: number, size: "small" | "big"}[],
 }
 
 export const levels: LevelConfiguration[] = [

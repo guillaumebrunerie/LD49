@@ -100,15 +100,21 @@ export default class extends Phaser.Scene {
 		});
 
 		this.anims.create({
-			key: "CrackPoint",
-			frameRate: 14 / Conf.crackResistance,
-			frames: this.anims.generateFrameNames("CrackPoints", { start: 1, end: 15 }),
+			key: "TargetCrack",
+			frameRate: 15 / Conf.crackResistance,
+			frames: this.anims.generateFrameNames("CrackPoints", { start: 0, end: 15 }),
 		});
 
 		this.anims.create({
-			key: "CrackPointTree",
-			frameRate: (42 - 27) / Conf.crackResistance,
+			key: "TargetTree",
+			frameRate: 15 / Conf.treeResistance,
 			frames: this.anims.generateFrameNames("CrackPoints", { start: 27, end: 42 }),
+		});
+
+		this.anims.create({
+			key: "TargetDemon",
+			frameRate: 15 / Conf.demonResistance,
+			frames: this.anims.generateFrameNames("CrackPoints", { start: 0, end: 15 }),
 		});
 
 		this.anims.create({

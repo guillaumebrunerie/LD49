@@ -1,4 +1,6 @@
 import * as Phaser from "phaser"
+import {pick} from "./utils";
+import * as Conf from "./configuration";
 
 const planetsPositions = [
 	{x: 70,  y: 185, dx: 1, dy: 15},
@@ -32,30 +34,24 @@ export default class extends Phaser.Scene {
 		super("LevelSelect");
 	}
 
-	// createStarryBackground() {
-	// 	const backgroundLayerData: number[][] = [];
-	// 	for (let y = 0; y < Conf.viewportHeight; y++) {
-	// 		backgroundLayerData[y] = [];
-	// 		for (let x = 0; x < Conf.viewportWidth; x++) {
-	// 			backgroundLayerData[y][x] = pick([...new Array(15).fill(0), 1, 2, 3, 4, 5, 6, 7, 8]);
-	// 		}
-	// 	}
-	// 	const backgroundTilemap = this.make.tilemap({
-	// 		data: backgroundLayerData,
-	// 		tileWidth: Conf.tileSize,
-	// 		tileHeight: Conf.tileSize,
-	// 		width: this.level.worldSize,
-	// 		height: this.level.worldSize,
-	// 	});
-	// 	const backgroundTileset = backgroundTilemap.addTilesetImage("tileset", "SpaceTiles");
-	// 	const backgroundLayer = backgroundTilemap.createLayer(0, backgroundTileset);
-
-	// 	backgroundLayer.x = 1000;
-	// 	backgroundLayer.y = 1000;
-
-	// 	this.cameras.add(0, 0, undefined, undefined, false, "Background").setScroll(1000, 1000);
-	// 	this.cameras.cameras.reverse();
-	// }
+	createStarryBackground() {
+		const backgroundLayerData: number[][] = [];
+		for (let y = 0; y < 10; y++) {
+			backgroundLayerData[y] = [];
+			for (let x = 0; x < 20; x++) {
+				backgroundLayerData[y][x] = pick([...new Array(15).fill(0), 1, 2, 3, 4, 5, 6, 7, 8]);
+			}
+		}
+		const backgroundTilemap = this.make.tilemap({
+			data: backgroundLayerData,
+			tileWidth: Conf.tileSize,
+			tileHeight: Conf.tileSize,
+			width: 10,
+			height: 10,
+		});
+		const backgroundTileset = backgroundTilemap.addTilesetImage("tileset", "SpaceTiles");
+		backgroundTilemap.createLayer(0, backgroundTileset);
+	}
 
 	preload() {
 		this.load.image("Reference", "assets/SpriteSheets/LevelMap_LocksPlacement_prev.jpg");
@@ -76,7 +72,7 @@ export default class extends Phaser.Scene {
 	create() {
 		// this.add.image(240, 120, "Reference");
 
-		this.add.rectangle(0, 0, 480, 240, 0x030712).setOrigin(0, 0);
+		this.createStarryBackground();
 
 		this.add.image(worldLinesPosition.x, worldLinesPosition.y, "WorldLines");
 		this.add.image(selectWorldTxtPosition.x, selectWorldTxtPosition.y, "SelectWorldTxt");
@@ -92,7 +88,9 @@ export default class extends Phaser.Scene {
 		this.updateGraphics();
 
 		this.input.keyboard.on('keydown-RIGHT', () => {
-			this.selectedIndex = Math.min(5, this.selectedIndex + 1);
+			const status = this.planetsStatus[this.selectedIndex + 1];
+			if (["available", "finished"].includes(status))
+				this.selectedIndex++;
 			this.updateGraphics();
 		});
 		this.input.keyboard.on('keydown-LEFT', () => {

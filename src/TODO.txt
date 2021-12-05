@@ -1,22 +1,14 @@
 Level select:
-* Starry background
-* No selecting locked level
-* Level lock animation
+* Level unlock animation
 * Play button + mouse input
 
 Gameplay:
 * Better movements when we're blocked by the edge of the planet
 * Game starts at some point in the dialog
-* Wrong position of the target sometimes
-* Can’t win a level if there are demons or cracks
-* Never make small symmetric cracks
-* No rocks and stuff at the same place as a tree
 * Play sparkles on level 3 cracks
 
 * Blinking empty inventory
-* No target when inventory empty
 * Animation on inventory when collecting super droplet
-* Demon only one droplet to kill but takes longer
 
 Other:
 * Dialogs
@@ -36,3 +28,11 @@ DONE:
 * Assets for small cracks
 * Should not allow watering trees below cracks
 * Droplets appear outside the screen
+* Wrong position of the target sometimes
+* Never make small symmetric cracks
+* No rocks and stuff at the same place as a tree
+* No target when inventory empty
+* Can’t win a level if there are demons or cracks
+* Demon only one droplet to kill but takes longer
+* Starry background
+* No selecting locked level

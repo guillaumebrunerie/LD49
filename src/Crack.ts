@@ -236,13 +236,7 @@ export default class Crack {
 		const result = [];
 		const pick = (array: any[]) => array[Math.floor(Math.random() * array.length)];
 
-		// const specialTile : number | undefined = (crackPoints.length == 1 && crackPoints[0].size == 1) ? 18 : undefined;
-
 		const firstTile = pick(finalCrackTilesData.filter(data => data.from == "" && data.to == crackPoints[0].direction && data.toSize == crackPoints[0].size));
-
-		// if (specialTile)
-		// 	firstTile.tile = specialTile as number;
-		// }
 
 		result.push({
 			x: crackPoints[0].x + firstTile.pivotX * Conf.tileSize,
@@ -277,7 +271,9 @@ export default class Crack {
 		});
 
 		const lastPoint = crackPoints[crackPoints.length - 1];
-		const lastTile = pick(finalCrackTilesData.filter(data => data.from == lastPoint.direction && data.fromSize == lastPoint.size && data.to == ""));
+		const lastTile = pick(finalCrackTilesData.filter(data => (
+			data.from == lastPoint.direction && data.fromSize == lastPoint.size && data.to == "" && data.tile !== firstTile.tile
+		)));
 		result.push({
 			x: lastPoint.x + lastTile.pivotX * Conf.tileSize,
 			y: lastPoint.y + lastTile.pivotY * Conf.tileSize,
