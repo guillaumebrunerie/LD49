@@ -42,12 +42,14 @@ export default class extends Phaser.Scene {
 
 			if (level == 0) {
 				this.inventorySprites.forEach(s => s.play("InventoryEmpty"))
+				this.sound.play("WaterInventoryEmpty.wav", {loop: true});
 			}
 			if (level > 0 && this.level == 0) {
 				this.inventorySprites.forEach(s => {
 					s.stop();
 					s.setFrame(13);
 				});
+				this.sound.stopByKey("WaterInventoryEmpty.wav");
 			}
 		}
 

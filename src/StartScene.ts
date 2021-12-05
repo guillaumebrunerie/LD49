@@ -7,7 +7,9 @@ import Player from "./Player";
 
 const SOUNDS = [
 	"Beep1", "Beep2", "Beep3", "Beep4", "Beep5",
-	"CrackAppears", "CrackHealed", "DropletCollected", "TreeHealed", "Water",
+	"CrackAppears", "CrackHealed", "DropletCollected", "SuperDropletCollected",
+	"WaterInventoryEmpty.wav",
+	"TreeHealed", "Water",
 	"GameLost", "GameWon", "Music",
 	"LevelComplete",
 	"DemonAppear", "DemonAttack", "DemonDeath", "DemonHappy", "DemonMove",
@@ -24,7 +26,7 @@ export default class extends Phaser.Scene {
 
 		this.load.setPath("assets/Audio");
 		for (const sound of SOUNDS) {
-			this.load.audio(sound, sound + ".mp3");
+			this.load.audio(sound, sound.endsWith(".wav") ? sound : sound + ".mp3");
 		}
 
 		this.load.setPath("assets/UI");

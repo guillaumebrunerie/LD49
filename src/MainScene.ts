@@ -800,7 +800,7 @@ export default class MainScene extends Phaser.Scene {
 					else
 						this.waterLevel++;
 					this.updateInventory();
-					this.sound.play("DropletCollected");
+					this.sound.play((droplet.superDroplet ? "Super" : "") + "DropletCollected");
 				}
 			}
 
