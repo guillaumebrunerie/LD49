@@ -188,10 +188,12 @@ export default class extends Phaser.GameObjects.Container {
 		if (direction) {
 			if (!this.isWalking || direction !== this.direction) {
 				this.sprite.play("PlayerWalk" + direction);
+				this.scene.sound.play("PlayerMove", {loop: true});
 			}
 			this.direction = direction as Direction8;
 		} else {
 			this.sprite.stop();
+			this.scene.sound.stopByKey("PlayerMove");
 		}
 		this.isWalking = !!direction;
 	}

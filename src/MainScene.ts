@@ -5,13 +5,17 @@ import Crack, {healAt} from "./Crack";
 import Droplet from "./Droplet";
 import dialogs from "./dialogs";
 import InventoryScene from "./InventoryScene";
+import LifeBarScene from "./LifeBarScene";
 import NPC from "./NPC";
 import Player from "./Player";
 import {MaybeRandomNumber, pick, random, Position} from "./utils";
 import Demon from "./Demon";
 import {Mask, generateWorldMask} from "./Masks";
 
-type Target = {x: number, y: number, distance: number, sort: "crack" | "tree"};
+type Target = {x: number, y: number, distance: number, sort: "crack" | "tree" | "demon"};
+
+const liveTreeTile = [0, 13, 26, 39, 52, 65, 78, 4, 17, 30];
+const deadTreeTile = liveTreeTile.map(x => x + 3);
 
 export default class MainScene extends Phaser.Scene {
 	worldMask: Mask = [];
@@ -19,7 +23,6 @@ export default class MainScene extends Phaser.Scene {
 	groundTilemap!: Phaser.Tilemaps.Tilemap;
 	grassTilemap!: Phaser.Tilemaps.Tilemap;
 	stuffTilemap!: Phaser.Tilemaps.Tilemap;
-	treePositions: Position[] = [];
 
 	player!: Player;
 	cracks: Crack[] = [];
@@ -29,6 +32,7 @@ export default class MainScene extends Phaser.Scene {
 
 	droplets: Droplet[] = [];
 	demons: Demon[] = [];
+	trees: Phaser.GameObjects.Sprite[] = [];
 
 	targetSprite!: Phaser.GameObjects.Sprite;
 	pointTargeted?: Target;
@@ -160,13 +164,11 @@ export default class MainScene extends Phaser.Scene {
 
 
 
-		this.treePositions = [];
-
-		const liveTrees = [2, 3, 4, 5, 6, 7, 8, 33, 34, 59];
-		const deadTrees = liveTrees.map(x => x + 13);
+		// const liveTrees = [2, 3, 4, 5, 6, 7, 8, 33, 34, 59];
+		// const deadTrees = liveTrees.map(x => x + 13);
 		const otherStuff = [9, 10, 11, 12, 22, 23, 24, 25, 31, 32, 44, 45];
 		const nothing = new Array(100).fill(40);
-		const stuffToPickFrom = [...deadTrees, ...otherStuff, ...nothing];
+		const stuffToPickFrom = [...otherStuff, ...nothing];
 		const stuffLayerData: number[][] = [];
 		for (let i = 0; i < this.level.worldSize; i++) {
 			stuffLayerData[i] = [];
@@ -174,8 +176,8 @@ export default class MainScene extends Phaser.Scene {
 				if (mask[i][j] && mask[i + 1][j] && mask[i + 1][j + 1] && mask[i][j + 1]) {
 					const stuff = pick(stuffToPickFrom);
 					stuffLayerData[i][j] = stuff;
-					if (deadTrees.includes(stuff))
-						this.treePositions.push({x: (j + 0.5) * Conf.tileSize, y: (i + 0.5) * Conf.tileSize });
+					// if (deadTrees.includes(stuff))
+					// 	this.treePositions.push({x: (j + 0.5) * Conf.tileSize, y: (i + 0.5) * Conf.tileSize });
 				} else {
 					stuffLayerData[i][j] = 40;
 				}
@@ -191,6 +193,17 @@ export default class MainScene extends Phaser.Scene {
 		const stuffTileset = this.stuffTilemap.addTilesetImage("tileset", "Tiles");
 		this.stuffTilemap.createLayer(0, stuffTileset).setDepth(Conf.zIndex.tree);
 
+		this.level.treePositions.forEach(({i, j, size}, index) => {
+			const possibleTrees = {
+				"big": [0, 1, 2, 3, 4],
+				"small": [5, 6, 7, 8, 9],
+			}[size];
+			const treeId = pick(possibleTrees);
+			const tree = this.add.sprite(j * Conf.tileSize, (i + 0.5) * Conf.tileSize, "Trees", deadTreeTile[treeId]);
+			this.level.treePositions[index].treeId = treeId;
+			this.level.treePositions[index].status = "dead";
+			this.trees.push(tree);
+		});
 
 		this.input.keyboard.on('keydown-SPACE', () => this.interaction());
 		this.input.keyboard.on('keyup-SPACE', () => this.fireEnd());
@@ -213,6 +226,7 @@ export default class MainScene extends Phaser.Scene {
 
 		this.waterLevel = this.level.waterCapacity;
 		this.updateInventory();
+		this.updateLifeBar();
 
 		this.cameras.main.shake(500, 0.008);
 
@@ -234,6 +248,7 @@ export default class MainScene extends Phaser.Scene {
 			if (crack) {
 				if (crack.crackPoints.length < (this.level.crackMaxLength || Infinity)) {
 					shouldShake = crack.extend();
+					this.updateTrees();
 				}
 			} else if (this.level.allowNewCracks) {
 				const position = this.getValidPosition(true);
@@ -251,13 +266,14 @@ export default class MainScene extends Phaser.Scene {
 		setRandomInterval(this.level.dropsDelay, () => {
 			if (this.droplets.length < this.level.waterCapacity * 2) {
 				const position = this.getValidPosition(undefined);
+				const superDroplet = Math.random() < 0.2;
 				if (position) {
-					this.droplets.push(new Droplet(this, position.x, position.y));
+					this.droplets.push(new Droplet(this, position.x, position.y + Conf.tileSize, superDroplet));
 				}
 			}
 		});
 
-		setRandomInterval(1, () => {
+		setRandomInterval(this.level.demonDelay, () => {
 			this.createNewDemon();
 		});
 	}
@@ -266,40 +282,43 @@ export default class MainScene extends Phaser.Scene {
 		const spawnPoints = this.cracks.map(crack => (
 			crack.crackPoints.filter(crackPoint => crackPoint.size == 3)
 		)).flat();
-		if (spawnPoints.length > 0 && this.demons.length < 5) {
+		if (spawnPoints.length > 0 && this.demons.length < 1) {
 			const spawnPoint = pick(spawnPoints);
 			this.demons.push(new Demon(this, spawnPoint.x, spawnPoint.y));
 		}
 	}
 
 	requestNewDestination(demon: Demon) {
-		let position = null;
-		let distance = Infinity;
-		for (let i = 0; i < this.level.worldSize + 1; i++) {
-			const y = i * Conf.tileSize;
-			for (let j = 0; j < this.level.worldSize + 1; j++) {
-				const x = j * Conf.tileSize;
-				const newDistance = Math.pow(x - demon.x, 2) + Math.pow(y - demon.y, 2);
-				if (newDistance < distance && this.grassMask[i][j] && this.worldMask[i][j]) {
-					distance = newDistance;
-					position = {x, y};
-				}
-			}
-		}
-		if (position) {
-			demon.setDestination(position);
-		}
-		// const trees = this.getTrees({alive: true});
-		// if (trees.length > 0) {
-		// 	const tree = pick(trees);
-		// 	demon.setDestination({x: tree.x, y: tree.y});
+		// let position = null;
+		// let distance = Infinity;
+		// for (let i = 0; i < this.level.worldSize + 1; i++) {
+		// 	const y = i * Conf.tileSize;
+		// 	for (let j = 0; j < this.level.worldSize + 1; j++) {
+		// 		const x = j * Conf.tileSize;
+		// 		const newDistance = Math.pow(x - demon.x, 2) + Math.pow(y - demon.y, 2);
+		// 		if (newDistance < distance && this.grassMask[i][j] && this.worldMask[i][j]) {
+		// 			distance = newDistance;
+		// 			position = {x, y};
+		// 		}
+		// 	}
 		// }
+		// if (position) {
+		// 	demon.setDestination(position);
+		// }
+		let trees = this.getTrees({alive: true});
+		if (trees.length == 0) {
+			trees = this.getTrees({dead: true});
+		}
+		if (trees.length > 0) {
+			const tree = pick(trees);
+			demon.setDestination({x: tree.x, y: tree.y});
+		}
 	}
 
-	burnTreeAt(demon: Demon) {
-		const j = Math.floor(demon.x / Conf.tileSize);
-		const i = Math.floor(demon.y / Conf.tileSize);
-		this.grassMask[i][j] = 0;
+	burnTreeAt(i: number, j: number) {
+		// const j = Math.floor(demon.x / Conf.tileSize);
+		// const i = Math.floor(demon.y / Conf.tileSize);
+		// this.grassMask[i][j] = 0;
 
 		// for (let k = 0; k < 2; k++)
 		// 	this.grassMask[i][j + k] = 0;
@@ -318,7 +337,19 @@ export default class MainScene extends Phaser.Scene {
 		// 	this.grassMask[i + 2][j + k] = 0;
 		// for (let k = 0; k < 2; k++)
 		// 	this.grassMask[i + 3][j + k] = 0;
+
+		const tree = this.trees.find(tree => tree.x == j * Conf.tileSize && tree.y == (i + 0.5) * Conf.tileSize);
+		const treePos = this.level.treePositions.find(tp => tp.i == i && tp.j == j);
+		const treeId = treePos?.treeId || 0;
+		tree?.play("BurningTree" + treeId);
+		if (treePos)
+			treePos.status = "burning";
+		this.setGrassAround(i, j, treePos?.size || "small", 0);
+
+		this.updateLifeBar();
 		this.updateForGrass();
+		if (this.level.treePositions.every(tp => tp.status == "burning"))
+			this.loseGame();
 	}
 
 	winGame() {
@@ -456,27 +487,56 @@ export default class MainScene extends Phaser.Scene {
 		this.updateForGrass();
 	}
 
+	updateTrees() {
+		for (const treePos of this.level.treePositions) {
+			if (this.isTooCloseToCrack(treePos.i, treePos.j) && treePos.status == "dead") {
+				this.burnTreeAt(treePos.i, treePos.j);
+			}
+		}
+	}
+
+	updateLifeBar() {
+		if (!this.scene.isActive("LifeBarScene"))
+			this.scene.run("LifeBarScene");
+		const numberOfTrees = this.level.treePositions.length;
+		const numberOfNonBurningTrees = this.level.treePositions.filter(tree => tree.status !== "burning").length;
+		const factor = numberOfNonBurningTrees / numberOfTrees;
+		(this.scene.get("LifeBarScene") as LifeBarScene).updateLifeBar(factor);
+	}
+
 	updateInventory() {
 		if (!this.scene.isActive("InventoryScene"))
 			this.scene.run("InventoryScene");
 		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(this.level.waterCapacity, this.waterLevel);
 	}
 
-	getTrees({dead = false, alive = false}) {
+	getTrees({dead = false, alive = false, burning = false}) {
 		const result: Position[] = [];
-		this.treePositions.forEach(({x, y}) => {
-			const i = Math.floor(y / Conf.tileSize);
-			const j = Math.floor(x / Conf.tileSize);
-			if (dead && (this.grassMask[i + 1][j] == 0 || this.grassMask[i + 1][j + 1] == 0))
+		this.level.treePositions.forEach(({i, j, status}) => {
+			const x = j * Conf.tileSize;
+			const y = (i + 0.5) * Conf.tileSize;
+			if (dead && status == "dead")
 				result.push({x, y});
-			else if (alive && (this.grassMask[i + 1][j] == 1 && this.grassMask[i + 1][j + 1] == 1))
+			if (alive && status == "live")
+				result.push({x, y});
+			if (burning && status == "burning")
 				result.push({x, y});
 		});
 		return result;
 	}
 
-	getTarget() {
+	getTarget() : Target {
 		const possibleTargets: Target[] = [];
+
+		if (this.waterLevel >= 3) {
+			for (const demon of this.demons) {
+				const dx = Math.abs(demon.x - this.player.x);
+				const dy = Math.abs(demon.y - this.player.y);
+				const distance = dx + dy;
+				if (distance < 1.5 * Conf.tileSize)
+					return ({x: demon.x, y: demon.y, distance, sort: "demon"});
+			}
+		}
 
 		this.cracks.forEach(crack => {
 			crack.crackPoints.forEach(crackPoint => {
@@ -488,11 +548,11 @@ export default class MainScene extends Phaser.Scene {
 			});
 		});
 
-		this.getTrees({dead: true}).forEach(({x, y}) => {
+		this.getTrees({dead: true, burning: true}).forEach(({x, y}) => {
 			const dx = Math.abs(x - this.player.x);
 			const dy = Math.abs(y - this.player.y);
 			const distance = dx + dy;
-			if (distance < 1.5 * Conf.tileSize)
+			if (distance < 1.5 * Conf.tileSize && !this.isTooCloseToCrack(Math.round(y / Conf.tileSize - 0.5), Math.round(x / Conf.tileSize)))
 				possibleTargets.push({x, y, distance, sort: "tree"});
 		});
 		return possibleTargets.sort((a, b) => a.distance - b.distance)[0];
@@ -512,7 +572,48 @@ export default class MainScene extends Phaser.Scene {
 			this.pointTargeted = target;
 			this.player.fireStart(target);
 			this.targetSprite.setVisible(true);
-			this.targetSprite.play(target.sort == "tree" ? "CrackPointTree" : "CrackPoint");
+			this.targetSprite.play({
+				"tree": "CrackPointTree",
+				"crack": "CrackPoint",
+				"demon": "CrackPoint",
+			}[target.sort]);
+			if (target.sort == "demon") {
+				const demon = this.demons.find(demon => demon.x == target.x && demon.y == target.y);
+				demon?.stop();
+			}
+		}
+	}
+
+	isTooCloseToCrack(i: number, j: number) {
+		const distanceSquared = (
+			({x: x1, y: y1}: Position, {x: x2, y: y2}: Position) =>
+				(x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)
+		);
+
+		const hasCrack = (i: number, j: number) => (
+			this.cracks.some(crack => (
+				crack.crackPoints.some(crackPoint => (
+					distanceSquared(crackPoint, {x: j * Conf.tileSize, y: i * Conf.tileSize}) < Conf.tileSize * Conf.tileSize * 4
+				))
+			))
+		);
+
+		return hasCrack(i, j);
+	}
+
+	setGrassAround(i: number, j: number, treeSize: "small" | "big", grassValue: 0 | 1) {
+		const size = {
+			"small": 2.5,
+			"big": 3.5,
+		}[treeSize];
+
+		for (let i2 = 0; i2 < this.level.worldSize + 1; i2++) {
+			for (let j2 = 0; j2 < this.level.worldSize + 1; j2++) {
+				const di = Math.abs(i2 - (i + 1));
+				const dj = Math.abs(j2 - j);
+				if (Math.pow(di, 2) + Math.pow(dj, 2) < size * size)
+					this.grassMask[i2][j2] = this.isTooCloseToCrack(i2, j2) ? 0 : grassValue;
+			}
 		}
 	}
 
@@ -526,8 +627,22 @@ export default class MainScene extends Phaser.Scene {
 		this.waterLevel--;
 		switch (sort) {
 			case "tree":
-				this.grassMask[i + 1][j] = 1;
-				this.grassMask[i + 1][j + 1] = 1;
+				const tree = this.trees.find(tree => tree.x == x && tree.y == y);
+				const treePos = this.level.treePositions.find(tp => tp.i == i && tp.j == j);
+				const treeId = treePos?.treeId || 0;
+				if (treePos) {
+					if (treePos.status == "dead") {
+						tree?.setFrame(liveTreeTile[treeId]);
+						treePos.status = "live";
+						this.setGrassAround(i, j, treePos.size, 1);
+					}
+					if (treePos.status == "burning") {
+						treePos.status = "dead";
+						tree?.stop();
+						tree?.setFrame(deadTreeTile[treeId]);
+					}
+				}
+				this.updateLifeBar();
 				this.updateForGrass();
 				this.sound.play("TreeHealed");
 				break;
@@ -543,6 +658,11 @@ export default class MainScene extends Phaser.Scene {
 				this.cracks = this.cracks.filter(c => c !== crack);
 				this.cracks.push(...newCracks);
 				this.sound.play("CrackHealed");
+				break;
+			case "demon":
+				const demon = this.demons.find(demon => demon.x == x && demon.y == y);
+				demon?.die();
+				this.demons = this.demons.filter(d => d !== demon);
 				break;
 		}
 		this.updateInventory();
@@ -659,7 +779,10 @@ export default class MainScene extends Phaser.Scene {
 				if (droplet.isCloseTo(this.player)) {
 					this.droplets = this.droplets.filter(d => d !== droplet);
 					droplet.destroy();
-					this.waterLevel++;
+					if (droplet.superDroplet)
+						this.waterLevel = this.level.waterCapacity;
+					else
+						this.waterLevel++;
 					this.updateInventory();
 					this.sound.play("DropletCollected");
 				}

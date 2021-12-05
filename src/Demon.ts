@@ -42,7 +42,7 @@ const attackAnimations: AnimationEntries = {
 const dieAnimations: AnimationEntries = {
 	key: "Die",
 	repeat: 0,
-	frameRate: 5,
+	frameRate: 15,
 	entries: [
 		{key: "N", anim: {start: 84, end: 89}},
 		{key: "S", anim: {start: 65, end: 70}},
@@ -89,7 +89,7 @@ const allAnimations: AnimationEntries[] = [
 	turnAnimations
 ];
 
-type State = "STARTING" | "WALKING" | "TURNING" | "ATTACKING" | "DYING" | "IDLING";
+type State = "STARTING" | "WALKING" | "TURNING" | "ATTACKING" | "DYING" | "IDLING" | "STOPPED";
 
 export default class {
 	sprite: Phaser.GameObjects.Sprite;
@@ -120,6 +120,7 @@ export default class {
 		this.sprite = scene.add.sprite(x, y, "Demon").setDepth(Conf.zIndex.demon);
 		this.direction = direction;
 		this.state = "STARTING";
+		this.scene.sound.play("DemonAppear");
 		this.sprite.play("DemonStart" + direction).once("animationcomplete", () => this.startIdling());
 		this.scene.time.delayedCall(2000, () => this.scene.requestNewDestination(this));
 	}
@@ -127,11 +128,20 @@ export default class {
 	setDestination(pos: Position) {
 		this.destination = pos;
 		this.state = "WALKING";
+		this.scene.sound.play("DemonMove", {loop: true});
 	}
 
 	die() {
 		this.state = "DYING";
+		this.scene.sound.play("DemonDeath");
+		this.scene.sound.stopByKey("DemonAttack");
+		this.scene.sound.stopByKey("DemonMove");
 		this.sprite.play("DemonDie" + this.direction).once("animationcomplete", () => this.sprite.destroy());
+	}
+
+	stop() {
+		this.state = "STOPPED";
+		this.scene.sound.stopByKey("DemonMove");
 	}
 
 	// isCloseTo(position: Phaser.Types.Math.Vector2Like): boolean {
@@ -139,8 +149,15 @@ export default class {
 	// }
 
 	finishAttack() {
+		if (this.state == "DYING")
+			return;
+
 		this.startIdling();
-		this.scene.burnTreeAt(this);
+		const j = Math.floor(this.x / Conf.tileSize);
+		const i = Math.floor(this.y / Conf.tileSize);
+		this.scene.burnTreeAt(i, j);
+		this.scene.sound.play("DemonHappy");
+		this.scene.sound.stopByKey("DemonAttack");
 		this.scene.time.delayedCall(2000, () => this.scene.requestNewDestination(this));
 	}
 
@@ -155,12 +172,14 @@ export default class {
 
 		if (this.state == "WALKING") {
 			if (this.x == this.destination.x && this.y == this.destination.y) {
+				this.scene.sound.stopByKey("DemonMove");
+				this.scene.sound.play("DemonAttack", {loop: true});
 				this.sprite.play("DemonAttack" + this.direction, true);
 				this.state = "ATTACKING";
 				this.scene.time.delayedCall(2000, () => this.finishAttack());
 			} else {
 				const distance = partialDistance({from: this, to: this.destination, direction: this.direction});
-				const speed = 0.1;
+				const speed = 0.08;
 
 				if (distance > 0) {
 					const {x: newX, y: newY} = move({from: this, to: this.destination, direction: this.direction, distance: delta * speed})

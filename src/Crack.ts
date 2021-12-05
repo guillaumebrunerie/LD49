@@ -75,7 +75,7 @@ const initialCrackTilesData: CrackTileData[] = [
 	{ tile: 4, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5 },
 	{ tile: 5, dx: 2, dy: -1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5 },
 
-	{ tile: 6, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: -0.5 },
+	{ tile: 6, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: 0.5 },
 	{ tile: 7, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: 0.5 },
 	{ tile: 8, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: -0.5 },
 	{ tile: 9, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5 },
@@ -89,6 +89,13 @@ const initialCrackTilesData: CrackTileData[] = [
 	{ tile: 15, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 2, pivotX: -1, pivotY: 0.5 },
 	{ tile: 16, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 3, pivotX: -1, pivotY: 0.5 },
 	{ tile: 17, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5 },
+
+	{ tile: 18, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: -0.5 },
+	{ tile: 19, dx: 0, dy: 0, from: "Right", fromSize: 1, to: "", toSize: 0, pivotX: 1, pivotY: -0.5 },
+	{ tile: 20, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: -0.5 },
+	{ tile: 21, dx: 0, dy: 0, from: "Right", fromSize: 1, to: "", toSize: 0, pivotX: 1, pivotY: -0.5 },
+	{ tile: 22, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: -0.5 },
+	{ tile: 23, dx: 0, dy: 0, from: "Right", fromSize: 1, to: "", toSize: 0, pivotX: 1, pivotY: -0.5 },
 ];
 
 // Flip horizontally and reverse the direction
@@ -227,10 +234,16 @@ export default class Crack {
 
 	generateCrackSegmentData(crackPoints: CrackPoint[]): CrackSegmentData[] {
 		const result = [];
+		const pick = (array: any[]) => array[Math.floor(Math.random() * array.length)];
 
-		const pick = (array: any[]) => array[0];
+		// const specialTile : number | undefined = (crackPoints.length == 1 && crackPoints[0].size == 1) ? 18 : undefined;
 
 		const firstTile = pick(finalCrackTilesData.filter(data => data.from == "" && data.to == crackPoints[0].direction && data.toSize == crackPoints[0].size));
+
+		// if (specialTile)
+		// 	firstTile.tile = specialTile as number;
+		// }
+
 		result.push({
 			x: crackPoints[0].x + firstTile.pivotX * Conf.tileSize,
 			y: crackPoints[0].y + firstTile.pivotY * Conf.tileSize,

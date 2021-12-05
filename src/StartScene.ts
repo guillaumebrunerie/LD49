@@ -9,6 +9,9 @@ const SOUNDS = [
 	"Beep1", "Beep2", "Beep3", "Beep4", "Beep5",
 	"CrackAppears", "CrackHealed", "DropletCollected", "TreeHealed", "Water",
 	"GameLost", "GameWon", "Music",
+	"LevelComplete",
+	"DemonAppear", "DemonAttack", "DemonDeath", "DemonHappy", "DemonMove",
+	"PlayerMove",
 ];
 
 export default class extends Phaser.Scene {
@@ -29,6 +32,9 @@ export default class extends Phaser.Scene {
 		this.load.image("Btn_Start");
 		this.load.image("Btn_Start_Active");
 
+		this.load.image("LifeBar");
+		this.load.image("LifeBarBg");
+
 		this.load.setPath("assets");
 		this.load.image("DialogBackground");
 
@@ -38,6 +44,7 @@ export default class extends Phaser.Scene {
 		this.load.spritesheet("Droplet", "SpriteSheets/Droplet.png", tileConf);
 
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", tileConf);
+		this.load.spritesheet("Trees", "SpriteSheets/BgElements2.png", tileConf);
 		this.load.spritesheet("SpaceTiles", "SpriteSheets/BgSpace.png", tileConf);
 
 		this.load.spritesheet("CracksTiles", "SpriteSheets/Cracks.png", { frameWidth: Conf.crackTileSize, frameHeight: Conf.crackTileSize });
@@ -67,8 +74,16 @@ export default class extends Phaser.Scene {
 			key: "Droplet",
 			frameRate: 5,
 			frames: this.anims.generateFrameNames("Droplet", {
-                start: 0, end: 12
-            }),
+				start: 0, end: 12
+			}),
+			repeat: -1,
+		});
+		this.anims.create({
+			key: "SuperDroplet",
+			frameRate: 5,
+			frames: this.anims.generateFrameNames("Droplet", {
+				start: 13, end: 25
+			}),
 			repeat: -1,
 		});
 
@@ -125,6 +140,25 @@ export default class extends Phaser.Scene {
 				repeat: -1,
 			});
 		}
+
+		const makeBurningTree = (index: number, firstFrame: number) => {
+			this.anims.create({
+				key: "BurningTree" + index,
+				frameRate: 3,
+				frames: this.anims.generateFrameNames("Trees", { frames: [firstFrame, firstFrame + 1] }),
+				repeat: -1,
+			});
+		};
+		makeBurningTree(0, 1);
+		makeBurningTree(1, 14);
+		makeBurningTree(2, 27);
+		makeBurningTree(3, 40);
+		makeBurningTree(4, 53);
+		makeBurningTree(5, 66);
+		makeBurningTree(6, 79);
+		makeBurningTree(7, 5);
+		makeBurningTree(8, 18);
+		makeBurningTree(9, 31);
 
 		Demon.createAnimations(this.anims);
 		Player.createAnimations(this.anims);

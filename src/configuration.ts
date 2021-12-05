@@ -64,10 +64,12 @@ export type LevelConfiguration = {
 	crackDelay: MaybeRandomNumber, // Time between two earthquakes, in seconds
 	waterCapacity: number,
 	dropsDelay: MaybeRandomNumber, // Time between the appearance of droplets
+	demonDelay: MaybeRandomNumber, // Time between the appearance of demons
 	crackMaxLength?: number,
 	allowNewCracks?: boolean,
 	extendDelay: number,
 	extendProbability: number,
+	treePositions: {i: number, j: number, size: "small" | "big", treeId?: number, status?: string}[],
 }
 
 export const levels: LevelConfiguration[] = [
@@ -76,51 +78,75 @@ export const levels: LevelConfiguration[] = [
 		initialNumberOfCracks: 0,
 		crackDelay: Infinity,
 		dropsDelay: Infinity,
+		demonDelay: 10,
 		allowNewCracks: false,
 		waterCapacity: 5,
 		extendDelay: 1,
 		extendProbability: 0.5,
+		treePositions: [],
 	}, { // First crack
 		worldSize: 15,
 		initialNumberOfCracks: 1,
 		crackDelay: Infinity,
 		dropsDelay: Infinity,
+		demonDelay: 10,
 		waterCapacity: 5,
 		extendDelay: 1,
 		extendProbability: 0.5,
+		treePositions: [],
 	}, { // Many cracks and droplets
 		worldSize: 20,
 		initialNumberOfCracks: 10,
 		crackDelay: Infinity,
 		dropsDelay: { min: 2, max: 3 },
+		demonDelay: 10,
 		waterCapacity: 5,
 		extendDelay: 1,
 		extendProbability: 0.5,
+		treePositions: [],
 	}, { // Cracks are now extending
 		worldSize: 25,
 		initialNumberOfCracks: 2,
 		crackDelay: { min: 2, max: 5 },
 		dropsDelay: { min: 1, max: 2 },
+		demonDelay: 10,
 		waterCapacity: 5,
 		extendDelay: 1,
 		extendProbability: 0.5,
+		treePositions: [],
 	}, { // Cracks are extending faster
 		worldSize: 30,
 		initialNumberOfCracks: 4,
 		crackDelay: { min: 0.5, max: 2 },
 		dropsDelay: { min: 1, max: 2 },
+		demonDelay: 10,
 		waterCapacity: 5,
 		extendDelay: 1,
 		extendProbability: 0.5,
+		treePositions: [],
 	}, { // Demon
 		worldSize: 25,
 		initialNumberOfCracks: 1,
-		crackDelay: { min: 1, max: 4 },
+		crackDelay: { min: 2, max: 4 },
 		dropsDelay: { min: 1, max: 2 },
+		demonDelay: 10,
 		waterCapacity: 5,
-		extendDelay: 5,
+		extendDelay: Infinity,
 		extendProbability: 0.5,
-		allowNewCracks: false
+		allowNewCracks: false,
+		treePositions: (
+			[0, 4, 8, 12, 16, 20, 24].map(i => (
+				[0, 4, 8, 12, 16, 20, 24].map(j => (
+					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
+				))
+			)).flat()
+		)
+		// treePositions: [
+		// 	{i: 12, j: 12, size: "small"},
+		// 	{i: 16, j: 12, size: "big"},
+		// 	{i: 12, j: 16, size: "big"},
+		// 	{i: 16, j: 16, size: "small"},
+		// ]
 	}
 ];
 

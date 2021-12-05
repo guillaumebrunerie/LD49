@@ -5,20 +5,34 @@ Level select:
 * Play button + mouse input
 
 Gameplay:
-* Ability to kill demons, and they do not move if we start shooting at them
-* Should not allow watering trees below cracks
 * Better movements when we're blocked by the edge of the planet
-* Droplets appear outside the screen
 * Game starts at some point in the dialog
 * Wrong position of the target sometimes
-* Assets for small cracks
-* Range for trees and grass extension
-* Demons burn trees
-* Grass decays when not next to a green tree
-* Implement life bar = number of burning trees
-* Implement losing animation
-* Can’t win a level if there are demons
-* Fixed pattern for trees
+* Can’t win a level if there are demons or cracks
+* Never make small symmetric cracks
+* No rocks and stuff at the same place as a tree
+* Play sparkles on level 3 cracks
+
+* Blinking empty inventory
+* No target when inventory empty
+* Animation on inventory when collecting super droplet
+* Demon only one droplet to kill but takes longer
 
 Other:
 * Dialogs
+* Define pattern for trees for each level
+* Balancing
+
+
+
+
+DONE:
+* Ability to kill demons, and they do not move if we start shooting at them
+* Demons burn trees
+* Range for trees and grass extension
+* Fixed pattern for trees
+* Implement losing animation
+* Implement life bar = number of burning trees
+* Assets for small cracks
+* Should not allow watering trees below cracks
+* Droplets appear outside the screen

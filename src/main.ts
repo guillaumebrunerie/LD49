@@ -4,6 +4,7 @@ import * as Conf from "./configuration";
 import StartScene from "./StartScene";
 import MainScene from "./MainScene";
 import InventoryScene from "./InventoryScene";
+import LifeBarScene from "./LifeBarScene";
 import DialogScene from "./DialogScene";
 import GameWonScene from "./GameWonScene";
 import GameLostScene from "./GameLostScene";
@@ -26,6 +27,7 @@ const gameConfig: Phaser.Types.Core.GameConfig = ({
 		StartScene,
 		MainScene,
 		InventoryScene,
+		LifeBarScene,
 		DialogScene,
 		GameWonScene,
 		GameLostScene,
