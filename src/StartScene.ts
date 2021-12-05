@@ -62,6 +62,8 @@ export default class extends Phaser.Scene {
 
 		this.load.spritesheet("Demon", "SpriteSheets/Demon.png", tileConf);
 
+		this.load.spritesheet("WaterBullet", "SpriteSheets/WaterBullet.png", tileConf);
+
 		this.load.spritesheet("LevelLock", "SpriteSheets/LevelLock.png", {frameWidth: 48, frameHeight: 48});
 		this.load.image("SelectWorldTxt", "UI/SelectWorldTxt.png");
 		this.load.image("WorldLines", "UI/World_Lines.png");
@@ -134,6 +136,19 @@ export default class extends Phaser.Scene {
 			key: "BubbleEnd",
 			frameRate: 15,
 			frames: this.anims.generateFrameNames("Bubble", { frames: [2, 1, 0, 6] }),
+		});
+
+		this.anims.create({
+			key: "InventoryRefill",
+			frameRate: 15,
+			frames: this.anims.generateFrameNames("WaterBullet", { frames: [0, 1, 2, 3, 4, 5] }),
+		});
+
+		this.anims.create({
+			key: "InventoryEmpty",
+			frameRate: 5,
+			frames: this.anims.generateFrameNames("WaterBullet", { frames: [13,  14] }),
+			repeat: -1,
 		});
 
 		for (let i = 0; i < 6; i++) {
