@@ -41,7 +41,7 @@ export const inventory = {
 };
 
 // Speed of the robot, in tiles/second
-export const playerSpeed = 5;
+export const playerSpeed = 7;
 
 // Time after which a droplet will disappear
 export const dropletTimeout = 15;
@@ -50,10 +50,10 @@ export const dropletTimeout = 15;
 export const crackResistance = 1;
 
 // Time it takes to heal a tree, in seconds
-export const treeResistance = 2;
+export const treeResistance = 1;
 
 // Time it takes to kill a demon, in seconds
-export const demonResistance = 3;
+export const demonResistance = 2;
 
 // Probability that a crack will widen instead of extending (if possible)
 export const widenProbability = 0.9;
@@ -79,7 +79,7 @@ export type LevelConfiguration = {
 }
 
 export const levels: LevelConfiguration[] = [
-	{ // Only trees
+	{ // Level 1
 		worldSize: 10,
 		initialNumberOfCracks: 0,
 		crackDelay: Infinity,
@@ -87,59 +87,97 @@ export const levels: LevelConfiguration[] = [
 		demonDelay: 10,
 		allowNewCracks: false,
 		waterCapacity: 5,
-		extendDelay: 1,
+		extendDelay: Infinity,
 		extendProbability: 0.5,
-		treePositions: [],
-	}, { // First crack
-		worldSize: 15,
-		initialNumberOfCracks: 1,
-		crackDelay: Infinity,
-		dropsDelay: Infinity,
-		demonDelay: 10,
-		waterCapacity: 5,
-		extendDelay: 1,
-		extendProbability: 0.5,
-		treePositions: [],
-	}, { // Many cracks and droplets
-		worldSize: 20,
-		initialNumberOfCracks: 10,
-		crackDelay: Infinity,
-		dropsDelay: { min: 2, max: 3 },
-		demonDelay: 10,
-		waterCapacity: 5,
-		extendDelay: 1,
-		extendProbability: 0.5,
-		treePositions: [],
-	}, { // Cracks are now extending
-		worldSize: 25,
+		treePositions: [
+			{i: 5, j: 4, size: "small"},
+			{i: 3, j: 6, size: "small"},
+			{i: 5, j: 6, size: "big"},
+			{i: 3, j: 4, size: "big"},
+		],
+
+	}, { // Level 2
+		worldSize: 14,
 		initialNumberOfCracks: 2,
-		crackDelay: { min: 2, max: 5 },
-		dropsDelay: { min: 1, max: 2 },
-		demonDelay: 10,
-		waterCapacity: 5,
-		extendDelay: 1,
-		extendProbability: 0.5,
-		treePositions: [],
-	}, { // Cracks are extending faster
-		worldSize: 30,
-		initialNumberOfCracks: 4,
-		crackDelay: { min: 0.5, max: 2 },
-		dropsDelay: { min: 1, max: 2 },
-		demonDelay: 10,
-		waterCapacity: 5,
-		extendDelay: 1,
-		extendProbability: 0.5,
-		treePositions: [],
-	}, { // Demon
-		worldSize: 25,
-		initialNumberOfCracks: 1,
-		crackDelay: { min: 2, max: 4 },
-		dropsDelay: { min: 1, max: 2 },
-		demonDelay: 10,
+		crackDelay: {min: 10, max: 15},
+		dropsDelay: {min: 2, max: 3},
+		demonDelay: Infinity,
+		allowNewCracks: true,
 		waterCapacity: 5,
 		extendDelay: Infinity,
 		extendProbability: 0.5,
-		allowNewCracks: false,
+		treePositions: (
+			[0, 4, 8, 12, 16].map(i => (
+				[0, 4, 8, 12, 16].map(j => (
+					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
+				))
+			)).flat()
+		)
+
+	}, { // Level 3
+		worldSize: 16,
+		initialNumberOfCracks: 5, // 3 including one big
+		crackDelay: { min: 5, max: 10 },
+		dropsDelay: { min: 2, max: 3 },
+		demonDelay: 10,
+		allowNewCracks: true,
+		waterCapacity: 5,
+		extendDelay: Infinity,
+		extendProbability: 0.5,
+		treePositions: (
+			[0, 4, 8, 12, 16].map(i => (
+				[0, 4, 8, 12, 16].map(j => (
+					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
+				))
+			)).flat()
+		)
+
+	}, { // Level 4
+		worldSize: 18,
+		initialNumberOfCracks: 5,
+		crackDelay: { min: 4, max: 8 },
+		dropsDelay: { min: 2, max: 3 },
+		demonDelay: 8,
+		allowNewCracks: true,
+		waterCapacity: 5,
+		extendDelay: Infinity,
+		extendProbability: 0.5,
+		treePositions: (
+			[0, 4, 8, 12, 16, 20].map(i => (
+				[0, 4, 8, 12, 16, 20].map(j => (
+					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
+				))
+			)).flat()
+		)
+
+	}, { // Level 5
+		worldSize: 21,
+		initialNumberOfCracks: 5,
+		crackDelay: { min: 3, max: 6 },
+		dropsDelay: { min: 1, max: 3 },
+		demonDelay: 6,
+		allowNewCracks: true,
+		waterCapacity: 5,
+		extendDelay: Infinity,
+		extendProbability: 0.5,
+		treePositions: (
+			[0, 4, 8, 12, 16, 20].map(i => (
+				[0, 4, 8, 12, 16, 20].map(j => (
+					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
+				))
+			)).flat()
+		)
+
+	}, { // Level 6
+		worldSize: 24,
+		initialNumberOfCracks: 5,
+		crackDelay: { min: 2, max: 4 },
+		dropsDelay: { min: 1, max: 2 },
+		demonDelay: 4,
+		allowNewCracks: true,
+		waterCapacity: 5,
+		extendDelay: Infinity,
+		extendProbability: 0.5,
 		treePositions: (
 			[0, 4, 8, 12, 16, 20, 24].map(i => (
 				[0, 4, 8, 12, 16, 20, 24].map(j => (

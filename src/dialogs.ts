@@ -20,7 +20,7 @@ const dialogs: LevelDialogs = [{
 		{ type: "them", text: ["Thank goodness, you are here!"] },
 		{ type: "them", text: ["You have been sent to save us all!"] },
 		{ type: "them", text: ["Our scientists were studying", "the core of this planet."] },
-		{ type: "them", text: ["But unfortunately it is much more", "unstable than what they thought."] },
+		{ type: "them", text: ["But unfortunately it is much more", "unstable than they thought."] },
 		{ type: "them", text: ["It made the planet unstable and", "it risks exploding very soon."] },
 		// { type: "callback", callback: (scene) => scene.initLevel(1) },
 		{ type: "them", text: ["Look! Here are a crack!"] },

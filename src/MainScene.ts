@@ -277,12 +277,15 @@ export default class MainScene extends Phaser.Scene {
 		});
 	}
 
+	usedSpawnPositions : string[] = [];
+
 	createNewDemon() {
 		const spawnPoints = this.cracks.map(crack => (
-			crack.crackPoints.filter(crackPoint => crackPoint.size == 3)
+			crack.crackPoints.filter(crackPoint => crackPoint.size == 3 && !this.usedSpawnPositions.includes(`${crackPoint.x} ${crackPoint.y}`))
 		)).flat();
 		if (spawnPoints.length > 0 && this.demons.length < 1) {
 			const spawnPoint = pick(spawnPoints);
+			this.usedSpawnPositions.push(`${spawnPoint.x} ${spawnPoint.y}`)
 			this.demons.push(new Demon(this, spawnPoint.x, spawnPoint.y));
 		}
 	}
@@ -743,8 +746,6 @@ export default class MainScene extends Phaser.Scene {
 			dx = Math.max(-Conf.tileSize, Math.min(Conf.tileSize, dx));
 			dy = Math.max(-Conf.tileSize, Math.min(Conf.tileSize, dy));
 		}
-
-		
 	}
 
 	fixPlayerPosition() {
@@ -753,13 +754,13 @@ export default class MainScene extends Phaser.Scene {
 
 		let tries = 0;
 		do {
-			this.player.x += (Math.random() - 0.5) * Conf.tileSize;
-			this.player.y += (Math.random() - 0.5) * Conf.tileSize;
+			this.player.currentX += (Math.random() - 0.5) * Conf.tileSize;
+			this.player.currentY += (Math.random() - 0.5) * Conf.tileSize;
 			tries++;
 		} while (!this.isValidPosition(this.player) && tries < 100)
 		console.log(`Fixed player position after ${tries} tries`);
 		if (tries == 100)
-			this.player.x = this.player.y = this.level.worldSize * Conf.tileSize / 2;
+			this.player.currentX = this.player.currentY = this.level.worldSize * Conf.tileSize / 2;
 		this.fireEnd();
 	}
 

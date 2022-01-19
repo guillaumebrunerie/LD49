@@ -22,7 +22,7 @@ module.exports = {
   },
   devServer: {
     static: path.resolve(__dirname, './'),
-    host: 'localhost',
+    host: '0.0.0.0',
     port: 8000,
     open: false
   },
