@@ -11,6 +11,7 @@ import Player from "./Player";
 import {MaybeRandomNumber, pick, random, Position} from "./utils";
 import Demon from "./Demon";
 import {Mask, generateWorldMask} from "./Masks";
+import {TreePosition, generateTreePositions} from "./functions";
 
 export type Target = {x: number, y: number, distance: number, sort: "crack" | "tree" | "demon"};
 
@@ -91,6 +92,11 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	create() {
+		let treePositions: TreePosition[];
+		do {
+			treePositions = generateTreePositions(this.level.worldSize);
+		} while (this.level.maxTrees && treePositions.length > this.level.maxTrees);
+
 		const groundLayerData: number[][] = [];
 		const mask = this.worldMask = generateWorldMask(this.level.worldSize);
 		for (let y = 0; y < this.level.worldSize; y++) {
@@ -146,9 +152,9 @@ export default class MainScene extends Phaser.Scene {
 			}
 		}
 		this.grassMask = [];
-		for (let y = 0; y < this.level.worldSize + 2; y++) {
+		for (let y = 0; y < this.level.worldSize + 1; y++) {
 			this.grassMask[y] = [];
-			for (let x = 0; x < this.level.worldSize + 2; x++) {
+			for (let x = 0; x < this.level.worldSize + 1; x++) {
 				this.grassMask[y][x] = 0;
 			}
 		}
@@ -172,7 +178,7 @@ export default class MainScene extends Phaser.Scene {
 		for (let i = 0; i < this.level.worldSize; i++) {
 			stuffLayerData[i] = [];
 			for (let j = 0; j < this.level.worldSize; j++) {
-				const noTreeAt = (i: number, j: number) => !this.level.treePositions.find(tree => tree.i == i && tree.j == j);
+				const noTreeAt = (i: number, j: number) => !treePositions.find(tree => tree.i == i && tree.j == j);
 				if (mask[i][j] && mask[i + 1][j] && mask[i + 1][j + 1] && mask[i][j + 1] && noTreeAt(i, j) && noTreeAt(i, j + 1)) {
 					const stuff = pick(stuffToPickFrom);
 					stuffLayerData[i][j] = stuff;
@@ -193,13 +199,13 @@ export default class MainScene extends Phaser.Scene {
 
 		this.treePositions = [];
 
-		this.level.treePositions.forEach(({i, j, size}) => {
+		treePositions.forEach(({i, j, size}) => {
 			const possibleTrees = {
 				"big": [0, 1, 2, 3, 4],
 				"small": [5, 6, 7, 8, 9],
 			}[size];
 			const treeId: number = pick(possibleTrees);
-			const tree = this.add.sprite(j * Conf.tileSize, (i + 0.5) * Conf.tileSize, "Trees", deadTreeTile[treeId]);
+			const tree = this.add.sprite(j * Conf.tileSize, (i - 0.5) * Conf.tileSize, "Trees", deadTreeTile[treeId]);
 			this.treePositions.push({i, j, treeId, status: "dead", size});
 			this.trees.push(tree);
 		});
@@ -223,7 +229,7 @@ export default class MainScene extends Phaser.Scene {
 				this.cracks.push(new Crack({scene: this, ...position}));
 		}
 
-		this.waterLevel = this.level.waterCapacity;
+		this.waterLevel = 5;
 		this.updateInventory();
 		this.updateLifeBar();
 
@@ -236,10 +242,6 @@ export default class MainScene extends Phaser.Scene {
 			};
 			this.time.delayedCall(random(interval) * 1000, fun);
 		}
-
-		setRandomInterval(this.level.extendDelay, () => {
-			this.extendGrass();
-		});
 
 		setRandomInterval(this.level.crackDelay, () => {
 			const crack = pick(this.level.allowNewCracks ? [null, ...this.cracks] : this.cracks);
@@ -263,7 +265,7 @@ export default class MainScene extends Phaser.Scene {
 		});
 
 		setRandomInterval(this.level.dropsDelay, () => {
-			if (this.droplets.length < this.level.waterCapacity * 2) {
+			if (this.droplets.length < 5 * 2) {
 				const position = this.getValidPosition(undefined);
 				const superDroplet = Math.random() < 0.2;
 				if (position) {
@@ -340,7 +342,7 @@ export default class MainScene extends Phaser.Scene {
 		// for (let k = 0; k < 2; k++)
 		// 	this.grassMask[i + 3][j + k] = 0;
 
-		const tree = this.trees.find(tree => tree.x == j * Conf.tileSize && tree.y == (i + 0.5) * Conf.tileSize);
+		const tree = this.trees.find(tree => tree.x == j * Conf.tileSize && tree.y == (i - 0.5) * Conf.tileSize);
 		const treePos = this.treePositions.find(tp => tp.i == i && tp.j == j);
 		const treeId = treePos?.treeId || 0;
 		tree?.play("BurningTree" + treeId);
@@ -451,40 +453,6 @@ export default class MainScene extends Phaser.Scene {
 		this.scene.wake("LevelSelect", {type: "complete", payload: this.levelNum});
 	}
 
-	extendGrass() {
-		const m: number[][] = this.grassMask;
-		for (let y = 1; y < m.length - 1; y++) {
-			for (let x = 1; x < m[0].length - 1; x++) {
-				if (m[y][x] == 0 && (m[y][x + 1] == 1 || m[y][x - 1] == 1 || m[y - 1][x] == 1 || m[y + 1][x] == 1)) {
-					if (Math.random() < this.level.extendProbability)
-						m[y][x] = 2;
-				}
-			}
-		}
-
-		const distanceSquared = (
-			({x: x1, y: y1}: Position, {x: x2, y: y2}: Position) =>
-				(x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)
-		);
-
-		const hasCrack = (x: number, y: number) => (
-			this.cracks.some(crack => (
-				crack.crackPoints.some(crackPoint => (
-					distanceSquared(crackPoint, {x: x * Conf.tileSize, y: y * Conf.tileSize}) < Conf.tileSize * Conf.tileSize * 4
-				))
-			))
-		);
-
-		for (let y = 0; y < this.level.worldSize; y++) {
-			for (let x = 0; x < this.level.worldSize; x++) {
-				if (m[y][x] == 2)
-					m[y][x] = hasCrack(x, y) ? 0 : 1;
-			}
-		}
-
-		this.updateForGrass();
-	}
-
 	updateTrees() {
 		for (const treePos of this.treePositions) {
 			if (this.isTooCloseToCrack(treePos.i, treePos.j) && treePos.status == "dead") {
@@ -505,14 +473,14 @@ export default class MainScene extends Phaser.Scene {
 	updateInventory() {
 		if (!this.scene.isActive("InventoryScene"))
 			this.scene.run("InventoryScene");
-		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(this.level.waterCapacity, this.waterLevel);
+		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(5, this.waterLevel);
 	}
 
 	getTrees({dead = false, alive = false, burning = false}) {
 		const result: Position[] = [];
 		this.treePositions.forEach(({i, j, status}) => {
 			const x = j * Conf.tileSize;
-			const y = (i + 0.5) * Conf.tileSize;
+			const y = (i - 0.5) * Conf.tileSize;
 			if (dead && status == "dead")
 				result.push({x, y});
 			if (alive && status == "live")
@@ -555,7 +523,7 @@ export default class MainScene extends Phaser.Scene {
 			const dx = Math.abs(x - this.player.x);
 			const dy = Math.abs(y - this.player.y);
 			const distance = dx + dy;
-			if (distance < 1.5 * Conf.tileSize && !this.isTooCloseToCrack(Math.round(y / Conf.tileSize - 0.5), Math.round(x / Conf.tileSize)))
+			if (distance < 1.5 * Conf.tileSize && !this.isTooCloseToCrack(Math.round(y / Conf.tileSize + 0.5), Math.round(x / Conf.tileSize)))
 				possibleTargets.push({x, y, distance, sort: "tree"});
 		});
 		return possibleTargets.sort((a, b) => a.distance - b.distance)[0];
@@ -614,7 +582,7 @@ export default class MainScene extends Phaser.Scene {
 
 		for (let i2 = 0; i2 < this.level.worldSize + 1; i2++) {
 			for (let j2 = 0; j2 < this.level.worldSize + 1; j2++) {
-				const di = Math.abs(i2 - (i + 1));
+				const di = Math.abs(i2 - i);
 				const dj = Math.abs(j2 - j);
 				if (Math.pow(di, 2) + Math.pow(dj, 2) < size * size)
 					this.grassMask[i2][j2] = this.isTooCloseToCrack(i2, j2) ? 0 : grassValue;
@@ -627,7 +595,7 @@ export default class MainScene extends Phaser.Scene {
 			return;
 
 		const {sort, x, y} = this.pointTargeted;
-		const i = Math.floor(y / Conf.tileSize);
+		const i = Math.ceil(y / Conf.tileSize);
 		const j = Math.floor(x / Conf.tileSize);
 		this.waterLevel--;
 		switch (sort) {
@@ -792,12 +760,12 @@ export default class MainScene extends Phaser.Scene {
 		this.cracks.forEach(c => c.update(time, delta));
 
 		this.droplets.forEach(droplet => {
-			if (this.waterLevel < this.level.waterCapacity) {
+			if (this.waterLevel < 5) {
 				if (droplet.isCloseTo(this.player)) {
 					this.droplets = this.droplets.filter(d => d !== droplet);
 					droplet.destroy();
 					if (droplet.superDroplet)
-						this.waterLevel = this.level.waterCapacity;
+						this.waterLevel = 5;
 					else
 						this.waterLevel++;
 					this.updateInventory();

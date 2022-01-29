@@ -66,35 +66,24 @@ export const dropletHitboxSize = 12;
 
 export type LevelConfiguration = {
 	worldSize: number,
+	maxTrees?: number,
 	initialNumberOfCracks: number,
 	crackDelay: MaybeRandomNumber, // Time between two earthquakes, in seconds
-	waterCapacity: number,
 	dropsDelay: MaybeRandomNumber, // Time between the appearance of droplets
 	demonDelay: MaybeRandomNumber, // Time between the appearance of demons
 	crackMaxLength?: number,
 	allowNewCracks?: boolean,
-	extendDelay: number,
-	extendProbability: number,
-	treePositions: {i: number, j: number, size: "small" | "big"}[],
 }
 
 export const levels: LevelConfiguration[] = [
 	{ // Level 1
 		worldSize: 10,
+		maxTrees: 5,
 		initialNumberOfCracks: 0,
 		crackDelay: Infinity,
 		dropsDelay: Infinity,
 		demonDelay: 10,
 		allowNewCracks: false,
-		waterCapacity: 5,
-		extendDelay: Infinity,
-		extendProbability: 0.5,
-		treePositions: [
-			{i: 5, j: 4, size: "small"},
-			{i: 3, j: 6, size: "small"},
-			{i: 5, j: 6, size: "big"},
-			{i: 3, j: 4, size: "big"},
-		],
 
 	}, { // Level 2
 		worldSize: 14,
@@ -103,16 +92,6 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: {min: 2, max: 3},
 		demonDelay: Infinity,
 		allowNewCracks: true,
-		waterCapacity: 5,
-		extendDelay: Infinity,
-		extendProbability: 0.5,
-		treePositions: (
-			[0, 4, 8, 12, 16].map(i => (
-				[0, 4, 8, 12, 16].map(j => (
-					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
-				))
-			)).flat()
-		)
 
 	}, { // Level 3
 		worldSize: 16,
@@ -121,16 +100,6 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: { min: 2, max: 3 },
 		demonDelay: 10,
 		allowNewCracks: true,
-		waterCapacity: 5,
-		extendDelay: Infinity,
-		extendProbability: 0.5,
-		treePositions: (
-			[0, 4, 8, 12, 16].map(i => (
-				[0, 4, 8, 12, 16].map(j => (
-					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
-				))
-			)).flat()
-		)
 
 	}, { // Level 4
 		worldSize: 18,
@@ -139,16 +108,6 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: { min: 2, max: 3 },
 		demonDelay: 8,
 		allowNewCracks: true,
-		waterCapacity: 5,
-		extendDelay: Infinity,
-		extendProbability: 0.5,
-		treePositions: (
-			[0, 4, 8, 12, 16, 20].map(i => (
-				[0, 4, 8, 12, 16, 20].map(j => (
-					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
-				))
-			)).flat()
-		)
 
 	}, { // Level 5
 		worldSize: 21,
@@ -157,16 +116,6 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: { min: 1, max: 3 },
 		demonDelay: 6,
 		allowNewCracks: true,
-		waterCapacity: 5,
-		extendDelay: Infinity,
-		extendProbability: 0.5,
-		treePositions: (
-			[0, 4, 8, 12, 16, 20].map(i => (
-				[0, 4, 8, 12, 16, 20].map(j => (
-					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
-				))
-			)).flat()
-		)
 
 	}, { // Level 6
 		worldSize: 24,
@@ -175,22 +124,6 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: { min: 1, max: 2 },
 		demonDelay: 4,
 		allowNewCracks: true,
-		waterCapacity: 5,
-		extendDelay: Infinity,
-		extendProbability: 0.5,
-		treePositions: (
-			[0, 4, 8, 12, 16, 20, 24].map(i => (
-				[0, 4, 8, 12, 16, 20, 24].map(j => (
-					{i, j, size: (Math.random() < 0.5 ? "small" : "big") as "small" | "big"}
-				))
-			)).flat()
-		)
-		// treePositions: [
-		// 	{i: 12, j: 12, size: "small"},
-		// 	{i: 16, j: 12, size: "big"},
-		// 	{i: 12, j: 16, size: "big"},
-		// 	{i: 16, j: 16, size: "small"},
-		// ]
 	}
 ];
 

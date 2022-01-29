@@ -1,14 +1,14 @@
 export type Mask = (0 | 1)[][];
 
-// Returns a 2D mask of size [(size + 2) × (size + 2)] that represents a circle
+// Returns a 2D mask of size [(size + 1) × (size + 1)] that represents a circle
 // of diameter [size]
 export const generateWorldMask = (size: number): Mask => {
 	const radius = size / 2;
 	const center = size / 2;
 	const result: Mask = [];
-	for (let i = 0; i < size + 2; i++) {
+	for (let i = 0; i < size + 1; i++) {
 		result[i] = [];
-		for (let j = 0; j < size + 2; j++) {
+		for (let j = 0; j < size + 1; j++) {
 			const distance = (j - center) * (j - center) + (i - center) * (i - center);
 			result[i][j] = distance < radius * radius ? 1 : 0;
 		}

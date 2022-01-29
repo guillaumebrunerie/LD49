@@ -154,7 +154,7 @@ export default class {
 
 		this.startIdling();
 		const j = Math.floor(this.x / Conf.tileSize);
-		const i = Math.floor(this.y / Conf.tileSize);
+		const i = Math.ceil(this.y / Conf.tileSize);
 		this.scene.burnTreeAt(i, j);
 		this.scene.sound.play("DemonHappy");
 		this.scene.sound.stopByKey("DemonAttack");
