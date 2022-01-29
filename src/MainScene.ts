@@ -293,22 +293,6 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	requestNewDestination(demon: Demon) {
-		// let position = null;
-		// let distance = Infinity;
-		// for (let i = 0; i < this.level.worldSize + 1; i++) {
-		// 	const y = i * Conf.tileSize;
-		// 	for (let j = 0; j < this.level.worldSize + 1; j++) {
-		// 		const x = j * Conf.tileSize;
-		// 		const newDistance = Math.pow(x - demon.x, 2) + Math.pow(y - demon.y, 2);
-		// 		if (newDistance < distance && this.grassMask[i][j] && this.worldMask[i][j]) {
-		// 			distance = newDistance;
-		// 			position = {x, y};
-		// 		}
-		// 	}
-		// }
-		// if (position) {
-		// 	demon.setDestination(position);
-		// }
 		let trees = this.getTrees({alive: true});
 		if (trees.length == 0) {
 			trees = this.getTrees({dead: true});
@@ -320,35 +304,15 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	burnTreeAt(i: number, j: number) {
-		// const j = Math.floor(demon.x / Conf.tileSize);
-		// const i = Math.floor(demon.y / Conf.tileSize);
-		// this.grassMask[i][j] = 0;
-
-		// for (let k = 0; k < 2; k++)
-		// 	this.grassMask[i][j + k] = 0;
-		// for (let k = -1; k < 3; k++)
-		// 	this.grassMask[i + 1][j + k] = 0;
-		// for (let k = 0; k < 2; k++)
-		// 	this.grassMask[i + 2][j + k] = 0;
-
-		// for (let k = 0; k < 2; k++)
-		// 	this.grassMask[i - 1][j + k] = 0;
-		// for (let k = -1; k < 3; k++)
-		// 	this.grassMask[i][j + k] = 0;
-		// for (let k = -2; k < 4; k++)
-		// 	this.grassMask[i + 1][j + k] = 0;
-		// for (let k = -1; k < 3; k++)
-		// 	this.grassMask[i + 2][j + k] = 0;
-		// for (let k = 0; k < 2; k++)
-		// 	this.grassMask[i + 3][j + k] = 0;
-
 		const tree = this.trees.find(tree => tree.x == j * Conf.tileSize && tree.y == (i - 0.5) * Conf.tileSize);
 		const treePos = this.treePositions.find(tp => tp.i == i && tp.j == j);
 		const treeId = treePos?.treeId || 0;
+		if (tree && !tree.anims)
+			debugger;
 		tree?.play("BurningTree" + treeId);
 		if (treePos)
 			treePos.status = "burning";
-		this.setGrassAround(i, j, treePos?.size || "small", 0);
+		this.updateGrassMask();
 
 		this.updateLifeBar();
 		this.updateForGrass();
@@ -574,21 +538,58 @@ export default class MainScene extends Phaser.Scene {
 		return hasCrack(i, j);
 	}
 
-	setGrassAround(i: number, j: number, treeSize: "small" | "big", grassValue: 0 | 1) {
-		const size = {
+	updateGrassMask() {
+		const greenSizes = {
 			"small": 2.5,
 			"big": 3.5,
-		}[treeSize];
+		};
+		const burningSizes = {
+			"small": 1.5,
+			"big": 2.5,
+		};
 
-		for (let i2 = 0; i2 < this.level.worldSize + 1; i2++) {
-			for (let j2 = 0; j2 < this.level.worldSize + 1; j2++) {
-				const di = Math.abs(i2 - i);
-				const dj = Math.abs(j2 - j);
-				if (Math.pow(di, 2) + Math.pow(dj, 2) < size * size)
-					this.grassMask[i2][j2] = this.isTooCloseToCrack(i2, j2) ? 0 : grassValue;
+		const crackSize = 1.5;
+
+		const distanceLt = (a: {i: number, j: number}, b: {i: number, j: number}, radius: number) => (
+			Math.pow(a.i - b.i, 2) + Math.pow(a.j - b.j, 2) < radius * radius
+		);
+
+		for (let i = 0; i < this.level.worldSize + 1; i++) {
+			for (let j = 0; j < this.level.worldSize + 1; j++) {
+				if (
+					// Outside the planet
+					!this.worldMask[i][j]
+					// No green tree close by
+						|| !this.treePositions.some(tree => tree.status == "live" && distanceLt(tree, {i, j}, greenSizes[tree.size]))
+					// Burning tree too close
+						|| this.treePositions.some(tree => tree.status == "burning" && distanceLt(tree, {i, j}, burningSizes[tree.size]))
+					// Crack too close
+						|| this.cracks.some(crack => crack.crackPoints.some(crackPoint => (
+							distanceLt({i: crackPoint.y / Conf.tileSize, j: crackPoint.x / Conf.tileSize}, {i, j}, crackSize))
+						))) {
+					this.grassMask[i][j] = 0;
+				} else {
+					this.grassMask[i][j] = 1;
+				}
 			}
 		}
 	}
+
+	// setGrassAround(i: number, j: number, treeSize: "small" | "big", grassValue: 0 | 1) {
+	// 	const size = {
+	// 		"small": 2.5,
+	// 		"big": 3.5,
+	// 	}[treeSize];
+
+	// 	for (let i2 = 0; i2 < this.level.worldSize + 1; i2++) {
+	// 		for (let j2 = 0; j2 < this.level.worldSize + 1; j2++) {
+	// 			const di = Math.abs(i2 - i);
+	// 			const dj = Math.abs(j2 - j);
+	// 			if (Math.pow(di, 2) + Math.pow(dj, 2) < size * size)
+	// 				this.grassMask[i2][j2] = this.isTooCloseToCrack(i2, j2) ? 0 : grassValue;
+	// 		}
+	// 	}
+	// }
 
 	heal() {
 		if (!this.pointTargeted)
@@ -607,7 +608,6 @@ export default class MainScene extends Phaser.Scene {
 					if (treePos.status == "dead") {
 						tree?.setFrame(liveTreeTile[treeId]);
 						treePos.status = "live";
-						this.setGrassAround(i, j, treePos.size, 1);
 					}
 					if (treePos.status == "burning") {
 						treePos.status = "dead";
@@ -616,6 +616,7 @@ export default class MainScene extends Phaser.Scene {
 					}
 				}
 				this.updateLifeBar();
+				this.updateGrassMask();
 				this.updateForGrass();
 				this.sound.play("TreeHealed");
 				break;
@@ -631,6 +632,9 @@ export default class MainScene extends Phaser.Scene {
 				this.cracks = this.cracks.filter(c => c !== crack);
 				this.cracks.push(...newCracks);
 				this.sound.play("CrackHealed");
+				this.updateLifeBar();
+				this.updateGrassMask();
+				this.updateForGrass();
 				break;
 			case "demon":
 				const demon = this.demons.find(demon => demon.x == x && demon.y == y);
