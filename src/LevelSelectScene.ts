@@ -117,6 +117,8 @@ export default class extends Phaser.Scene {
 			}
 
 			this.scene.sleep();
+			this.scene.run("InventoryScene");
+			this.scene.run("LifeBarScene");
 			this.scene.run("MainScene", {level: this.selectedIndex});
 		}
 	}

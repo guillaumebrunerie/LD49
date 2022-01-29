@@ -13,6 +13,7 @@ export default class extends Phaser.Scene {
 
 	updateInventory(capacity: number, level: number) {
 		if (this.capacity !== capacity) {
+			// Initial creation
 			this.inventorySprites.forEach(s => s.destroy());
 			this.fullInventorySprites.forEach(s => s.destroy());
 			this.inventorySprites = [];
@@ -22,7 +23,7 @@ export default class extends Phaser.Scene {
 			const y = Conf.inventory.y;
 			for (let i = 0; i < capacity; i++) {
 				this.inventorySprites[i] = this.add.sprite(x, y, "WaterBullet", 13);
-				this.fullInventorySprites[i] = this.add.sprite(x, y, "WaterBullet", 5).setVisible(level > i);
+				this.fullInventorySprites[i] = this.add.sprite(x, y, "WaterBullet", 5).setVisible(i < level);
 				x += Conf.inventory.dx;
 			}
 		} else {

@@ -230,8 +230,7 @@ export default class MainScene extends Phaser.Scene {
 		}
 
 		this.waterLevel = 5;
-		this.updateInventory();
-		this.updateLifeBar();
+		this.regenerateState();
 
 		this.cameras.main.shake(500, 0.008);
 
@@ -249,18 +248,19 @@ export default class MainScene extends Phaser.Scene {
 			if (crack) {
 				if (crack.crackPoints.length < (this.level.crackMaxLength || Infinity)) {
 					shouldShake = crack.extend();
-					this.updateTrees();
 				}
 			} else if (this.level.allowNewCracks) {
 				const position = this.getValidPosition(true);
-				if (position)
+				if (position) {
 					this.cracks.push(new Crack({ scene: this, x: position.x, y: position.y }));
+				}
 			}
 			if (shouldShake) {
 				this.cameras.main.shake(200, 0.008);
 				this.sound.play("CrackAppears");
 			}
 
+			this.regenerateState();
 			this.fixPlayerPosition();
 		});
 
@@ -312,17 +312,7 @@ export default class MainScene extends Phaser.Scene {
 		tree?.play("BurningTree" + treeId);
 		if (treePos)
 			treePos.status = "burning";
-		this.updateGrassMask();
-
-		this.updateLifeBar();
-		this.updateForGrass();
-		if (this.treePositions.every(tp => tp.status == "burning"))
-			this.loseGame();
-	}
-
-	winGame() {
-		this.scene.stop("DialogScene");
-		this.scene.start("GameWon");
+		this.regenerateState();
 	}
 
 	loseGame() {
@@ -402,14 +392,6 @@ export default class MainScene extends Phaser.Scene {
 				}
 			}
 		}
-
-		if (!this.isLevelOver) {
-			this.isLevelOver = this.treePositions.every(tree => tree.status == "live") && this.demons.length == 0 && this.cracks.length == 0;
-			if (this.isLevelOver) {
-				this.add.image(this.player.x, this.player.y, "LevelOver").setDepth(Conf.zIndex.levelComplete);
-				this.input.keyboard.on('keydown-SPACE', () => this.nextLevel());
-			}
-		}
 	}
 
 	nextLevel() {
@@ -419,25 +401,42 @@ export default class MainScene extends Phaser.Scene {
 
 	updateTrees() {
 		for (const treePos of this.treePositions) {
-			if (this.isTooCloseToCrack(treePos.i, treePos.j) && treePos.status == "dead") {
+			if (this.isTooCloseToCrack(treePos, 2) && treePos.status !== "burning") {
 				this.burnTreeAt(treePos.i, treePos.j);
 			}
 		}
 	}
 
 	updateLifeBar() {
-		if (!this.scene.isActive("LifeBarScene"))
-			this.scene.run("LifeBarScene");
 		const numberOfTrees = this.treePositions.length;
-		const numberOfNonBurningTrees = this.treePositions.filter(tree => tree.status !== "burning").length;
-		const factor = numberOfNonBurningTrees / numberOfTrees;
-		(this.scene.get("LifeBarScene") as LifeBarScene).updateLifeBar(factor);
+		const numberOfGreenTrees = this.treePositions.filter(tree => tree.status === "live").length;
+		const numberOfBurningTrees = this.treePositions.filter(tree => tree.status === "burning").length;
+		const greenFactor = numberOfGreenTrees / numberOfTrees;
+		const redFactor = numberOfBurningTrees / numberOfTrees;
+		(this.scene.get("LifeBarScene") as LifeBarScene).updateLifeBar(greenFactor, redFactor);
 	}
 
 	updateInventory() {
-		if (!this.scene.isActive("InventoryScene"))
-			this.scene.run("InventoryScene");
 		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(5, this.waterLevel);
+	}
+
+	regenerateState() {
+		this.updateTrees();
+		this.updateGrassMask();
+		this.updateForGrass();
+		this.updateInventory();
+		this.updateLifeBar();
+
+		if (this.treePositions.every(tp => tp.status == "burning"))
+			this.loseGame();
+
+		if (!this.isLevelOver) {
+			this.isLevelOver = this.treePositions.every(tree => tree.status == "live") && this.demons.length == 0 && this.cracks.length == 0;
+			if (this.isLevelOver) {
+				this.add.image(this.player.x, this.player.y, "LevelOver").setDepth(Conf.zIndex.levelComplete);
+				this.input.keyboard.on('keydown-SPACE', () => this.nextLevel());
+			}
+		}
 	}
 
 	getTrees({dead = false, alive = false, burning = false}) {
@@ -487,7 +486,7 @@ export default class MainScene extends Phaser.Scene {
 			const dx = Math.abs(x - this.player.x);
 			const dy = Math.abs(y - this.player.y);
 			const distance = dx + dy;
-			if (distance < 1.5 * Conf.tileSize && !this.isTooCloseToCrack(Math.round(y / Conf.tileSize + 0.5), Math.round(x / Conf.tileSize)))
+			if (distance < 1.5 * Conf.tileSize) // && !this.isTooCloseToCrack(Math.round(y / Conf.tileSize + 0.5), Math.round(x / Conf.tileSize)))
 				possibleTargets.push({x, y, distance, sort: "tree"});
 		});
 		return possibleTargets.sort((a, b) => a.distance - b.distance)[0];
@@ -521,21 +520,16 @@ export default class MainScene extends Phaser.Scene {
 		}
 	}
 
-	isTooCloseToCrack(i: number, j: number) {
-		const distanceSquared = (
-			({x: x1, y: y1}: Position, {x: x2, y: y2}: Position) =>
-				(x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)
+	isTooCloseToCrack(pos: {i: number, j: number}, radius: number) {
+		const distanceLt = (a: {i: number, j: number}, b: {i: number, j: number}, radius: number) => (
+			Math.pow(a.i - b.i, 2) + Math.pow(a.j - b.j, 2) < radius * radius
 		);
 
-		const hasCrack = (i: number, j: number) => (
-			this.cracks.some(crack => (
-				crack.crackPoints.some(crackPoint => (
-					distanceSquared(crackPoint, {x: j * Conf.tileSize, y: i * Conf.tileSize}) < Conf.tileSize * Conf.tileSize * 4
-				))
+		return this.cracks.some(crack => (
+			crack.crackPoints.some(crackPoint => (
+				distanceLt(pos, {i: crackPoint.y / Conf.tileSize, j: crackPoint.x / Conf.tileSize}, radius)
 			))
-		);
-
-		return hasCrack(i, j);
+		))
 	}
 
 	updateGrassMask() {
@@ -615,9 +609,6 @@ export default class MainScene extends Phaser.Scene {
 						tree?.setFrame(deadTreeTile[treeId]);
 					}
 				}
-				this.updateLifeBar();
-				this.updateGrassMask();
-				this.updateForGrass();
 				this.sound.play("TreeHealed");
 				break;
 			case "crack":
@@ -632,9 +623,6 @@ export default class MainScene extends Phaser.Scene {
 				this.cracks = this.cracks.filter(c => c !== crack);
 				this.cracks.push(...newCracks);
 				this.sound.play("CrackHealed");
-				this.updateLifeBar();
-				this.updateGrassMask();
-				this.updateForGrass();
 				break;
 			case "demon":
 				const demon = this.demons.find(demon => demon.x == x && demon.y == y);
@@ -642,7 +630,7 @@ export default class MainScene extends Phaser.Scene {
 				this.demons = this.demons.filter(d => d !== demon);
 				break;
 		}
-		this.updateInventory();
+		this.regenerateState();
 		this.pointTargeted = undefined;
 	}
 
@@ -772,7 +760,7 @@ export default class MainScene extends Phaser.Scene {
 						this.waterLevel = 5;
 					else
 						this.waterLevel++;
-					this.updateInventory();
+					this.regenerateState();
 					this.sound.play((droplet.superDroplet ? "Super" : "") + "DropletCollected");
 				}
 			}
