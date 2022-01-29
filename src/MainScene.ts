@@ -199,6 +199,8 @@ export default class MainScene extends Phaser.Scene {
 
 		this.treePositions = [];
 
+		this.trees.forEach(tree => tree.destroy());
+		this.trees = [];
 		treePositions.forEach(({i, j, size}) => {
 			const possibleTrees = {
 				"big": [0, 1, 2, 3, 4],

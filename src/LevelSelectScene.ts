@@ -105,6 +105,8 @@ export default class extends Phaser.Scene {
 				if (this.planetsStatus[data.payload + 1] === "locked")
 					this.planetsStatus[data.payload + 1] = "available";
 			}
+			this.scene.stop("InventoryScene");
+			this.scene.stop("LifeBarScene");
 			this.updateGraphics();
 		})
 	}
