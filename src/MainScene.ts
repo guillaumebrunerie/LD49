@@ -715,14 +715,20 @@ export default class MainScene extends Phaser.Scene {
 			return;
 
 		let tries = 0;
+		let x = this.player.x;
+		let y = this.player.y;
 		do {
-			this.player.currentX += (Math.random() - 0.5) * Conf.tileSize;
-			this.player.currentY += (Math.random() - 0.5) * Conf.tileSize;
+			x += Math.round((Math.random() - 0.5) * Conf.tileSize);
+			y += Math.round((Math.random() - 0.5) * Conf.tileSize);
 			tries++;
-		} while (!this.isValidPosition(this.player) && tries < 100)
+		} while (!this.isValidPosition({x, y}) && tries < 100)
 		console.log(`Fixed player position after ${tries} tries`);
-		if (tries == 100)
-			this.player.currentX = this.player.currentY = this.level.worldSize * Conf.tileSize / 2;
+		if (tries == 100) {
+			x = this.level.worldSize * Conf.tileSize / 2;
+			y = this.level.worldSize * Conf.tileSize / 2;
+		}
+		this.player.x = this.player.currentX = x;
+		this.player.y = this.player.currentY = y;
 		this.fireEnd();
 	}
 
