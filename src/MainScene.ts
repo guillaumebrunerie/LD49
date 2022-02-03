@@ -531,7 +531,7 @@ export default class MainScene extends Phaser.Scene {
 			const dx = Math.abs(x - this.player.x);
 			const dy = Math.abs(y - this.player.y);
 			const distance = dx + dy;
-			if (distance < 1.5 * Conf.tileSize) // && !this.isTooCloseToCrack(Math.round(y / Conf.tileSize + 0.5), Math.round(x / Conf.tileSize)))
+			if (distance < 1.5 * Conf.tileSize && !this.isTooCloseToCrack({i: Math.round(y / Conf.tileSize + 0.5), j: Math.round(x / Conf.tileSize)}, 2))
 				possibleTargets.push({x, y, distance, sort: "tree"});
 		});
 		return possibleTargets.sort((a, b) => a.distance - b.distance)[0];
