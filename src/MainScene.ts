@@ -13,6 +13,8 @@ import Demon from "./Demon";
 import {Mask, generateWorldMask} from "./Masks";
 import {TreePosition, generateTreePositions} from "./functions";
 
+import {combineAllPolygons, projectOutside, Segment, Polygon} from "./movement";
+
 export type Target = {x: number, y: number, distance: number, sort: "crack" | "tree" | "demon"};
 
 const liveTreeTile = [0, 13, 26, 39, 52, 65, 78, 4, 17, 30];
@@ -44,6 +46,9 @@ export default class MainScene extends Phaser.Scene {
 	isLevelStarted = false;
 
 	isLevelOver = false;
+
+	borderWalls: Polygon = [];
+	walls: Polygon = [];
 
 	constructor() {
 		super("MainScene");
@@ -97,6 +102,7 @@ export default class MainScene extends Phaser.Scene {
 			treePositions = generateTreePositions(this.level.worldSize);
 		} while (this.level.maxTrees && treePositions.length > this.level.maxTrees);
 
+		const borderWalls = [];
 		const groundLayerData: number[][] = [];
 		const mask = this.worldMask = generateWorldMask(this.level.worldSize);
 		for (let y = 0; y < this.level.worldSize; y++) {
@@ -131,8 +137,24 @@ export default class MainScene extends Phaser.Scene {
 						0, 1, 13, 14, 35, 36, 35 + 13, 36 + 13]);
 				}
 				groundLayerData[y][x] = tile;
+
+				const walls: {[key: string]: Segment} = {
+					"1100": {from: {x, y}, to: {x: x + 1, y}},
+					"0110": {from: {x: x + 1, y}, to: {x: x + 1, y: y + 1}},
+					"0011": {from: {x: x + 1, y: y + 1}, to: {x, y: y + 1}},
+					"1001": {from: {x, y: y + 1}, to: {x, y}},
+
+					"0111": {from: {x: x + 1, y}, to: {x, y: y + 1}},
+					"1011": {from: {x: x + 1, y: y + 1}, to: {x, y}},
+					"1101": {from: {x, y: y + 1}, to: {x: x + 1, y}},
+					"1110": {from: {x, y}, to: {x: x + 1, y: y + 1}},
+				}
+				if (walls[value]) {
+					borderWalls.push(walls[value]);
+				}
 			}
 		}
+
 		const groundTilemap = this.make.tilemap({
 			data: groundLayerData,
 			tileWidth: Conf.tileSize,
@@ -231,6 +253,24 @@ export default class MainScene extends Phaser.Scene {
 				this.cracks.push(new Crack({scene: this, ...position}));
 		}
 
+		const makeRectangle = (x: number, y: number, w: number, h: number): Polygon => {
+			const cornerNW = {x: x - w/2, y: y - h/2};
+			const cornerNE = {x: x + w/2, y: y - h/2};
+			const cornerSW = {x: x - w/2, y: y + h/2};
+			const cornerSE = {x: x + w/2, y: y + h/2};
+			return [
+				{from: cornerNW, to: cornerNE},
+				{from: cornerSW, to: cornerNW},
+				{from: cornerSE, to: cornerSW},
+				{from: cornerNE, to: cornerSE},
+			]
+		};
+		const guidePolygon = makeRectangle(this.level.worldSize / 2, this.level.worldSize / 2 - 2, 1.4, 1.4);
+		const treesPolygons = this.treePositions.map(({i, j, size}) => (
+			size == "big" ? makeRectangle(j, i - 0.5, 1.4, 1.4) : makeRectangle(j, i - 0.5, 1.4, 0.9)
+		));
+		this.borderWalls = combineAllPolygons([borderWalls, guidePolygon, ...treesPolygons]);
+
 		this.waterLevel = 5;
 		this.regenerateState();
 
@@ -263,7 +303,6 @@ export default class MainScene extends Phaser.Scene {
 			}
 
 			this.regenerateState();
-			this.fixPlayerPosition();
 		});
 
 		setRandomInterval(this.level.dropsDelay, () => {
@@ -428,6 +467,10 @@ export default class MainScene extends Phaser.Scene {
 		this.updateForGrass();
 		this.updateInventory();
 		this.updateLifeBar();
+
+		this.walls = combineAllPolygons([this.borderWalls, ...this.cracks.map(crack => crack.getWalls())]);
+
+		this.fixPlayerPosition();
 
 		if (this.treePositions.every(tp => tp.status == "burning"))
 			this.loseGame();
@@ -711,25 +754,41 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	fixPlayerPosition() {
-		if (this.isValidPosition(this.player))
-			return;
+		const result = projectOutside(
+			{
+				x: this.player.currentX / Conf.tileSize,
+				y: this.player.currentY / Conf.tileSize,
+			},
+			this.walls
+		);
 
-		let tries = 0;
-		let x = this.player.x;
-		let y = this.player.y;
-		do {
-			x += Math.round((Math.random() - 0.5) * Conf.tileSize);
-			y += Math.round((Math.random() - 0.5) * Conf.tileSize);
-			tries++;
-		} while (!this.isValidPosition({x, y}) && tries < 100)
-		console.log(`Fixed player position after ${tries} tries`);
-		if (tries == 100) {
-			x = this.level.worldSize * Conf.tileSize / 2;
-			y = this.level.worldSize * Conf.tileSize / 2;
+		this.player.currentX = result.x * Conf.tileSize;
+		this.player.currentY = result.y * Conf.tileSize;
+		this.player.x = Math.round(this.player.currentX);
+		this.player.y = Math.round(this.player.currentY);
+
+		if (result.type == "inside") {
+			this.fireEnd();
 		}
-		this.player.x = this.player.currentX = x;
-		this.player.y = this.player.currentY = y;
-		this.fireEnd();
+
+		// if (this.isValidPosition(this.player))
+		// 	return;
+
+		// let tries = 0;
+		// let x = this.player.x;
+		// let y = this.player.y;
+		// do {
+		// 	x += Math.round((Math.random() - 0.5) * Conf.tileSize);
+		// 	y += Math.round((Math.random() - 0.5) * Conf.tileSize);
+		// 	tries++;
+		// } while (!this.isValidPosition({x, y}) && tries < 100)
+		// console.log(`Fixed player position after ${tries} tries`);
+		// if (tries == 100) {
+		// 	x = this.level.worldSize * Conf.tileSize / 2;
+		// 	y = this.level.worldSize * Conf.tileSize / 2;
+		// }
+		// this.player.x = this.player.currentX = x;
+		// this.player.y = this.player.currentY = y;
 	}
 
 	update(time: number, delta: number) {

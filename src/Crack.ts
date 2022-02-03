@@ -314,6 +314,109 @@ export default class Crack {
 	update(time: number, delta: number) {
 		this.crackSegments.forEach(cs => cs.update(time, delta));
 	}
+
+	getWalls() {
+		const walls = [];
+
+		const widths = [0, 0.3, 0.45, 0.6];
+		const lengths = [0, 1, 1.2, 1.4];
+
+		// Initial walls
+		{
+			let {x, y, direction, size} = this.crackPoints[0];
+			const width = widths[size];
+			const length = lengths[size];
+			x /= 24;
+			y /= 24;
+			if (direction == "Right") {
+				walls.push({
+					from: {x, y: y + width},
+					to:   {x: x - length, y: y + width},
+				}, {
+					from: {x: x - length, y: y + width},
+					to:   {x: x - length, y: y - width},
+				}, {
+					from: {x: x - length, y: y - width},
+					to:   {x, y: y - width},
+				})
+			} else {
+				walls.push({
+					from: {x: x + width, y},
+					to:   {x: x + width, y: y + length},
+				}, {
+					from: {x: x + width, y: y + length},
+					to:   {x: x - width, y: y + length},
+				}, {
+					from: {x: x - width, y: y + length},
+					to:   {x: x - width, y},
+				})
+			}
+		}
+
+		// Intermediate walls
+		this.crackPoints.forEach((q, i) => {
+			if (i == 0)
+				return;
+			const p = this.crackPoints[i - 1];
+			const px = p.x / 24;
+			const py = p.y / 24;
+			const qx = q.x / 24;
+			const qy = q.y / 24;
+			const widthP = widths[p.size];
+			const widthQ = widths[q.size];
+			if (p.direction == "Right") {
+				walls.push({
+					from: {x: qx, y: qy + widthQ},
+					to: {x: px, y: py + widthP}
+				}, {
+					from: {x: px, y: py - widthP},
+					to: {x: qx, y: qy - widthQ},
+				})
+			} else {
+				walls.push({
+					from: {x: px - widthP, y: py},
+					to: {x: qx - widthQ, y: qy},
+				}, {
+					from: {x: qx + widthQ, y: qy},
+					to: {x: px + widthP, y: py},
+				})
+			}
+		});
+
+		// Final walls
+		{
+			let {x, y, direction, size} = this.crackPoints[this.crackPoints.length - 1];
+			const width = widths[size];
+			const length = lengths[size];
+			x /= 24;
+			y /= 24;
+			if (direction == "Right") {
+				walls.push({
+					from: {x, y: y - width},
+					to:   {x: x + length, y: y - width},
+				}, {
+					from: {x: x + length, y: y - width},
+					to:   {x: x + length, y: y + width},
+				}, {
+					from: {x: x + length, y: y + width},
+					to:   {x, y: y + width},
+				})
+			} else {
+				walls.push({
+					from: {x: x - width, y},
+					to:   {x: x - width, y: y - length},
+				}, {
+					from: {x: x - width, y: y - length},
+					to:   {x: x + width, y: y - length},
+				}, {
+					from: {x: x + width, y: y - length},
+					to:   {x: x + width, y},
+				})
+			}
+		}
+
+		return walls;
+	}
 }
 
 export const healAt = (scene: MainScene, crack: Crack, crackPoint: CrackPoint) => {

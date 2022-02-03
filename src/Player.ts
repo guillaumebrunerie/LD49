@@ -4,6 +4,8 @@ import * as Conf from "./configuration";
 import {Direction8, dPosToDirection8, AnimationEntries} from "./utils";
 import MainScene, {Target} from "./MainScene";
 
+import {projectOutside, Segment} from "./movement";
+
 const laserOffset = {
 	"N":  {dx:   2, dy: -17},
 	"NE": {dx:  12, dy: -14},
@@ -167,37 +169,46 @@ export default class extends Phaser.GameObjects.Container {
 		const left  = this.cursorKeys.left.isDown;
 		const right = this.cursorKeys.right.isDown;
 
-		let deltaPos = Conf.tileSize * Conf.playerSpeed * delta / 1000;
-		if ((up || down) && (left || right))
-			deltaPos /= Math.sqrt(2);
-
 		let direction: Direction8 | "" = "";
-		let x = this.currentX;
-		let y = this.currentY;
 		if (down) {
-			y += deltaPos;
 			direction = "S";
 		} else if (up) {
-			y -= deltaPos;
 			direction = "N";
 		}
 
 		if (right) {
-			x += deltaPos;
 			direction += "E";
 		} else if (left) {
-			x -= deltaPos;
 			direction += "W";
 		}
 
-		if (this.scene.isValidPosition({x, y})) {
-			this.x = Math.round(x);
-			this.y = Math.round(y);
-			this.currentX = x;
-			this.currentY = y;
-		} else {
-			direction = "";
-		}
+		const angles: {[key: string]: number} = {
+			"E": 0,
+			"SE": Math.PI / 4,
+			"S": Math.PI / 2,
+			"SW": 3 * Math.PI / 4,
+			"W": Math.PI,
+			"NW": 5 * Math.PI / 4,
+			"N": 3 * Math.PI / 2,
+			"NE": 7 * Math.PI / 4,
+		};
+
+		const angle = angles[direction] || 0;
+		const deltaPos = direction == "" ? 0 : Conf.playerSpeed * delta / 1000;
+
+		const result = projectOutside(
+			{
+				x: this.currentX / Conf.tileSize + deltaPos * Math.cos(angle),
+				y: this.currentY / Conf.tileSize + deltaPos * Math.sin(angle),
+			},
+			this.scene.walls
+		);
+
+
+		this.currentX = result.x * Conf.tileSize;
+		this.currentY = result.y * Conf.tileSize;
+		this.x = Math.round(this.currentX);
+		this.y = Math.round(this.currentY);
 
 		if (direction) {
 			if (!this.isWalking || direction !== this.direction) {
