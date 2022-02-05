@@ -260,9 +260,9 @@ export default class MainScene extends Phaser.Scene {
 			const cornerSE = {x: x + w/2, y: y + h/2};
 			return [
 				{from: cornerNW, to: cornerNE},
-				{from: cornerSW, to: cornerNW},
-				{from: cornerSE, to: cornerSW},
 				{from: cornerNE, to: cornerSE},
+				{from: cornerSE, to: cornerSW},
+				{from: cornerSW, to: cornerNW},
 			]
 		};
 		const guidePolygon = makeRectangle(this.level.worldSize / 2, this.level.worldSize / 2 - 2, 1.4, 1.4);

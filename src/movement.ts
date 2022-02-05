@@ -26,9 +26,7 @@ const getDistance = (position: Position, wall: Segment): {distance: number, t: n
 }
 
 const findIntersection = (wall1: Segment, wall2: Segment): (
-	{type: "none"}
-	| {type: "point", t: number, u: number}
-	| {type: "segment"}
+	{type: "none" | "point" | "segment", ts: number[], us: number[]}
 ) => {
 	// Vector corresponding to the wall
 	const beta1 = {x: wall1.to.x - wall1.from.x, y: wall1.to.y - wall1.from.y};
@@ -48,43 +46,51 @@ const findIntersection = (wall1: Segment, wall2: Segment): (
 		if (u < -EPSILON || u > 1 + EPSILON || t < -EPSILON || t > 1 + EPSILON) {
 			// The movement either starts after the wall or ends before or is
 			// offset to the side
-			return {type: "none"};
+			return {type: "none", ts: [], us: []};
 		}
 
-		// We pass by a side of the wall, only way to get "constraints: 2"
 		if (Math.abs(t) < EPSILON) t = 0;
 		if (Math.abs(t - 1) < EPSILON) t = 1;
 		if (Math.abs(u) < EPSILON) u = 0;
 		if (Math.abs(u - 1) < EPSILON) u = 1;
 
-		return {type: "point", t, u};
+		return {type: "point", ts: [t], us: [u]};
+	} else if (Math.abs(cross1) > EPSILON || Math.abs(cross2) > EPSILON) {
+		// We are parallel to the wall, but not colinear
+		return {type: "none", ts: [], us: []};
+	}
+
+	// We are colinear to the wall
+	const lengthSquared = beta1.x * beta1.x + beta1.y * beta1.y;
+	const length2Squared = beta2.x * beta2.x + beta2.y * beta2.y;
+
+	const gamma = {x: wall2.to.x - wall1.from.x, y: wall2.to.y - wall2.from.y};
+	const t1 = (alpha.x * beta1.x + alpha.y * beta1.y) / lengthSquared;
+	const t2 = (gamma.x * beta1.x + gamma.y * beta1.y) / lengthSquared;
+
+	if (t1 < -EPSILON && t2 < -EPSILON) {
+		return {type: "none", ts: [], us: []};
+	} else if (t1 > 1 + EPSILON && t2 > 1 + EPSILON) {
+		return {type: "none", ts: [], us: []};
+	} else if (t1 < -EPSILON && Math.abs(t2) < EPSILON) {
+		return {type: "point", ts: [1], us: [0]};
+	} else if (Math.abs(t1) < EPSILON && t2 < -EPSILON) {
+		return {type: "point", ts: [0], us: [0]};
+	} else if (t1 > 1 + EPSILON && Math.abs(t2 - 1) < EPSILON) {
+		return {type: "point", ts: [1], us: [1]};
+	} else if (Math.abs(t1 - 1) < EPSILON && t2 > 1 + EPSILON) {
+		return {type: "point", ts: [0], us: [1]};
 	} else {
-		// Now cross is approximately 0, so we are parallel to the wall
-		if (Math.abs(cross1) > EPSILON || Math.abs(cross2) > EPSILON) {
-			// We are parallel to the wall, but not colinear
-			return {type: "none"};
-		}
+		const delta = {x: wall1.from.x - wall2.from.x, y: wall1.from.y - wall2.from.y};
+		const epsilon = {x: wall1.to.x - wall2.from.x, y: wall1.to.y - wall2.from.y};
+		const u1 = (delta.x * beta2.x + delta.y * beta2.y) / length2Squared;
+		const u2 = (epsilon.x * beta2.x + epsilon.y * beta2.y) / length2Squared;
 
-		const lengthSquared = beta1.x * beta1.x + beta1.y * beta1.y;
-
-		const gamma = {x: wall2.to.x - wall1.from.x, y: wall2.to.y - wall2.from.y};
-		const p = (alpha.x * beta1.x + alpha.y * beta1.y) / lengthSquared;
-		const q = (gamma.x * beta1.x + gamma.y * beta1.y) / lengthSquared;
-		if (p < -EPSILON && q < -EPSILON) {
-			return {type: "none"};
-		} else if (p > 1 + EPSILON && q > 1 + EPSILON) {
-			return {type: "none"};
-		} else if (p < -EPSILON && Math.abs(q) < EPSILON) {
-			return {type: "point", t: 1, u: 0};
-		} else if (Math.abs(p) < EPSILON && q < -EPSILON) {
-			return {type: "point", t: 0, u: 0};
-		} else if (p > 1 + EPSILON && Math.abs(q - 1) < EPSILON) {
-			return {type: "point", t: 1, u: 1};
-		} else if (Math.abs(p - 1) < EPSILON && q > 1 + EPSILON) {
-			return {type: "point", t: 0, u: 1};
-		} else {
-			return {type: "segment"};
-		}
+		return {
+			type: "segment",
+			ts: [Math.max(0, Math.min(t1, t2)), Math.min(1, Math.max(t1, t2))],
+			us: [Math.max(0, Math.min(u1, u2)), Math.min(1, Math.max(u1, u2))],
+		};
 	}
 };
 
@@ -103,11 +109,15 @@ const cutWall = (wall: Segment, t: number): Segment[] => {
 	}
 };
 
+const cutWallMultiple = (wall: Segment, ts: number[]): Segment[] => (
+	ts.reduce((walls, t) => walls.flatMap(wall => cutWall(wall, t)), [wall])
+);
+
 const subdivide = (polygon: Polygon, cut: Segment): Polygon => (
 	polygon.flatMap(segment => {
 		const intersection = findIntersection(cut, segment);
 		if (intersection.type == "point") {
-			return cutWall(segment, intersection.u);
+			return cutWallMultiple(segment, intersection.us);
 		} else {
 			return [segment];
 		}
@@ -122,9 +132,8 @@ const middlePoint = (segment: Segment): Position => ({
 const combinePolygons = (polygon1: Polygon, polygon2: Polygon): Polygon => {
 	const newPolygon1 = polygon2.reduce(subdivide, polygon1);
 	const newPolygon2 = polygon1.reduce(subdivide, polygon2);
-	const strippedPolygon1 = newPolygon1.filter(side => projectOutside(middlePoint(side), polygon2).type == "outside");
+	const strippedPolygon1 = newPolygon1.filter(side => projectOutside(middlePoint(side), polygon2).type !== "inside");
 	const strippedPolygon2 = newPolygon2.filter(side => projectOutside(middlePoint(side), polygon1).type == "outside");
-	debugger;
 	return [...strippedPolygon1, ...strippedPolygon2];
 };
 
