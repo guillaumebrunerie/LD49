@@ -122,7 +122,7 @@ export default class {
 		this.state = "STARTING";
 		this.scene.sound.play("DemonAppear");
 		this.sprite.play("DemonStart" + direction).once("animationcomplete", () => this.startIdling());
-		this.scene.time.delayedCall(2000, () => this.scene.requestNewDestination(this));
+		this.scene.time.delayedCall(500, () => this.scene.requestNewDestination(this));
 	}
 
 	setDestination(pos: Position) {
@@ -158,7 +158,7 @@ export default class {
 		this.scene.burnTreeAt(i, j);
 		this.scene.sound.play("DemonHappy");
 		this.scene.sound.stopByKey("DemonAttack");
-		this.scene.time.delayedCall(2000, () => this.scene.requestNewDestination(this));
+		this.scene.time.delayedCall(1000, () => this.scene.requestNewDestination(this));
 	}
 
 	startIdling() {
@@ -179,7 +179,7 @@ export default class {
 				this.scene.time.delayedCall(2000, () => this.finishAttack());
 			} else {
 				const distance = partialDistance({from: this, to: this.destination, direction: this.direction});
-				const speed = 0.08;
+				const speed = Conf.demonSpeed * Conf.tileSize / 1000;
 
 				if (distance > 0) {
 					const {x: newX, y: newY} = move({from: this, to: this.destination, direction: this.direction, distance: delta * speed})

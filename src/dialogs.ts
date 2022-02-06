@@ -14,7 +14,7 @@ type LevelDialog = { start: Dialog, loop: Dialog };
 
 type LevelDialogs = LevelDialog[]
 
-const dialogs: LevelDialogs = [{
+const dialogs: LevelDialogs = [{ // Level 1
 	start: [
 		{ type: "you", text: ["Who am I??", "Where am I??"] },
 		{ type: "them", text: ["Thank goodness, you are here!"] },
@@ -22,7 +22,6 @@ const dialogs: LevelDialogs = [{
 		{ type: "them", text: ["Our scientists were studying", "the core of this planet."] },
 		{ type: "them", text: ["But unfortunately it is much more", "unstable than they thought."] },
 		{ type: "them", text: ["It made the planet unstable and", "it risks exploding very soon."] },
-		// { type: "callback", callback: (scene) => scene.initLevel(1) },
 		{ type: "them", text: ["Look! Here are a crack!"] },
 		{ type: "you", text: ["Oh..."] },
 		{ type: "them", text: ["Go next to it and keep pressing SPACE", "until it is gone!"] },
@@ -34,7 +33,8 @@ const dialogs: LevelDialogs = [{
 		{ type: "them", text: ["Will you help us?", "The planet won’t make it without you."] },
 		{ type: "them", text: ["Hold SPACE next to the crack until it disappears"] },
 	],
-}, {
+
+}, { // Level 2
 	start: [
 		{ type: "them", text: ["Good job! You managed to close it!", "But the cracks will keep coming..."] },
 		// { type: "callback", callback: (scene) => scene.initLevel(2) },
@@ -45,7 +45,8 @@ const dialogs: LevelDialogs = [{
 		{ type: "them", text: ["Did you manage to fix all the cracks yet?"] },
 		{ type: "them", text: ["If you need more water, find some drops to collect."] }
 	],
-}, {
+
+}, { // Level 3
 	start: [
 		{ type: "them", text: ["Awesome!! I wonder if it will ever end..."] },
 		// { type: "callback", callback: (scene) => scene.initLevel(3) },
@@ -55,7 +56,8 @@ const dialogs: LevelDialogs = [{
 		{ type: "them", text: ["What are you waiting for?", "The planet is burning!"] },
 		{ type: "them", text: ["If you don't close the cracks,", "the planet might explode!"] },
 	],
-}, {
+
+}, { // Level 4
 	start: [
 		{ type: "them", text: ["Back in the days, this planet was green", "and full of trees and flowers."] },
 		// { type: "callback", callback: (scene) => scene.initLevel(4) },
@@ -65,7 +67,8 @@ const dialogs: LevelDialogs = [{
 	loop: [
 		{ type: "them", text: ["Water the trees and the flowers", "and save the planet."] },
 	],
-}, {
+
+}, { // Level 5
 	start: [
 		{ type: "them", text: ["You made it!"] },
 		{ type: "them", text: ["I can’t believe my eyes!"] },
@@ -76,7 +79,8 @@ const dialogs: LevelDialogs = [{
 	loop: [
 		{ type: "them", text: ["Awesome!"] },
 	],
-}, {
+
+}, { // Level 6
 	start: [
 		{ type: "them", text: ["You made it again!"] },
 		{ type: "them", text: ["I can’t believe my eyes!"] },

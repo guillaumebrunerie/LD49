@@ -25,11 +25,11 @@ export default class extends Phaser.GameObjects.Container {
 		this.dialog = dialog;
 	}
 
-	interact() {
+	interact(callback: () => void) {
 		if (this.scene.scene.isActive("DialogScene"))
 			return;
 
-		this.scene.scene.run("DialogScene", {levelNum: this.scene.levelNum, dialog: this.dialog});
+		this.scene.scene.run("DialogScene", {levelNum: this.scene.levelNum, dialog: this.dialog, callback});
 	}
 
 	isAtBlockingDistance(position: Phaser.Types.Math.Vector2Like): boolean {

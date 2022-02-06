@@ -43,6 +43,9 @@ export const inventory = {
 // Speed of the robot, in tiles/second
 export const playerSpeed = 7;
 
+// Speed of the demon, in tiles/second
+export const demonSpeed = 4;
+
 // Time after which a droplet will disappear
 export const dropletTimeout = 15;
 

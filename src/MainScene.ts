@@ -251,9 +251,6 @@ export default class MainScene extends Phaser.Scene {
 			this.trees.push(tree);
 		});
 
-		this.input.keyboard.on('keydown-SPACE', () => this.interaction());
-		this.input.keyboard.on('keyup-SPACE', () => this.fireEnd());
-
 		this.player = new Player(this, this.level.worldSize * Conf.tileSize / 2, this.level.worldSize * Conf.tileSize / 2);
 		this.introGuide = new NPC(this, this.level.worldSize * Conf.tileSize / 2, (this.level.worldSize - 4) * Conf.tileSize / 2, "Characters", this.levelNum);
 
@@ -281,13 +278,24 @@ export default class MainScene extends Phaser.Scene {
 		));
 		this.borderWalls = combineAllPolygons([borderWalls, guidePolygon, ...treesPolygons]);
 
+		this.waterLevel = 5;
+		this.regenerateState();
+
+		this.talkToIntroGuide();
+	}
+
+	startLevel() {
+		this.isLevelStarted = true;
+
+		this.input.keyboard.on('keydown-SPACE', () => this.interaction());
+		this.input.keyboard.on('keyup-SPACE', () => this.fireEnd());
+
 		for (let i = 0; i < this.level.initialNumberOfCracks; i++) {
 			const position = this.getValidNewCrackPosition();
 			if (position)
 				this.cracks.push(new Crack({scene: this, ...position}));
 		}
 
-		this.waterLevel = 5;
 		this.regenerateState();
 
 		this.cameras.main.shake(500, 0.008);
@@ -350,10 +358,22 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	requestNewDestination(demon: Demon) {
+		// Prefer green trees if there are any, otherwise attack dead trees
 		let trees = this.getTrees({alive: true});
 		if (trees.length == 0) {
 			trees = this.getTrees({dead: true});
 		}
+
+		// Prefer trees that will not make the demon cross the player’s path
+		const treesFarFromPlayer = trees.filter(tree => (
+			(demon.x - this.player.x) * (tree.x - this.player.x) > 0
+				|| (demon.y - this.player.y) * (tree.y - this.player.y) > 0
+		));
+		if (treesFarFromPlayer.length > 0) {
+			trees = treesFarFromPlayer;
+		}
+
+		// Finally, pick a random tree among the prefered ones
 		if (trees.length > 0) {
 			const tree = pick(trees);
 			demon.setDestination({x: tree.x, y: tree.y});
@@ -710,9 +730,9 @@ export default class MainScene extends Phaser.Scene {
 		const dialog = this.isLevelStarted ? levelDialogs.loop : levelDialogs.start;
 
 		this.introGuide.setDialog(dialog);
-		this.introGuide.interact();
-
-		this.isLevelStarted = true;
+		this.introGuide.interact(() => {
+			this.startLevel();
+		});
 	}
 
 	isCrackAllowedAt(positions: Position[], crackToIgnore?: Crack) {
@@ -724,6 +744,16 @@ export default class MainScene extends Phaser.Scene {
 		);
 		return positions.every(position => {
 			const {x, y} = position;
+			const i = Math.floor(y / Conf.tileSize);
+			const j = Math.floor(x / Conf.tileSize);
+
+			if (this.grassMask[i]?.[j]
+				|| this.grassMask[i + 1]?.[j]
+				|| this.grassMask[i]?.[j + 1]
+				|| this.grassMask[i + 1]?.[j + 1]) {
+				return false;
+			}
+
 			const {type} = projectOutside({x: x / Conf.tileSize, y: y / Conf.tileSize}, walls);
 			return type !== "inside";
 		});
@@ -822,7 +852,7 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	update(time: number, delta: number) {
-		if (this.isLevelOver)
+		if (this.isLevelOver || !this.isLevelStarted)
 			return;
 
 		const target = this.getTarget();

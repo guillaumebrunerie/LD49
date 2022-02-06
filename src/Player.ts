@@ -4,7 +4,7 @@ import * as Conf from "./configuration";
 import {Direction8, dPosToDirection8, AnimationEntries} from "./utils";
 import MainScene, {Target} from "./MainScene";
 
-import {projectOutside, Segment} from "./movement";
+import {projectOutside} from "./movement";
 
 const laserOffset = {
 	"N":  {dx:   2, dy: -17},

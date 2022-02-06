@@ -11,16 +11,18 @@ export default class extends Phaser.Scene {
 	currentIndex = 0;
 	avatar!: Phaser.GameObjects.Sprite;
 	levelNum = 0;
+	callback: () => void = () => {};
 
 	constructor() {
 		super("DialogScene");
 		this.lines = [];
 	}
 
-	init({dialog, levelNum} :{dialog: Dialog, levelNum: number}) {
+	init({dialog, levelNum, callback} :{dialog: Dialog, levelNum: number, callback: () => void}) {
 		this.dialog = dialog;
 		this.levelNum = levelNum;
 		this.currentIndex = 0;
+		this.callback = callback;
 	}
 
 	create() {
@@ -35,6 +37,7 @@ export default class extends Phaser.Scene {
 	nextDialog() {
 		this.currentIndex++;
 		if (this.currentIndex == this.dialog.length) {
+			this.callback();
 			this.scene.stop();
 		} else {
 			this.refresh();
