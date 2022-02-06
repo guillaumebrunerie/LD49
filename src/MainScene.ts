@@ -717,7 +717,14 @@ export default class MainScene extends Phaser.Scene {
 
 	fireEnd() {
 		this.player.fireEnd();
-		this.pointTargeted = undefined;
+		if (this.pointTargeted) {
+			const {sort, x, y} = this.pointTargeted;
+			if (sort === "demon") {
+				const demon = this.demons.find(demon => demon.x == x && demon.y == y);
+				demon && this.requestNewDestination(demon);
+			}
+			this.pointTargeted = undefined;
+		}
 		this.targetSprite.stop();
 		this.targetSprite.setVisible(false);
 	}
