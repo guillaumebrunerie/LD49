@@ -187,7 +187,7 @@ export default class Crack {
 			const tile = pick(finalCrackTilesData.filter(data => data.from == lastPoint.direction && data.toSize == 1));
 			const x = lastPoint.x + tile.dx * Conf.tileSize;
 			const y = lastPoint.y + tile.dy * Conf.tileSize;
-			if ([0.25, 0.5, 0.75, 1].every(k => this.scene.isValidPosition({x: lastPoint.x + tile.dx * k * Conf.tileSize, y: lastPoint.y + tile.dy * k * Conf.tileSize}, this))) {
+			if (this.scene.isCrackAllowedAt([0.25, 0.5, 0.75, 1, 1.25, 1.5].map(k => ({x: lastPoint.x + tile.dx * k * Conf.tileSize, y: lastPoint.y + tile.dy * k * Conf.tileSize})), this)) {
 				this.crackPoints.push({
 					x,
 					y,
@@ -202,7 +202,7 @@ export default class Crack {
 			const tile = pick(finalCrackTilesData.filter(data => data.fromSize == 1 && data.to == firstPoint.direction));
 			const x = firstPoint.x - tile.dx * Conf.tileSize;
 			const y = firstPoint.y - tile.dy * Conf.tileSize;
-			if ([0.25, 0.5, 0.75, 1].every(k => this.scene.isValidPosition({x: firstPoint.x - tile.dx * k * Conf.tileSize, y: firstPoint.y - tile.dy * k * Conf.tileSize}, this)))  {
+			if (this.scene.isCrackAllowedAt([0.25, 0.5, 0.75, 1, 1.25, 1.5].map(k => ({x: firstPoint.x - tile.dx * k * Conf.tileSize, y: firstPoint.y - tile.dy * k * Conf.tileSize})), this))  {
 				this.crackPoints.unshift({
 					x,
 					y,

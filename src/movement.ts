@@ -139,7 +139,7 @@ const combinePolygons = (polygon1: Polygon, polygon2: Polygon): Polygon => {
 
 export const combineAllPolygons = (polygons: Polygon[]): Polygon => (
 	polygons.reduce(combinePolygons)
-)
+);
 
 /*
  * If the position is outside the walls, return it, otherwise project it to the

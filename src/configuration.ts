@@ -56,7 +56,7 @@ export const treeResistance = 1;
 export const demonResistance = 2;
 
 // Probability that a crack will widen instead of extending (if possible)
-export const widenProbability = 0.9;
+export const widenProbability = 0.7;
 
 export const crackHitboxSize = 14;
 export const introGuideHitboxSize = 18;

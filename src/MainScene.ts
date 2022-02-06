@@ -64,6 +64,23 @@ export default class MainScene extends Phaser.Scene {
 		return null;
 	}
 
+	getValidNewCrackPosition(): Position | null {
+		for (let tries = 0; tries < 100; tries++) {
+			const x = Math.random() * this.level.worldSize * Conf.tileSize;
+			const y = Math.random() * this.level.worldSize * Conf.tileSize;
+			if (this.isCrackAllowedAt([
+				{x, y},
+				{x: x + 7, y},
+				{x: x - 7, y},
+				{x, y: y + 7},
+				{x, y: y - 7},
+			])) {
+				return {x, y};
+			}
+		}
+		return null;
+	}
+
 	init(data: {level: number}) {
 		this.levelNum = data.level;
 		this.level = Conf.levels[this.levelNum];
@@ -246,13 +263,6 @@ export default class MainScene extends Phaser.Scene {
 
 		this.targetSprite = this.add.sprite(0, 0, "CrackPoints", 0).setVisible(false).setDepth(Conf.zIndex.target);
 
-
-		for (let i = 0; i < this.level.initialNumberOfCracks; i++) {
-			const position = this.getValidPosition(true);
-			if (position)
-				this.cracks.push(new Crack({scene: this, ...position}));
-		}
-
 		const makeRectangle = (x: number, y: number, w: number, h: number): Polygon => {
 			const cornerNW = {x: x - w/2, y: y - h/2};
 			const cornerNE = {x: x + w/2, y: y - h/2};
@@ -270,6 +280,12 @@ export default class MainScene extends Phaser.Scene {
 			size == "big" ? makeRectangle(j, i - 0.5, 1.4, 1.4) : makeRectangle(j, i - 0.5, 1.4, 0.9)
 		));
 		this.borderWalls = combineAllPolygons([borderWalls, guidePolygon, ...treesPolygons]);
+
+		for (let i = 0; i < this.level.initialNumberOfCracks; i++) {
+			const position = this.getValidNewCrackPosition();
+			if (position)
+				this.cracks.push(new Crack({scene: this, ...position}));
+		}
 
 		this.waterLevel = 5;
 		this.regenerateState();
@@ -292,7 +308,7 @@ export default class MainScene extends Phaser.Scene {
 					shouldShake = crack.extend();
 				}
 			} else if (this.level.allowNewCracks) {
-				const position = this.getValidPosition(true);
+				const position = this.getValidNewCrackPosition();
 				if (position) {
 					this.cracks.push(new Crack({ scene: this, x: position.x, y: position.y }));
 				}
@@ -697,6 +713,20 @@ export default class MainScene extends Phaser.Scene {
 		this.introGuide.interact();
 
 		this.isLevelStarted = true;
+	}
+
+	isCrackAllowedAt(positions: Position[], crackToIgnore?: Crack) {
+		const walls = combineAllPolygons([
+			this.borderWalls,
+			...this.cracks
+				.filter(crack => crack !== crackToIgnore)
+				.map(crack => crack.getWalls())]
+		);
+		return positions.every(position => {
+			const {x, y} = position;
+			const {type} = projectOutside({x: x / Conf.tileSize, y: y / Conf.tileSize}, walls);
+			return type !== "inside";
+		});
 	}
 
 	isValidPosition(position: Position, crackToIgnore?: true | Crack) {
