@@ -36,6 +36,7 @@ export default class extends Phaser.Scene {
 
 		this.load.image("LifeBar");
 		this.load.image("LifeBarBg");
+		this.load.image("LifeBarRed");
 
 		this.load.setPath("assets");
 		this.load.image("DialogBackground");

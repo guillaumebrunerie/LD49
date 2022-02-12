@@ -21,7 +21,7 @@ export default class extends Phaser.Scene {
 
 		this.lifeBarBg = this.add.sprite(lifeBarX, lifeBarY, "LifeBarBg");
 		this.lifeBarGreen = this.add.sprite(lifeBarX, lifeBarY, "LifeBar");
-		this.lifeBarRed = this.add.sprite(lifeBarX, lifeBarY, "LifeBar").setTint(0xFF0000);
+		this.lifeBarRed = this.add.sprite(lifeBarX, lifeBarY, "LifeBarRed");
 
 		const greenRectangle = new Phaser.GameObjects.Graphics(this);
 		greenRectangle.fillStyle(0xFFFFFF, 1);
