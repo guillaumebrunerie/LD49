@@ -53,6 +53,8 @@ export default class extends Phaser.Scene {
 		this.load.spritesheet("CracksTiles", "SpriteSheets/Cracks.png", { frameWidth: Conf.crackTileSize, frameHeight: Conf.crackTileSize });
 		this.load.spritesheet("CrackPoints", "SpriteSheets/CrackPoints.png", tileConf);
 
+		this.load.spritesheet("CracksSingleEnd", "SpriteSheets/CracksSingleEnd.png", {frameWidth: Conf.crackTileSize, frameHeight: Conf.crackTileSize});
+
 		this.load.spritesheet("Player", "SpriteSheets/Hero.png", tileConf);
 		this.load.spritesheet("Characters", "SpriteSheets/Characters.png", tileConf);
 		this.load.spritesheet("Bubble", "SpriteSheets/SpeechBubble.png", tileConf);
@@ -152,6 +154,42 @@ export default class extends Phaser.Scene {
 			frameRate: 5,
 			frames: this.anims.generateFrameNames("WaterBullet", { frames: [13,  14] }),
 			repeat: -1,
+		});
+
+		this.anims.create({
+			key: "CracksSingleEndLeft1",
+			frameRate: 25,
+			frames: this.anims.generateFrameNames("CracksSingleEnd", {frames: [0, 2, 4]}),
+		});
+
+		this.anims.create({
+			key: "CracksSingleEndRight1",
+			frameRate: 25,
+			frames: this.anims.generateFrameNames("CracksSingleEnd", {frames: [1, 3, 5]}),
+		});
+
+		this.anims.create({
+			key: "CracksSingleEndLeft2",
+			frameRate: 25,
+			frames: this.anims.generateFrameNames("CracksSingleEnd", {frames: [6, 8, 10]}),
+		});
+
+		this.anims.create({
+			key: "CracksSingleEndRight2",
+			frameRate: 25,
+			frames: this.anims.generateFrameNames("CracksSingleEnd", {frames: [7, 9, 11]}),
+		});
+
+		this.anims.create({
+			key: "CracksSingleEndLeft3",
+			frameRate: 25,
+			frames: this.anims.generateFrameNames("CracksSingleEnd", {frames: [12, 14, 16]}),
+		});
+
+		this.anims.create({
+			key: "CracksSingleEndRight3",
+			frameRate: 25,
+			frames: this.anims.generateFrameNames("CracksSingleEnd", {frames: [13, 15, 17]}),
 		});
 
 		for (let i = 0; i < 6; i++) {

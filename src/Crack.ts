@@ -68,14 +68,14 @@ type CrackTileData = {
 };
 
 const initialCrackTilesData: CrackTileData[] = [
-	{ tile: 0, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: -0.5 },
+	// { tile: 0, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: -0.5 },
 	{ tile: 1, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: -0.5 },
 	{ tile: 2, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5 },
 	{ tile: 3, dx: 2, dy: -1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: -0.5 },
 	{ tile: 4, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 3, pivotX: 1, pivotY: 0.5 },
 	{ tile: 5, dx: 2, dy: -1, from: "Right", fromSize: 3, to: "Right", toSize: 3, pivotX: 1, pivotY: -0.5 },
 
-	{ tile: 6, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: 0.5 },
+	// { tile: 6, dx: 0, dy: 0, from: "", fromSize: 0, to: "Right", toSize: 1, pivotX: -1, pivotY: 0.5 },
 	{ tile: 7, dx: 2, dy: 1, from: "Right", fromSize: 1, to: "Right", toSize: 1, pivotX: 1, pivotY: 0.5 },
 	{ tile: 8, dx: 2, dy: -1, from: "Right", fromSize: 1, to: "Right", toSize: 2, pivotX: 1, pivotY: -0.5 },
 	{ tile: 9, dx: 2, dy: 1, from: "Right", fromSize: 2, to: "Right", toSize: 2, pivotX: 1, pivotY: 0.5 },
@@ -155,13 +155,21 @@ export default class Crack {
 	}
 
 	destroy() {
-		this.crackSegments.forEach(s => s.destroy());
+		this.crackSegments.forEach(s => {
+			if (s.anims.isPlaying) {
+				s.once("animationcomplete", () => {
+					s.destroy();
+				})
+			} else {
+				s.destroy();
+			}
+		});
 	}
 
 	regenerateAll() {
 		this.crackSegmentData = this.generateCrackSegmentData(this.crackPoints);
 
-		this.crackSegments.forEach(s => s.destroy());
+		this.destroy();
 		this.crackSegments = this.generateCrackSegments(this.crackSegmentData);
 	}
 
@@ -419,6 +427,15 @@ export default class Crack {
 	}
 }
 
+const animationPerTile : {[key: string] : string} = {
+	18: "Left1",
+	19: "Right1",
+	20: "Left2",
+	21: "Right2",
+	22: "Left3",
+	23: "Right3",
+}
+
 export const healAt = (scene: MainScene, crack: Crack, crackPoint: CrackPoint) => {
 	const crackPoints = [...crack.crackPoints];
 	const index = crackPoints.indexOf(crackPoint);
@@ -427,6 +444,12 @@ export const healAt = (scene: MainScene, crack: Crack, crackPoint: CrackPoint) =
 		crackPoint.size--;
 		return [new Crack({scene, crackPoints})];
 	} else if (crackPoints.length == 1) {
+		crack.crackSegments.forEach(segment => {
+			if (!animationPerTile[segment.frame.name]) {
+				debugger;
+			}
+			segment.play("CracksSingleEnd" + animationPerTile[segment.frame.name]);
+		});
 		return [];
 	} else if (index == 0) {
 		return [new Crack({scene, crackPoints: crackPoints.slice(1)})];
