@@ -316,7 +316,10 @@ export default class MainScene extends Phaser.Scene {
 
 		this.regenerateState();
 
-		this.cameras.main.shake(500, 0.008);
+		if (this.level.initialNumberOfCracks > 0) {
+			this.cameras.main.shake(200, 0.008);
+			this.sound.play("CrackAppears");
+		}
 
 		const setRandomInterval = (interval: MaybeRandomNumber, callback: () => void) => {
 			const fun = () => {
@@ -337,6 +340,7 @@ export default class MainScene extends Phaser.Scene {
 				const position = this.getValidNewCrackPosition();
 				if (position) {
 					this.cracks.push(new Crack({ scene: this, x: position.x, y: position.y }));
+					shouldShake = true;
 				}
 			}
 			if (shouldShake) {

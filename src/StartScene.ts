@@ -54,6 +54,8 @@ export default class extends Phaser.Scene {
 		this.load.spritesheet("CrackPoints", "SpriteSheets/CrackPoints.png", tileConf);
 
 		this.load.spritesheet("CracksSingleEnd", "SpriteSheets/CracksSingleEnd.png", {frameWidth: Conf.crackTileSize, frameHeight: Conf.crackTileSize});
+		this.load.spritesheet("CracksSmokeEndHorizontal", "SpriteSheets/CracksSmokeEndHorizontal.png", {frameWidth: Conf.crackTileSize * 2, frameHeight: Conf.crackTileSize});
+		this.load.spritesheet("CracksSmokeEndVertical", "SpriteSheets/CracksSmokeEndVertical.png", {frameWidth: Conf.crackTileSize * 2, frameHeight: Conf.crackTileSize});
 
 		this.load.spritesheet("Player", "SpriteSheets/Hero.png", tileConf);
 		this.load.spritesheet("Characters", "SpriteSheets/Characters.png", tileConf);
@@ -190,6 +192,18 @@ export default class extends Phaser.Scene {
 			key: "CracksSingleEndRight3",
 			frameRate: 25,
 			frames: this.anims.generateFrameNames("CracksSingleEnd", {frames: [13, 15, 17]}),
+		});
+
+		this.anims.create({
+			key: "CracksSmokeEndHorizontal",
+			frameRate: 20,
+			frames: this.anims.generateFrameNames("CracksSmokeEndHorizontal", {frames: [0, 1, 2, 3, 4, 5]}),
+		});
+
+		this.anims.create({
+			key: "CracksSmokeEndVertical",
+			frameRate: 20,
+			frames: this.anims.generateFrameNames("CracksSmokeEndVertical", {frames: [0, 1, 2, 3, 4, 5]}),
 		});
 
 		for (let i = 0; i < 6; i++) {
