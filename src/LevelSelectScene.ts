@@ -3,12 +3,12 @@ import {pick} from "./utils";
 import * as Conf from "./configuration";
 
 const planetsPositions = [
-	{x: 70,  y: 185, dx: 1, dy: 15},
-	{x: 116, y: 115, dx: 1, dy: 18},
-	{x: 189, y: 163, dx: 1, dy: 21},
-	{x: 239, y: 73,  dx: 1, dy: 26},
-	{x: 311, y: 158, dx: 3, dy: 27},
-	{x: 388, y: 68,  dx: 0, dy: 35},
+	{x: 70,  y: 185, dx: 1, dy: 15, radius: 17},
+	{x: 116, y: 115, dx: 1, dy: 18, radius: 20},
+	{x: 189, y: 163, dx: 1, dy: 21, radius: 22},
+	{x: 239, y: 73,  dx: 1, dy: 26, radius: 27},
+	{x: 311, y: 158, dx: 3, dy: 27, radius: 30},
+	{x: 388, y: 68,  dx: 0, dy: 35, radius: 36},
 ];
 
 const worldLinesPosition = {x: 221, y: 133};
@@ -80,9 +80,16 @@ export default class extends Phaser.Scene {
 		this.selection = this.add.sprite(0, 0, "Levels", "Planet_Select_01");
 
 		for (let i = 0; i < 6; i++) {
-			const {x, y, dx, dy} = planetsPositions[i];
+			const {x, y, radius, dx, dy} = planetsPositions[i];
 			this.planets[i] = this.add.sprite(x, y, "Levels");
 			this.locks[i] = this.add.sprite(x + dx, y + dy, "LevelLock", 0);
+			this.planets[i].setInteractive(new Phaser.Geom.Circle(radius, radius, radius), Phaser.Geom.Circle.Contains);
+			this.planets[i].on("pointerdown", () => {
+				if (this.planetsStatus[i] !== "locked") {
+					this.selectedIndex = i;
+					this.updateGraphics();
+				}
+			})
 		}
 
 		this.updateGraphics();
