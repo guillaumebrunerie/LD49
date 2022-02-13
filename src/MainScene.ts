@@ -527,6 +527,7 @@ export default class MainScene extends Phaser.Scene {
 			this.isLevelOver = this.treePositions.every(tree => tree.status == "live") && this.demons.length == 0 && this.cracks.length == 0;
 			if (this.isLevelOver) {
 				this.add.image(this.player.x, this.player.y, "LevelOver").setDepth(Conf.zIndex.levelComplete);
+				this.sound.play("LevelComplete");
 				this.input.keyboard.on('keydown-SPACE', () => this.nextLevel());
 				this.input.keyboard.on('keydown-ENTER', () => this.nextLevel());
 			}
