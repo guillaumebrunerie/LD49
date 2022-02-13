@@ -150,32 +150,3 @@ export const zIndex = {
 	levelComplete: counter++,
 	smoke: counter++,
 }
-
-
-// export const levels: LevelConfiguration[] = [
-// 	{
-// 	}, {
-// 		numberOfCracks: 1,
-// 		dropsDelay: 0.5,
-// 	}, {
-// 		numberOfCracks: 3,
-// 		crackDelay: { min: 3, max: 5 },
-// 		crackMaxLength: 5,
-// 		dropsDelay: { min: 1, max: 3 },
-// 		waterCapacity: 5,
-// 	}, {
-// 		numberOfCracks: 4,
-// 		crackDelay: { min: 2, max: 5 },
-// 		dropsDelay: { min: 0.5, max: 1.5 },
-// 		waterCapacity: 5,
-// 	}, {
-// 		numberOfCracks: 1,
-// 		crackDelay: { min: 0.5, max: 2 },
-// 		dropsDelay: { min: 0.5, max: 3 },
-// 		allowNewCracks: true,
-// 		waterCapacity: 5,
-// 		extendDelay: 5,
-// 		extendProbability: 0.4,
-// 		treesEnabled: true,
-// 	}
-// ];
