@@ -206,6 +206,12 @@ export default class extends Phaser.Scene {
 			frames: this.anims.generateFrameNames("CracksSmokeEndVertical", {frames: [0, 1, 2, 3, 4, 5]}),
 		});
 
+		this.anims.create({
+			key: "LevelLock",
+			frameRate: 10,
+			frames: this.anims.generateFrameNames("LevelLock", {frames: [0, 1, 2, 3, 4, 5, 6]}),
+		});
+
 		for (let i = 0; i < 6; i++) {
 			this.anims.create({
 				key: "NPCIdle" + i,

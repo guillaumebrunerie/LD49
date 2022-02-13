@@ -22,8 +22,8 @@ const statusToImage = {
 };
 
 export default class extends Phaser.Scene {
-	planetsStatus: Status[] = ["available", "available", "available", "available", "available", "available"];
-	// planetsStatus: Status[] = ["available", "locked", "locked", "locked", "locked", "locked"];
+	// planetsStatus: Status[] = ["available", "available", "available", "available", "available", "available"];
+	planetsStatus: Status[] = ["available", "locked", "locked", "locked", "locked", "locked"];
 	planets: Phaser.GameObjects.Sprite[] = [];
 	locks: Phaser.GameObjects.Sprite[] = [];
 	selection!: Phaser.GameObjects.Sprite;
@@ -65,7 +65,7 @@ export default class extends Phaser.Scene {
 		for (let i = 0; i < 6; i++) {
 			const image = `Planet_${statusToImage[this.planetsStatus[i]]}_0${i + 1}`;
 			this.planets[i].setFrame(image);
-			this.locks[i].setVisible(this.planetsStatus[i] === "locked");
+			this.locks[i].setFrame(this.planetsStatus[i] === "locked" ? 0 : 6);
 		}
 	}
 
@@ -109,8 +109,12 @@ export default class extends Phaser.Scene {
 		this.scene.scene.events.on("wake", (_: any, data: {type: string, payload: number}) => {
 			if (data.type == "complete") {
 				this.planetsStatus[data.payload] = "finished";
-				if (this.planetsStatus[data.payload + 1] === "locked")
-					this.planetsStatus[data.payload + 1] = "available";
+				if (this.planetsStatus[data.payload + 1] === "locked") {
+					this.locks[data.payload + 1].play("LevelLock").once("animationcomplete", () => {
+						this.planetsStatus[data.payload + 1] = "available";
+						this.updateGraphics();
+					});
+				}
 			}
 			this.scene.stop("InventoryScene");
 			this.scene.stop("LifeBarScene");
@@ -121,6 +125,8 @@ export default class extends Phaser.Scene {
 			this.musicPlaying = true;
 			this.sound.play("Music", { loop: true });
 		}
+
+		this.input.keyboard.on('keydown-U', () => this.cheatCode());
 	}
 
 	startSelectedLevel() {
@@ -130,5 +136,14 @@ export default class extends Phaser.Scene {
 			this.scene.run("LifeBarScene");
 			this.scene.run("MainScene", {level: this.selectedIndex});
 		}
+	}
+
+	cheatCode() {
+		this.planetsStatus.forEach((status, i) => {
+			if (status == "locked") {
+				this.planetsStatus[i] = "available";
+			}
+		});
+		this.updateGraphics();
 	}
 }
