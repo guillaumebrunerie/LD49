@@ -30,7 +30,7 @@ const dialogs: LevelDialogs = [{ // Level 1
 		{ type: "you", text: ["Ok"] },
 	],
 	loop: [
-		{ type: "them", text: ["Will you help us?", "The planet won’t make it without you."] },
+		{ type: "them", text: ["Will you help us?", "The planet won't make it without you."] },
 		{ type: "them", text: ["Hold SPACE next to the crack until it disappears"] },
 	],
 

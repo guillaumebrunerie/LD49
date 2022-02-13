@@ -59,7 +59,7 @@ export default class extends Phaser.Scene {
 				else
 					this.avatar.setTexture("Characters", this.levelNum * 13);
 				this.lines = currentDialog.text.map((text, i) => (
-					newTextLine(this, cfg.x, cfg.y + cfg.dy * i, text)
+					newTextLine(this, cfg.x, cfg.y + cfg.dy * i, i == 0 ? 0 : currentDialog.text[0].length, text)
 				));
 				break;
 			case "callback":
