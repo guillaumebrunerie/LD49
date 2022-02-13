@@ -63,9 +63,30 @@ export default class extends Phaser.Scene {
 		this.selection.y = planetsPositions[this.selectedIndex].y;
 
 		for (let i = 0; i < 6; i++) {
+			const {radius} = planetsPositions[i];
 			const image = `Planet_${statusToImage[this.planetsStatus[i]]}_0${i + 1}`;
 			this.planets[i].setFrame(image);
 			this.locks[i].setFrame(this.planetsStatus[i] === "locked" ? 0 : 6);
+
+			this.planets[i].off("pointerdown");
+			this.planets[i].off("pointerout");
+			this.planets[i].off("pointerover");
+			if (this.planetsStatus[i] !== "locked") {
+				this.planets[i].setInteractive({
+					hitArea: new Phaser.Geom.Circle(radius, radius, radius),
+					cursor: "pointer",
+				}, Phaser.Geom.Circle.Contains);
+				this.planets[i].on("pointerdown", () => {
+					this.selectedIndex = i;
+					this.updateGraphics();
+				});
+				this.planets[i].on("pointerout", () => {
+					this.planets[i].y += 1;
+				});
+				this.planets[i].on("pointerover", () => {
+					this.planets[i].y -= 1;
+				});
+			}
 		}
 	}
 
@@ -74,22 +95,40 @@ export default class extends Phaser.Scene {
 
 		this.createStarryBackground();
 
+		const playButton = this.add.image(434, 197, "PlayBtn_Default");
+		let isDown = false;
+		playButton.setInteractive({cursor: "pointer"});
+		playButton.on("pointerout", () => {
+			playButton.y += 1;
+			playButton.setTexture("PlayBtn_Default");
+			isDown = false;
+		});
+		playButton.on("pointerover", () => {
+			playButton.y -= 1;
+		});
+		playButton.on("pointerdown", () => {
+			this.sound.mute = !this.sound.mute;
+			playButton.setTexture("PlayBtn_On");
+			isDown = true;
+		});
+		playButton.on("pointerup", () => {
+			if (isDown) {
+				playButton.setTexture("PlayBtn_Default");
+				playButton.y += 1;
+				isDown = false;
+				this.startSelectedLevel();
+			}
+		})
+
 		this.add.image(worldLinesPosition.x, worldLinesPosition.y, "WorldLines");
 		this.add.image(selectWorldTxtPosition.x, selectWorldTxtPosition.y, "SelectWorldTxt");
 
 		this.selection = this.add.sprite(0, 0, "Levels", "Planet_Select_01");
 
 		for (let i = 0; i < 6; i++) {
-			const {x, y, radius, dx, dy} = planetsPositions[i];
+			const {x, y, dx, dy} = planetsPositions[i];
 			this.planets[i] = this.add.sprite(x, y, "Levels");
 			this.locks[i] = this.add.sprite(x + dx, y + dy, "LevelLock", 0);
-			this.planets[i].setInteractive(new Phaser.Geom.Circle(radius, radius, radius), Phaser.Geom.Circle.Contains);
-			this.planets[i].on("pointerdown", () => {
-				if (this.planetsStatus[i] !== "locked") {
-					this.selectedIndex = i;
-					this.updateGraphics();
-				}
-			})
 		}
 
 		this.updateGraphics();

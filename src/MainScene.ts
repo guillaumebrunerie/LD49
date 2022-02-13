@@ -530,6 +530,7 @@ export default class MainScene extends Phaser.Scene {
 				this.sound.play("LevelComplete");
 				this.input.keyboard.on('keydown-SPACE', () => this.nextLevel());
 				this.input.keyboard.on('keydown-ENTER', () => this.nextLevel());
+				this.input.on("pointerdown", () => this.nextLevel());
 			}
 		}
 

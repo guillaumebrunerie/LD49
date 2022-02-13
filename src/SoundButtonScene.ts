@@ -33,10 +33,18 @@ export default class extends Phaser.Scene {
 
 		const button = this.button = this.add.image(Conf.soundButton.x, Conf.soundButton.y, "Btn_Sound_ON");
 
-		button.setInteractive();
+		button.setInteractive({
+			cursor: "pointer",
+		});
 		button.on("pointerdown", () => {
 			this.sound.mute = !this.sound.mute;
 			button.setTexture("Btn_Sound_" + (this.sound.mute ? "ON" : "OFF") + this.suffix);
+		});
+		button.on("pointerout", () => {
+			button.y += 1;
+		});
+		button.on("pointerover", () => {
+			button.y -= 1;
 		});
 	}
 }

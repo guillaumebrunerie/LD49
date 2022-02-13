@@ -38,6 +38,9 @@ export default class extends Phaser.Scene {
 		this.load.image("LifeBarBg");
 		this.load.image("LifeBarRed");
 
+		this.load.image("PlayBtn_Default");
+		this.load.image("PlayBtn_On");
+
 		this.load.setPath("assets");
 		this.load.image("DialogBackground");
 
@@ -255,7 +258,9 @@ export default class extends Phaser.Scene {
 
 		const startButton = this.add.image(Conf.startButton.x, Conf.startButton.y, "Btn_Start");
 		let isStartButtonDown = false;
-		startButton.setInteractive();
+		startButton.setInteractive({
+			cursor: "pointer",
+		});
 		startButton.on("pointerdown", () => {
 			isStartButtonDown = true;
 			startButton.setTexture("Btn_Start_Active");
@@ -263,6 +268,10 @@ export default class extends Phaser.Scene {
 		startButton.on("pointerout", () => {
 			isStartButtonDown = false;
 			startButton.setTexture("Btn_Start");
+			startButton.y += 1;
+		});
+		startButton.on("pointerover", () => {
+			startButton.y -= 1;
 		});
 
 		const doStart = () => {
