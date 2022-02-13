@@ -26,7 +26,7 @@ export default class extends Phaser.Scene {
 		}
 	}
 
-	updateInventory(capacity: number, level: number) {
+	updateInventory(capacity: number, level: number, isLevelOver: boolean) {
 		if (level > this.level) {
 			for (let i = this.level; i < level; i++) {
 				this.fullInventorySprites[i].setFrame(12);
@@ -41,7 +41,7 @@ export default class extends Phaser.Scene {
 			}
 		}
 
-		if (level == 0) {
+		if (this.level > 0 && level == 0 && !isLevelOver) {
 			this.inventorySprites.forEach(s => s.play("InventoryEmpty"))
 			this.sound.play("WaterInventoryEmpty.wav", {loop: true});
 		}

@@ -501,14 +501,13 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	updateInventory() {
-		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(5, this.waterLevel);
+		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(5, this.waterLevel, this.isLevelOver);
 	}
 
 	regenerateState() {
 		this.updateTrees();
 		this.updateGrassMask();
 		this.updateForGrass();
-		this.updateInventory();
 		this.updateLifeBar();
 
 		this.walls = combineAllPolygons([this.borderWalls, ...this.cracks.map(crack => crack.getWalls())]);
@@ -525,6 +524,8 @@ export default class MainScene extends Phaser.Scene {
 				this.input.keyboard.on('keydown-SPACE', () => this.nextLevel());
 			}
 		}
+
+		this.updateInventory();
 	}
 
 	getTrees({dead = false, alive = false, burning = false}) {
