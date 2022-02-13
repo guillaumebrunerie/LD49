@@ -450,9 +450,9 @@ export const healAt = (scene: MainScene, crack: Crack, crackPoint: CrackPoint) =
 			}
 			segment.play("CracksSingleEnd" + animationPerTile[segment.frame.name]);
 			if (crackPoints[0].direction == "Right") {
-				scene.add.sprite(crackPoints[0].x, crackPoints[0].y, "CracksSmokeEndHorizontal").setOrigin(0.5, 0.75).play("CracksSmokeEndHorizontal");
+				scene.add.sprite(crackPoints[0].x, crackPoints[0].y, "CracksSmokeEndHorizontal").setOrigin(0.5, 0.75).setDepth(Conf.zIndex.smoke).play("CracksSmokeEndHorizontal");
 			} else {
-				scene.add.sprite(crackPoints[0].x, crackPoints[0].y, "CracksSmokeEndVertical").setAngle(-90).setOrigin(0.5, 0.25).play("CracksSmokeEndVertical");
+				scene.add.sprite(crackPoints[0].x, crackPoints[0].y, "CracksSmokeEndVertical").setAngle(-90).setOrigin(0.5, 0.25).setDepth(Conf.zIndex.smoke).play("CracksSmokeEndVertical");
 			}
 		});
 		return [];

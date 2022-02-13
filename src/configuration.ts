@@ -148,6 +148,7 @@ export const zIndex = {
 	player: counter++,
 	npc: counter++,
 	levelComplete: counter++,
+	smoke: counter++,
 }
 
 
