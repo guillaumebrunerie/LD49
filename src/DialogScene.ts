@@ -29,6 +29,7 @@ export default class extends Phaser.Scene {
 		this.add.image(Conf.dialogBg.x, Conf.dialogBg.y, "DialogBackground");
 		this.avatar = this.add.sprite(Conf.avatar.x, Conf.avatar.y, "").setScale(Conf.avatar.scale);
 
+		this.currentIndex = 0;
 		this.refresh();
 
 		this.input.keyboard.on('keydown-SPACE', () => this.nextDialog());
@@ -36,8 +37,9 @@ export default class extends Phaser.Scene {
 
 	nextDialog() {
 		this.currentIndex++;
-		if (this.currentIndex == this.dialog.length) {
+		if (this.currentIndex >= this.dialog.length) {
 			this.callback();
+			this.currentIndex = 0;
 			this.scene.stop();
 		} else {
 			this.refresh();

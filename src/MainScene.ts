@@ -54,14 +54,30 @@ export default class MainScene extends Phaser.Scene {
 		super("MainScene");
 	}
 
-	getValidPosition(flag: true | Crack | undefined): Position | null {
-		for (let tries = 0; tries < 100; tries++) {
-			const x = Math.random() * this.level.worldSize * Conf.tileSize;
-			const y = Math.random() * this.level.worldSize * Conf.tileSize;
-			if (this.isValidPosition({x, y}, flag))
-				return {x, y}
+	getValidDropPosition(): Position | null {
+		let x = 0, y = 0, i = 0, j = 0, tries;
+
+		for (tries = 0; tries < 100; tries++) {
+			x = Math.random() * this.level.worldSize * Conf.tileSize;
+			y = Math.random() * this.level.worldSize * Conf.tileSize;
+
+			j = Math.floor(x / Conf.tileSize);
+			i = Math.floor(y / Conf.tileSize);
+			if (this.worldMask[i]?.[j]
+					&& this.worldMask[i + 1]?.[j]
+					&& this.worldMask[i]?.[j + 1]
+					&& this.worldMask[i + 1]?.[j + 1]
+					&& projectOutside({x: x / Conf.tileSize, y: y / Conf.tileSize}, this.walls).type == "outside"
+			) {
+				break;
+			}
 		}
-		return null;
+
+		if (tries == 100) {
+			return null;
+		}
+
+		return {x, y};
 	}
 
 	getValidNewCrackPosition(): Position | null {
@@ -331,7 +347,7 @@ export default class MainScene extends Phaser.Scene {
 
 		setRandomInterval(this.level.dropsDelay, () => {
 			if (this.droplets.length < 5 * 2) {
-				const position = this.getValidPosition(undefined);
+				const position = this.getValidDropPosition();
 				const superDroplet = Math.random() < 0.2;
 				if (position) {
 					this.droplets.push(new Droplet(this, position.x, position.y + Conf.tileSize, superDroplet));
@@ -350,7 +366,7 @@ export default class MainScene extends Phaser.Scene {
 		const spawnPoints = this.cracks.map(crack => (
 			crack.crackPoints.filter(crackPoint => crackPoint.size == 3 && !this.usedSpawnPositions.includes(`${crackPoint.x} ${crackPoint.y}`))
 		)).flat();
-		if (spawnPoints.length > 0 && this.demons.length < 1) {
+		if (spawnPoints.length > 0 && this.demons.length < this.level.maxDemons) {
 			const spawnPoint = pick(spawnPoints);
 			this.usedSpawnPositions.push(`${spawnPoint.x} ${spawnPoint.y}`)
 			this.demons.push(new Demon(this, spawnPoint.x, spawnPoint.y));
@@ -364,16 +380,7 @@ export default class MainScene extends Phaser.Scene {
 			trees = this.getTrees({dead: true});
 		}
 
-		// Prefer trees that will not make the demon cross the player’s path
-		const treesFarFromPlayer = trees.filter(tree => (
-			(demon.x - this.player.x) * (tree.x - this.player.x) > 0
-				|| (demon.y - this.player.y) * (tree.y - this.player.y) > 0
-		));
-		if (treesFarFromPlayer.length > 0) {
-			trees = treesFarFromPlayer;
-		}
-
-		// Finally, pick a random tree among the prefered ones
+		// Pick a random tree among the prefered ones
 		if (trees.length > 0) {
 			const tree = pick(trees);
 			demon.setDestination({x: tree.x, y: tree.y});
@@ -650,22 +657,6 @@ export default class MainScene extends Phaser.Scene {
 		}
 	}
 
-	// setGrassAround(i: number, j: number, treeSize: "small" | "big", grassValue: 0 | 1) {
-	// 	const size = {
-	// 		"small": 2.5,
-	// 		"big": 3.5,
-	// 	}[treeSize];
-
-	// 	for (let i2 = 0; i2 < this.level.worldSize + 1; i2++) {
-	// 		for (let j2 = 0; j2 < this.level.worldSize + 1; j2++) {
-	// 			const di = Math.abs(i2 - i);
-	// 			const dj = Math.abs(j2 - j);
-	// 			if (Math.pow(di, 2) + Math.pow(dj, 2) < size * size)
-	// 				this.grassMask[i2][j2] = this.isTooCloseToCrack(i2, j2) ? 0 : grassValue;
-	// 		}
-	// 	}
-	// }
-
 	heal() {
 		if (!this.pointTargeted)
 			return;
@@ -737,7 +728,7 @@ export default class MainScene extends Phaser.Scene {
 		const dialog = this.isLevelStarted ? levelDialogs.loop : levelDialogs.start;
 
 		this.introGuide.setDialog(dialog);
-		this.introGuide.interact(() => {
+		this.introGuide.interact(this.isLevelStarted ? () => {} : () => {
 			this.startLevel();
 		});
 	}
@@ -766,52 +757,6 @@ export default class MainScene extends Phaser.Scene {
 		});
 	}
 
-	isValidPosition(position: Position, crackToIgnore?: true | Crack) {
-		const {x, y} = position;
-
-		let j = Math.floor(x / Conf.tileSize);
-		let i = Math.floor(y / Conf.tileSize);
-		if (!this.worldMask[i]?.[j]
-			|| !this.worldMask[i + 1]?.[j]
-			|| !this.worldMask[i]?.[j + 1]
-			|| !this.worldMask[i + 1]?.[j + 1]) {
-			return false;
-		}
-
-		const isGrassForbidden = !!crackToIgnore;
-		if (isGrassForbidden && (
-			this.grassMask[i]?.[j]
-				|| this.grassMask[i + 1]?.[j]
-				|| this.grassMask[i]?.[j + 1]
-				|| this.grassMask[i + 1]?.[j + 1])) {
-			return false;
-		}
-
-		for (let i = 0; i < this.cracks.length; i++) {
-			if (this.cracks[i] === crackToIgnore)
-				continue;
-			const crackPoints = this.cracks[i].crackPoints;
-			const circle = new Phaser.Geom.Circle(x, y, Conf.crackHitboxSize);
-			for (let j = 0; j < crackPoints.length - 1; j++) {
-				const line = new Phaser.Geom.Line(
-					crackPoints[j].x,
-					crackPoints[j].y,
-					crackPoints[j + 1].x,
-					crackPoints[j + 1].y,
-				);
-				if (Phaser.Geom.Intersects.LineToCircle(line, circle))
-					return false;
-			}
-			if (crackPoints.length == 1 && Phaser.Geom.Circle.Contains(circle, crackPoints[0].x, crackPoints[0].y))
-				return false;
-		}
-
-		if (this.introGuide.isAtBlockingDistance({x, y}))
-			return false;
-
-		return true;
-	}
-
 	fixDelta(pos: Position, {dx, dy} : {dx: number, dy: number}) {
 		if (Math.abs(dx) >= Conf.tileSize || Math.abs(dy) >= Conf.tileSize) {
 			console.error("Too big delta");
@@ -837,25 +782,6 @@ export default class MainScene extends Phaser.Scene {
 		if (result.type == "inside") {
 			this.fireEnd();
 		}
-
-		// if (this.isValidPosition(this.player))
-		// 	return;
-
-		// let tries = 0;
-		// let x = this.player.x;
-		// let y = this.player.y;
-		// do {
-		// 	x += Math.round((Math.random() - 0.5) * Conf.tileSize);
-		// 	y += Math.round((Math.random() - 0.5) * Conf.tileSize);
-		// 	tries++;
-		// } while (!this.isValidPosition({x, y}) && tries < 100)
-		// console.log(`Fixed player position after ${tries} tries`);
-		// if (tries == 100) {
-		// 	x = this.level.worldSize * Conf.tileSize / 2;
-		// 	y = this.level.worldSize * Conf.tileSize / 2;
-		// }
-		// this.player.x = this.player.currentX = x;
-		// this.player.y = this.player.currentY = y;
 	}
 
 	update(time: number, delta: number) {

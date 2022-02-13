@@ -76,6 +76,7 @@ export type LevelConfiguration = {
 	demonDelay: MaybeRandomNumber, // Time between the appearance of demons
 	crackMaxLength?: number,
 	allowNewCracks?: boolean,
+	maxDemons: number,
 }
 
 export const levels: LevelConfiguration[] = [
@@ -85,8 +86,9 @@ export const levels: LevelConfiguration[] = [
 		initialNumberOfCracks: 0,
 		crackDelay: Infinity,
 		dropsDelay: Infinity,
-		demonDelay: 10,
+		demonDelay: Infinity,
 		allowNewCracks: false,
+		maxDemons: 0,
 
 	}, { // Level 2
 		worldSize: 14,
@@ -95,6 +97,7 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: {min: 2, max: 3},
 		demonDelay: Infinity,
 		allowNewCracks: true,
+		maxDemons: 0,
 
 	}, { // Level 3
 		worldSize: 16,
@@ -103,6 +106,7 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: { min: 2, max: 3 },
 		demonDelay: 10,
 		allowNewCracks: true,
+		maxDemons: 1,
 
 	}, { // Level 4
 		worldSize: 18,
@@ -111,6 +115,7 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: { min: 2, max: 3 },
 		demonDelay: 8,
 		allowNewCracks: true,
+		maxDemons: 2,
 
 	}, { // Level 5
 		worldSize: 21,
@@ -119,6 +124,7 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: { min: 1, max: 3 },
 		demonDelay: 6,
 		allowNewCracks: true,
+		maxDemons: 3,
 
 	}, { // Level 6
 		worldSize: 24,
@@ -127,6 +133,7 @@ export const levels: LevelConfiguration[] = [
 		dropsDelay: { min: 1, max: 2 },
 		demonDelay: 4,
 		allowNewCracks: true,
+		maxDemons: 4,
 	}
 ];
 
