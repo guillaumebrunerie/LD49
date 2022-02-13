@@ -89,7 +89,7 @@ const allAnimations: AnimationEntries[] = [
 	turnAnimations
 ];
 
-type State = "STARTING" | "WALKING" | "TURNING" | "ATTACKING" | "DYING" | "IDLING" | "STOPPED";
+type State = "STARTING" | "WALKING" | "TURNING" | "ATTACKING" | "DYING" | "IDLING";
 
 export default class {
 	sprite: Phaser.GameObjects.Sprite;
@@ -97,6 +97,7 @@ export default class {
 	destination?: Position;
 
 	state: State;
+	isStopped: boolean;
 	scene: MainScene;
 
 	get x() { return this.sprite.x };
@@ -123,6 +124,7 @@ export default class {
 		this.scene.sound.play("DemonAppear");
 		this.sprite.play("DemonStart" + direction).once("animationcomplete", () => this.startIdling());
 		this.scene.time.delayedCall(500, () => this.scene.requestNewDestination(this));
+		this.isStopped = false;
 	}
 
 	setDestination(pos: Position) {
@@ -140,13 +142,16 @@ export default class {
 	}
 
 	stop() {
-		this.state = "STOPPED";
+		this.isStopped = true;
 		this.scene.sound.stopByKey("DemonMove");
 	}
 
-	// isCloseTo(position: Phaser.Types.Math.Vector2Like): boolean {
-	//	   return (Phaser.Math.Distance.BetweenPoints(position, this) < Conf.dropletHitboxSize);
-	// }
+	unStop() {
+		this.isStopped = false;
+		if (this.state = "WALKING") {
+			this.scene.sound.play("DemonMove", {loop: true});
+		}
+	}
 
 	finishAttack() {
 		if (this.state == "DYING")
@@ -170,7 +175,7 @@ export default class {
 		if (!this.destination)
 			return;
 
-		if (this.state == "WALKING") {
+		if (this.state == "WALKING" && !this.isStopped) {
 			if (this.x == this.destination.x && this.y == this.destination.y) {
 				this.scene.sound.stopByKey("DemonMove");
 				this.scene.sound.play("DemonAttack", {loop: true});

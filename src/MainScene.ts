@@ -712,7 +712,7 @@ export default class MainScene extends Phaser.Scene {
 			const {sort, x, y} = this.pointTargeted;
 			if (sort === "demon") {
 				const demon = this.demons.find(demon => demon.x == x && demon.y == y);
-				demon && this.requestNewDestination(demon);
+				demon?.unStop();
 			}
 			this.pointTargeted = undefined;
 		}
