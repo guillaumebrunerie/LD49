@@ -196,13 +196,13 @@ export default class extends Phaser.Scene {
 
 		this.anims.create({
 			key: "CracksSmokeEndHorizontal",
-			frameRate: 10,
+			frameRate: 15,
 			frames: this.anims.generateFrameNames("CracksSmokeEndHorizontal", {frames: [0, 1, 2, 3, 4, 5]}),
 		});
 
 		this.anims.create({
 			key: "CracksSmokeEndVertical",
-			frameRate: 10,
+			frameRate: 15,
 			frames: this.anims.generateFrameNames("CracksSmokeEndVertical", {frames: [0, 1, 2, 3, 4, 5]}),
 		});
 

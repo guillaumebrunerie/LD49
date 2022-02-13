@@ -106,9 +106,9 @@ export default class MainScene extends Phaser.Scene {
 
 	createStarryBackground() {
 		const backgroundLayerData: number[][] = [];
-		for (let y = 0; y < Conf.viewportHeight; y++) {
+		for (let y = 0; y < Conf.viewportHeight * 2; y++) {
 			backgroundLayerData[y] = [];
-			for (let x = 0; x < Conf.viewportWidth; x++) {
+			for (let x = 0; x < Conf.viewportWidth * 2; x++) {
 				backgroundLayerData[y][x] = pick([...new Array(15).fill(0), 1, 2, 3, 4, 5, 6, 7, 8]);
 			}
 		}
@@ -116,8 +116,8 @@ export default class MainScene extends Phaser.Scene {
 			data: backgroundLayerData,
 			tileWidth: Conf.tileSize,
 			tileHeight: Conf.tileSize,
-			width: this.level.worldSize,
-			height: this.level.worldSize,
+			width: this.level.worldSize * 2,
+			height: this.level.worldSize * 2,
 		});
 		const backgroundTileset = backgroundTilemap.addTilesetImage("tileset", "SpaceTiles");
 		const backgroundLayer = backgroundTilemap.createLayer(0, backgroundTileset);
@@ -125,7 +125,7 @@ export default class MainScene extends Phaser.Scene {
 		backgroundLayer.x = 1000;
 		backgroundLayer.y = 1000;
 
-		this.cameras.add(0, 0, undefined, undefined, false, "Background").setScroll(1000, 1000);
+		this.cameras.add(0, 0, undefined, undefined, false, "Background").setScroll(1000 + this.player.x / 3, 1000 + this.player.y / 3);
 		this.cameras.cameras.reverse();
 	}
 
@@ -270,7 +270,7 @@ export default class MainScene extends Phaser.Scene {
 		this.player = new Player(this, this.level.worldSize * Conf.tileSize / 2, this.level.worldSize * Conf.tileSize / 2);
 		this.introGuide = new NPC(this, this.level.worldSize * Conf.tileSize / 2, (this.level.worldSize - 4) * Conf.tileSize / 2, "Characters", this.levelNum);
 
-		this.cameras.main.startFollow(this.player);
+		this.cameras.main.startFollow(this.player, true);
 
 		this.createStarryBackground();
 
@@ -817,6 +817,10 @@ export default class MainScene extends Phaser.Scene {
 
 		if (!this.scene.isActive("DialogScene"))
 			this.player.update(time, delta);
+
+		const bgCamera = this.cameras.getCamera("Background");
+		bgCamera.scrollX = 1000 + this.player.x / 3;
+		bgCamera.scrollY = 1000 + this.player.y / 3;
 
 		this.cracks.forEach(c => c.update(time, delta));
 
