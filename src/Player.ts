@@ -48,17 +48,6 @@ const laserAnimations: AnimationEntries = {
 	]
 };
 
-const idleFrame = {
-	"W": 13,
-	"E": 26,
-	"N": 65,
-	"S": 0,
-	"NW": 52,
-	"NE": 56,
-	"SW": 39,
-	"SE": 43,
-};
-
 const firingFrame = {
 	"W": 17,
 	"E": 30,
@@ -105,6 +94,18 @@ export default class extends Phaser.GameObjects.Container {
 				});
 			});
 		});
+
+		// Idle animations
+		[playerWalkAnimations].forEach(({entries, repeat}) => {
+			entries.forEach(({key: key2, anim}) => {
+				anims.create({
+					key: `PlayerIdle${key2}`,
+					frameRate: 2,
+					frames: anims.generateFrameNames("Player", anim),
+					repeat,
+				});
+			});
+		});
 	}
 
 	constructor(scene: MainScene, x: number, y: number) {
@@ -118,6 +119,7 @@ export default class extends Phaser.GameObjects.Container {
 		this.add(this.sprite);
 		scene.add.existing(this).setDepth(Conf.zIndex.player);
 
+		this.sprite.play("PlayerIdle" + this.direction);
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
 	}
 
@@ -141,7 +143,7 @@ export default class extends Phaser.GameObjects.Container {
 		this.laser.stop();
 		this.laser.setFrame(12);
 		this.isFiring = false;
-		this.sprite.setFrame(idleFrame[this.direction]);
+		this.sprite.play("PlayerIdle" + this.direction);
 		this.firingAmount = 0;
 		this.scene.sound.stopByKey("Water");
 		this.target = null;
@@ -204,7 +206,6 @@ export default class extends Phaser.GameObjects.Container {
 			this.scene.walls
 		);
 
-
 		this.currentX = result.x * Conf.tileSize;
 		this.currentY = result.y * Conf.tileSize;
 		this.x = Math.round(this.currentX);
@@ -217,7 +218,9 @@ export default class extends Phaser.GameObjects.Container {
 			}
 			this.direction = direction as Direction8;
 		} else {
-			this.sprite.stop();
+			if (this.isWalking) {
+				this.sprite.play("PlayerIdle" + this.direction);
+			}
 			this.scene.sound.stopByKey("PlayerMove");
 		}
 		this.isWalking = !!direction;
