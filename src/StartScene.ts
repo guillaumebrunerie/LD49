@@ -229,7 +229,7 @@ export default class extends Phaser.Scene {
 
 
 
-		this.scene.start("LevelSelect");
+		// this.scene.start("LevelSelect");
 
 
 
@@ -244,11 +244,18 @@ export default class extends Phaser.Scene {
 			isStartButtonDown = false;
 			startButton.setTexture("Btn_Start");
 		});
+
+		const doStart = () => {
+			this.scene.start("LevelSelect");
+			(this.scene.get("SoundButtonScene") as SoundButtonScene).gameStarted();
+		}
+
 		startButton.on("pointerup", () => {
 			if (isStartButtonDown) {
-				this.scene.start("LevelSelect");
-				(this.scene.get("SoundButtonScene") as SoundButtonScene).gameStarted();
+				doStart();
 			}
 		});
+		this.input.keyboard.on('keyup-SPACE', () => doStart());
+		this.input.keyboard.on('keyup-ENTER', () => doStart());
 	}
 }

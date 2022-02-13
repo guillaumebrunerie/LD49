@@ -33,6 +33,7 @@ export default class extends Phaser.Scene {
 		this.refresh();
 
 		this.input.keyboard.on('keydown-SPACE', () => this.nextDialog());
+		this.input.keyboard.on('keydown-ENTER', () => this.nextDialog());
 	}
 
 	nextDialog() {

@@ -304,7 +304,9 @@ export default class MainScene extends Phaser.Scene {
 		this.isLevelStarted = true;
 
 		this.input.keyboard.on('keydown-SPACE', () => this.interaction());
+		this.input.keyboard.on('keydown-ENTER', () => this.interaction());
 		this.input.keyboard.on('keyup-SPACE', () => this.fireEnd());
+		this.input.keyboard.on('keyup-ENTER', () => this.fireEnd());
 
 		for (let i = 0; i < this.level.initialNumberOfCracks; i++) {
 			const position = this.getValidNewCrackPosition();
@@ -522,6 +524,7 @@ export default class MainScene extends Phaser.Scene {
 			if (this.isLevelOver) {
 				this.add.image(this.player.x, this.player.y, "LevelOver").setDepth(Conf.zIndex.levelComplete);
 				this.input.keyboard.on('keydown-SPACE', () => this.nextLevel());
+				this.input.keyboard.on('keydown-ENTER', () => this.nextLevel());
 			}
 		}
 

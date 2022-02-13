@@ -109,15 +109,15 @@ export default class extends Phaser.Scene {
 			this.scene.stop("LifeBarScene");
 			this.updateGraphics();
 		})
+
+		if (!this.musicPlaying) {
+			this.musicPlaying = true;
+			this.sound.play("Music", { loop: true });
+		}
 	}
 
 	startSelectedLevel() {
 		if (this.planetsStatus[this.selectedIndex] !== "locked") {
-			if (!this.musicPlaying) {
-				this.musicPlaying = true;
-				this.sound.play("Music", { loop: true });
-			}
-
 			this.scene.sleep();
 			this.scene.run("InventoryScene");
 			this.scene.run("LifeBarScene");
