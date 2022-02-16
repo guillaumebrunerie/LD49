@@ -149,6 +149,7 @@ export default class extends Phaser.Scene {
 			if (data.type == "complete") {
 				this.planetsStatus[data.payload] = "finished";
 				if (this.planetsStatus[data.payload + 1] === "locked") {
+					this.sound.play("Locker");
 					this.locks[data.payload + 1].play("LevelLock").once("animationcomplete", () => {
 						this.planetsStatus[data.payload + 1] = "available";
 						this.updateGraphics();

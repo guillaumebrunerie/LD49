@@ -13,7 +13,7 @@ const SOUNDS = [
 	"GameLost", "GameWon", "Music",
 	"LevelComplete",
 	"DemonAppear", "DemonAttack", "DemonDeath", "DemonHappy", "DemonMove",
-	"PlayerMove",
+	"PlayerMove", "Locker"
 ];
 
 export default class extends Phaser.Scene {
