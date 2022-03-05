@@ -17,16 +17,34 @@ export default class extends Phaser.Scene {
 		this.inventorySprites = [];
 		this.fullInventorySprites = [];
 
+		this.level = 0;
+		this.capacity = 0;
 		let x = Conf.inventory.x;
 		const y = Conf.inventory.y;
-		for (let i = 0; i < 5; i++) {
-			this.inventorySprites[i] = this.add.sprite(x, y, "WaterBullet", 13);
-			this.fullInventorySprites[i] = this.add.sprite(x, y, "WaterBullet", 5);
+		for (let i = 0; i < 7; i++) {
+			this.inventorySprites[i] = this.add.sprite(x, y, "WaterBullet", 13).setVisible(false);
+			this.fullInventorySprites[i] = this.add.sprite(x, y, "WaterBullet", 5).setVisible(false);
 			x += Conf.inventory.dx;
 		}
 	}
 
 	updateInventory(capacity: number, level: number, isLevelOver: boolean) {
+		if (capacity > this.capacity) {
+			for (let i = this.capacity; i < capacity; i++) {
+				this.inventorySprites[i].setVisible(true);
+				if (this.capacity > 0) {
+					this.inventorySprites[i].playAfterDelay("InventoryUpgrade", (i - this.capacity) * 100);
+					this.add.sprite(this.inventorySprites[i].x, this.inventorySprites[i].y, "").setAlpha(0.8).play("PrizeFx1");
+				}
+			}
+		}
+
+		if (capacity < this.capacity) {
+			for (let i = capacity; i < this.capacity; i++) {
+				this.inventorySprites[i].setVisible(false);
+			}
+		}
+
 		if (level > this.level) {
 			for (let i = this.level; i < level; i++) {
 				this.fullInventorySprites[i].setFrame(12);

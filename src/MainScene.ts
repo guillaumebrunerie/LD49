@@ -267,7 +267,7 @@ export default class MainScene extends Phaser.Scene {
 			this.trees.push(tree);
 		});
 
-		this.player = new Player(this, this.level.worldSize * Conf.tileSize / 2, this.level.worldSize * Conf.tileSize / 2);
+		this.player = new Player(this, this.level.skin, this.level.worldSize * Conf.tileSize / 2, this.level.worldSize * Conf.tileSize / 2);
 		this.introGuide = new NPC(this, this.level.worldSize * Conf.tileSize / 2, (this.level.worldSize - 4) * Conf.tileSize / 2, "Characters", this.levelNum);
 
 		this.cameras.main.startFollow(this.player, true);
@@ -294,7 +294,7 @@ export default class MainScene extends Phaser.Scene {
 		));
 		this.borderWalls = combineAllPolygons([borderWalls, guidePolygon, ...treesPolygons]);
 
-		this.waterLevel = 5;
+		this.waterLevel = this.level.waterCapacity;
 		this.regenerateState();
 
 		this.talkToIntroGuide();
@@ -506,8 +506,8 @@ export default class MainScene extends Phaser.Scene {
 		(this.scene.get("LifeBarScene") as LifeBarScene).updateLifeBar(greenFactor, redFactor);
 	}
 
-	updateInventory() {
-		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(5, this.waterLevel, this.isLevelOver);
+	updateInventory(capacity = this.level.waterCapacity) {
+		(this.scene.get("InventoryScene") as InventoryScene).updateInventory(capacity, this.waterLevel, this.isLevelOver);
 	}
 
 	regenerateState() {
@@ -526,15 +526,31 @@ export default class MainScene extends Phaser.Scene {
 		if (!this.isLevelOver) {
 			this.isLevelOver = this.treePositions.every(tree => tree.status == "live") && this.demons.length == 0 && this.cracks.length == 0;
 			if (this.isLevelOver) {
+				this.onLevelComplete();
+			}
+		}
+
+		this.updateInventory();
+	}
+
+	onLevelComplete() {
+		this.introGuide.setDialog(dialogs[this.levelNum].end);
+		this.introGuide.interact(() => {
+			if (this.level.nextWaterCapacity !== this.level.waterCapacity) {
+				this.updateInventory(this.level.nextWaterCapacity);
+			}
+			if (this.level.upgradeSkin) {
+				this.player.upgradeSkin();
+			}
+			this.sound.play("Prize");
+			this.time.delayedCall(1000, () => {
 				this.add.image(this.player.x, this.player.y, "LevelOver").setDepth(Conf.zIndex.levelComplete);
 				this.sound.play("LevelComplete");
 				this.input.keyboard.on('keydown-SPACE', () => this.nextLevel());
 				this.input.keyboard.on('keydown-ENTER', () => this.nextLevel());
 				this.input.on("pointerdown", () => this.nextLevel());
-			}
-		}
-
-		this.updateInventory();
+			});
+		});
 	}
 
 	getTrees({dead = false, alive = false, burning = false}) {
@@ -607,9 +623,9 @@ export default class MainScene extends Phaser.Scene {
 			this.targetSprite.x = target.x;
 			this.targetSprite.y = target.y;
 			this.targetSprite.play({
-				"tree": "TargetTree",
-				"crack": "TargetCrack",
-				"demon": "TargetDemon",
+				"tree": `Target${this.level.skin}Tree`,
+				"crack": `Target${this.level.skin}Crack`,
+				"demon": `Target${this.level.skin}Demon`,
 			}[target.sort]);
 			if (target.sort == "demon") {
 				const demon = this.demons.find(demon => demon.x == target.x && demon.y == target.y);
@@ -826,12 +842,12 @@ export default class MainScene extends Phaser.Scene {
 		this.cracks.forEach(c => c.update(time, delta));
 
 		this.droplets.forEach(droplet => {
-			if (this.waterLevel < 5) {
+			if (this.waterLevel < this.level.waterCapacity) {
 				if (droplet.isCloseTo(this.player)) {
 					this.droplets = this.droplets.filter(d => d !== droplet);
 					droplet.destroy();
 					if (droplet.superDroplet)
-						this.waterLevel = 5;
+						this.waterLevel = this.level.waterCapacity;
 					else
 						this.waterLevel++;
 					this.regenerateState();

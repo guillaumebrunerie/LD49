@@ -2,7 +2,7 @@ import * as Phaser from "phaser"
 //import * as Conf from "./configuration"
 
 const lifeBarWidth = 276;
-const lifeBarX = 235;
+const lifeBarX = 270;
 const lifeBarY = 10;
 
 export default class extends Phaser.Scene {

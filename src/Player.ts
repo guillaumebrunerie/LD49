@@ -71,55 +71,57 @@ export default class extends Phaser.GameObjects.Container {
 	currentX: number;
 	currentY: number;
 	target: Target | null = null;
+	skin: number;
 
 	static createAnimations(anims: Phaser.Animations.AnimationManager) {
-		[playerWalkAnimations].forEach(({key, entries, repeat}) => {
+		[1, 2, 3].forEach(skin => [playerWalkAnimations].forEach(({key, entries, repeat}) => {
 			entries.forEach(({key: key2, anim}) => {
 				anims.create({
-					key: `Player${key}${key2}`,
+					key: `Player${skin}${key}${key2}`,
 					frameRate: 5,
-					frames: anims.generateFrameNames("Player", anim),
+					frames: anims.generateFrameNames(`Player${skin}`, anim),
 					repeat,
 				});
 			});
-		});
+		}));
 
-		[laserAnimations].forEach(({key, entries, repeat}) => {
+		[1, 2, 3].forEach(skin => [laserAnimations].forEach(({key, entries, repeat}) => {
 			entries.forEach(({key: key2, anim}) => {
 				anims.create({
-					key: `${key}${key2}`,
+					key: `${key}${skin}${key2}`,
 					frameRate: 5,
-					frames: anims.generateFrameNames("Laser", anim),
+					frames: anims.generateFrameNames(`Laser${skin}`, anim),
 					repeat,
 				});
 			});
-		});
+		}));
 
 		// Idle animations
-		[playerWalkAnimations].forEach(({entries, repeat}) => {
+		[1, 2, 3].forEach(skin => [playerWalkAnimations].forEach(({entries, repeat}) => {
 			entries.forEach(({key: key2, anim}) => {
 				anims.create({
-					key: `PlayerIdle${key2}`,
+					key: `Player${skin}Idle${key2}`,
 					frameRate: 2,
-					frames: anims.generateFrameNames("Player", anim),
+					frames: anims.generateFrameNames(`Player${skin}`, anim),
 					repeat,
 				});
 			});
-		});
+		}));
 	}
 
-	constructor(scene: MainScene, x: number, y: number) {
+	constructor(scene: MainScene, skin: number, x: number, y: number) {
 		super(scene, x, y);
+		this.skin = skin;
 		this.currentX = x;
 		this.currentY = y;
 		this.scene = scene;
-		this.laser = scene.add.sprite(0, 0, "Laser", 12).setDepth(Conf.zIndex.laser);
+		this.laser = scene.add.sprite(0, 0, `Laser${skin}`, 12).setDepth(Conf.zIndex.laser);
 		this.add(this.laser);
-		this.sprite = scene.add.sprite(0, 0, "Player", 0).setDepth(Conf.zIndex.player);
+		this.sprite = scene.add.sprite(0, 0, `Player${skin}`, 0).setDepth(Conf.zIndex.player);
 		this.add(this.sprite);
 		scene.add.existing(this).setDepth(Conf.zIndex.player);
 
-		this.sprite.play("PlayerIdle" + this.direction);
+		this.sprite.play(`Player${skin}Idle${this.direction}`);
 		this.cursorKeys = scene.input.keyboard.createCursorKeys();
 	}
 
@@ -130,7 +132,7 @@ export default class extends Phaser.GameObjects.Container {
 		this.direction = dPosToDirection8(dy, dx);
 
 		this.sprite.setFrame(firingFrame[this.direction]);
-		this.laser.play("Laser" + this.direction);
+		this.laser.play(`Laser${this.skin}${this.direction}`);
 		this.laser.x = laserOffset[this.direction].dx;
 		this.laser.y = laserOffset[this.direction].dy;
 		this.isFiring = true;
@@ -143,10 +145,16 @@ export default class extends Phaser.GameObjects.Container {
 		this.laser.stop();
 		this.laser.setFrame(12);
 		this.isFiring = false;
-		this.sprite.play("PlayerIdle" + this.direction);
+		this.sprite.play(`Player${this.skin}Idle${this.direction}`);
 		this.firingAmount = 0;
 		this.scene.sound.stopByKey("Water");
 		this.target = null;
+	}
+
+	upgradeSkin() {
+		this.skin++;
+		this.scene.add.sprite(this.x, this.y, "").setDepth(Infinity).setBlendMode(Phaser.BlendModes.ADD).play("PrizeFx3");
+		this.sprite.play(`Player${this.skin}Idle${this.direction}`);
 	}
 
 	update(_time: number, delta: number) {
@@ -158,7 +166,7 @@ export default class extends Phaser.GameObjects.Container {
 				"crack": Conf.crackResistance,
 				"tree": Conf.treeResistance,
 				"demon": Conf.demonResistance,
-			}[this.target?.sort];
+			}[this.target?.sort][this.skin - 1];
 			if (this.firingAmount > resistance * 1000) {
 				this.fireEnd();
 				this.scene.heal();
@@ -196,7 +204,7 @@ export default class extends Phaser.GameObjects.Container {
 		};
 
 		const angle = angles[direction] || 0;
-		const deltaPos = direction == "" ? 0 : Conf.playerSpeed * delta / 1000;
+		const deltaPos = direction == "" ? 0 : Conf.playerSpeed[this.skin - 1] * delta / 1000;
 
 		const result = projectOutside(
 			{
@@ -213,13 +221,14 @@ export default class extends Phaser.GameObjects.Container {
 
 		if (direction) {
 			if (!this.isWalking || direction !== this.direction) {
-				this.sprite.play("PlayerWalk" + direction);
+				// console.log(`Player${this.skin}Walk${this.direction}`);
+				this.sprite.play(`Player${this.skin}Walk${direction}`);
 				this.scene.sound.play("PlayerMove", {loop: true});
 			}
 			this.direction = direction as Direction8;
 		} else {
 			if (this.isWalking) {
-				this.sprite.play("PlayerIdle" + this.direction);
+				this.sprite.play(`Player${this.skin}Idle${this.direction}`);
 			}
 			this.scene.sound.stopByKey("PlayerMove");
 		}

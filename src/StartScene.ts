@@ -13,7 +13,7 @@ const SOUNDS = [
 	"GameLost", "GameWon", "Music",
 	"LevelComplete",
 	"DemonAppear", "DemonAttack", "DemonDeath", "DemonHappy", "DemonMove",
-	"PlayerMove", "Locker"
+	"PlayerMove", "Locker", "Prize"
 ];
 
 export default class extends Phaser.Scene {
@@ -47,6 +47,8 @@ export default class extends Phaser.Scene {
 		this.load.image("Water_Bullet", "UI/Water_Bullet.png");
 		this.load.image("Water_Inventory", "UI/Water_Inventory.png");
 
+		this.load.spritesheet("PrizeFx", "SpriteSheets/PrizeFx.png", tileConf);
+
 		this.load.spritesheet("Droplet", "SpriteSheets/Droplet.png", tileConf);
 
 		this.load.spritesheet("Tiles", "SpriteSheets/BgElements.png", tileConf);
@@ -60,10 +62,14 @@ export default class extends Phaser.Scene {
 		this.load.spritesheet("CracksSmokeEndHorizontal", "SpriteSheets/CracksSmokeEndHorizontal.png", {frameWidth: Conf.crackTileSize * 2, frameHeight: Conf.crackTileSize});
 		this.load.spritesheet("CracksSmokeEndVertical", "SpriteSheets/CracksSmokeEndVertical.png", {frameWidth: Conf.crackTileSize * 2, frameHeight: Conf.crackTileSize});
 
-		this.load.spritesheet("Player", "SpriteSheets/Hero.png", tileConf);
+		this.load.spritesheet("Player1", "SpriteSheets/Hero.png", tileConf);
+		this.load.spritesheet("Player2", "SpriteSheets/HeroUpgrade1.png", tileConf);
+		this.load.spritesheet("Player3", "SpriteSheets/HeroUpgrade2.png", tileConf);
 		this.load.spritesheet("Characters", "SpriteSheets/Characters.png", tileConf);
 		this.load.spritesheet("Bubble", "SpriteSheets/SpeechBubble.png", tileConf);
-		this.load.spritesheet("Laser", "SpriteSheets/Laser.png", tileConf);
+		this.load.spritesheet("Laser1", "SpriteSheets/Laser.png", tileConf);
+		this.load.spritesheet("Laser2", "SpriteSheets/LaserUpgrade1.png", tileConf);
+		this.load.spritesheet("Laser3", "SpriteSheets/LaserUpgrade2.png", tileConf);
 
 		this.load.spritesheet("Font", "Font.png", { frameWidth: 8, frameHeight: 8 });
 
@@ -111,23 +117,23 @@ export default class extends Phaser.Scene {
 			frames: this.anims.generateFrameNames("GameLost", { start: 0, end: 15 }),
 		});
 
-		this.anims.create({
-			key: "TargetCrack",
-			frameRate: 14 / Conf.crackResistance,
+		[1, 2, 3].forEach(skin => this.anims.create({
+			key: `Target${skin}Crack`,
+			frameRate: 14 / Conf.crackResistance[skin - 1],
 			frames: this.anims.generateFrameNames("CrackPoints", { start: 1, end: 15 }),
-		});
+		}));
 
-		this.anims.create({
-			key: "TargetTree",
-			frameRate: 15 / Conf.treeResistance,
+		[1, 2, 3].forEach(skin => this.anims.create({
+			key: `Target${skin}Tree`,
+			frameRate: 15 / Conf.treeResistance[skin - 1],
 			frames: this.anims.generateFrameNames("CrackPoints", { start: 27, end: 42 }),
-		});
+		}));
 
-		this.anims.create({
-			key: "TargetDemon",
-			frameRate: 15 / Conf.demonResistance,
+		[1, 2, 3].forEach(skin => this.anims.create({
+			key: `Target${skin}Demon`,
+			frameRate: 15 / Conf.demonResistance[skin - 1],
 			frames: this.anims.generateFrameNames("CrackPoints", { start: 53, end: 68 }),
-		});
+		}));
 
 		this.anims.create({
 			key: "BubbleStart",
@@ -146,6 +152,30 @@ export default class extends Phaser.Scene {
 			key: "BubbleEnd",
 			frameRate: 15,
 			frames: this.anims.generateFrameNames("Bubble", { frames: [2, 1, 0, 6] }),
+		});
+
+		this.anims.create({
+			key: "PrizeFx1",
+			frameRate: 10,
+			frames: this.anims.generateFrameNames("PrizeFx", { frames: [0, 1, 2, 3, 4] }),
+		});
+
+		this.anims.create({
+			key: "PrizeFx2",
+			frameRate: 10,
+			frames: this.anims.generateFrameNames("PrizeFx", { frames: [13, 14, 15, 16, 17] }),
+		});
+
+		this.anims.create({
+			key: "PrizeFx3",
+			frameRate: 10,
+			frames: this.anims.generateFrameNames("PrizeFx", { frames: [26, 27, 28, 29, 30, 31] }),
+		});
+
+		this.anims.create({
+			key: "InventoryUpgrade",
+			frameRate: 10,
+			frames: this.anims.generateFrameNames("WaterBullet", { frames: [26, 27, 28, 29, 30, 31, 32, 31] }),
 		});
 
 		this.anims.create({

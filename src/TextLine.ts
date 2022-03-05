@@ -2,7 +2,7 @@ import * as Phaser from "phaser";
 
 const charsInFont = "ABCDEFGHIJKLMNOPQRSTUVWXYZ.:,;°×!?' ";
 
-const letterDelay = 20;
+const letterDelay = 12;
 
 // newTextLine
 export default (scene: Phaser.Scene, x: number, y: number, previousLetters: number, text: string) => {

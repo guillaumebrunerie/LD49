@@ -41,7 +41,7 @@ export const inventory = {
 };
 
 // Speed of the robot, in tiles/second
-export const playerSpeed = 7;
+export const playerSpeed = [6, 7, 8]; // 6, 7, 8
 
 // Speed of the demon, in tiles/second
 export const demonSpeed = 4;
@@ -50,13 +50,13 @@ export const demonSpeed = 4;
 export const dropletTimeout = 15;
 
 // Time it takes to heal a crack, in seconds
-export const crackResistance = 1;
+export const crackResistance = [1.2, 1, 0.8];
 
 // Time it takes to heal a tree, in seconds
-export const treeResistance = 1;
+export const treeResistance = [1.2, 1, 0.8];
 
 // Time it takes to kill a demon, in seconds
-export const demonResistance = 2;
+export const demonResistance = [2.2, 2, 1.8];
 
 // Probability that a crack will widen instead of extending (if possible)
 export const widenProbability = 0.7;
@@ -77,18 +77,26 @@ export type LevelConfiguration = {
 	crackMaxLength?: number,
 	allowNewCracks?: boolean,
 	maxDemons: number,
+	waterCapacity: number,
+	nextWaterCapacity: number,
+	skin: number,
+	upgradeSkin: boolean,
 }
 
 export const levels: LevelConfiguration[] = [
 	{ // Level 1
 		worldSize: 10,
-		maxTrees: 5,
+		maxTrees: 4,
 		initialNumberOfCracks: 0,
 		crackDelay: Infinity,
 		dropsDelay: Infinity,
 		demonDelay: Infinity,
 		allowNewCracks: false,
 		maxDemons: 0,
+		waterCapacity: 4,
+		nextWaterCapacity: 5,
+		skin: 1,
+		upgradeSkin: false,
 
 	}, { // Level 2
 		worldSize: 14,
@@ -98,6 +106,10 @@ export const levels: LevelConfiguration[] = [
 		demonDelay: Infinity,
 		allowNewCracks: true,
 		maxDemons: 0,
+		waterCapacity: 5,
+		nextWaterCapacity: 5,
+		skin: 1,
+		upgradeSkin: true,
 
 	}, { // Level 3
 		worldSize: 16,
@@ -107,6 +119,10 @@ export const levels: LevelConfiguration[] = [
 		demonDelay: 10,
 		allowNewCracks: true,
 		maxDemons: 1,
+		waterCapacity: 5,
+		nextWaterCapacity: 6,
+		skin: 2,
+		upgradeSkin: false,
 
 	}, { // Level 4
 		worldSize: 18,
@@ -116,6 +132,10 @@ export const levels: LevelConfiguration[] = [
 		demonDelay: 8,
 		allowNewCracks: true,
 		maxDemons: 2,
+		waterCapacity: 6,
+		nextWaterCapacity: 6,
+		skin: 2,
+		upgradeSkin: true,
 
 	}, { // Level 5
 		worldSize: 21,
@@ -125,6 +145,10 @@ export const levels: LevelConfiguration[] = [
 		demonDelay: 6,
 		allowNewCracks: true,
 		maxDemons: 3,
+		waterCapacity: 6,
+		nextWaterCapacity: 7,
+		skin: 3,
+		upgradeSkin: false,
 
 	}, { // Level 6
 		worldSize: 24,
@@ -134,6 +158,10 @@ export const levels: LevelConfiguration[] = [
 		demonDelay: 4,
 		allowNewCracks: true,
 		maxDemons: 4,
+		waterCapacity: 7,
+		nextWaterCapacity: 7,
+		skin: 3,
+		upgradeSkin: false,
 	}
 ];
 

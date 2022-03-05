@@ -12,17 +12,19 @@ export default class extends Phaser.Scene {
 	avatar!: Phaser.GameObjects.Sprite;
 	levelNum = 0;
 	callback: () => void = () => {};
+	playerSkin: number = 0;
 
 	constructor() {
 		super("DialogScene");
 		this.lines = [];
 	}
 
-	init({dialog, levelNum, callback} :{dialog: Dialog, levelNum: number, callback: () => void}) {
+	init({dialog, levelNum, skin, callback} :{dialog: Dialog, levelNum: number, skin: number, callback: () => void}) {
 		this.dialog = dialog;
 		this.levelNum = levelNum;
 		this.currentIndex = 0;
 		this.callback = callback;
+		this.playerSkin = skin;
 	}
 
 	create() {
@@ -32,8 +34,27 @@ export default class extends Phaser.Scene {
 		this.currentIndex = 0;
 		this.refresh();
 
-		this.input.keyboard.on('keydown-SPACE', () => this.nextDialog());
-		this.input.keyboard.on('keydown-ENTER', () => this.nextDialog());
+		let isSpaceDown = true;
+		this.input.keyboard.on('keydown-SPACE', () => {
+			if (!isSpaceDown) {
+				this.nextDialog();
+				isSpaceDown = true;
+			}
+		});
+		this.input.keyboard.on('keyup-SPACE', () => {
+			isSpaceDown = false;
+		});
+
+		let isEnterDown = true;
+		this.input.keyboard.on('keydown-ENTER', () => {
+			if (!isEnterDown) {
+				this.nextDialog();
+				isEnterDown = true;
+			}
+		});
+		this.input.keyboard.on('keyup-ENTER', () => {
+			isEnterDown = false;
+		});
 
 		this.input.on("pointerdown", () => this.nextDialog());
 	}
@@ -58,7 +79,7 @@ export default class extends Phaser.Scene {
 			case "you":
 			case "them":
 				if (currentDialog.type == "you")
-					this.avatar.setTexture("Player");
+					this.avatar.setTexture(`Player${this.playerSkin}`);
 				else
 					this.avatar.setTexture("Characters", this.levelNum * 13);
 				this.lines = currentDialog.text.map((text, i) => (

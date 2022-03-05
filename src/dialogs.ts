@@ -10,28 +10,26 @@ type DialogLine =
 
 export type Dialog = DialogLine[];
 
-type LevelDialog = { start: Dialog, loop: Dialog };
+type LevelDialog = { start: Dialog, loop: Dialog, end: Dialog };
 
 type LevelDialogs = LevelDialog[]
 
 const dialogs: LevelDialogs = [{ // Level 1
 	start: [
-		{ type: "you", text: ["Who am I??", "Where am I??"] },
-		{ type: "them", text: ["Thank goodness, you are here!"] },
-		{ type: "them", text: ["You have been sent to save us all!"] },
-		{ type: "them", text: ["Our scientists were studying", "the core of this planet."] },
-		{ type: "them", text: ["But unfortunately it is much more", "unstable than they thought."] },
-		{ type: "them", text: ["It made the planet unstable and", "it risks exploding very soon."] },
-		{ type: "them", text: ["Look! Here are a crack!"] },
-		{ type: "you", text: ["Oh..."] },
-		{ type: "them", text: ["Go next to it and keep pressing SPACE", "until it is gone!"] },
-		{ type: "you", text: ["But..."] },
-		{ type: "them", text: ["And come back to me afterwards!"] },
-		{ type: "you", text: ["Ok"] },
+		{ type: "you", text: ["Hello Robertox, have you ordered my services?"] },
+		{ type: "them", text: ["I'm really glad you are here!", "I need your help to save my planet!"] },
+		{ type: "you", text: ["How can I help you?"] },
+		{ type: "them", text: ["You can move using the arrow keys, and", "water a tree by holding SPACE next to it."] },
+		{ type: "them", text: ["Try to make the whole planet green."] },
+		{ type: "them", text: ["Good luck!"]}
 	],
 	loop: [
-		{ type: "them", text: ["Will you help us?", "The planet won't make it without you."] },
-		{ type: "them", text: ["Hold SPACE next to the crack until it disappears"] },
+		{ type: "them", text: ["You can move using the arrow keys, and", "water a tree by holding SPACE next to it."] },
+		{ type: "them", text: ["Try to make the whole planet green."] },
+	],
+	end: [
+		{ type: "them", text: ["You made it! Thank you so much!", "I will recommend you to all my friends!"]},
+		{ type: "them", text: ["Here is a little gift for you.", "Make good use of it!"]},
 	],
 
 }, { // Level 2
@@ -45,6 +43,9 @@ const dialogs: LevelDialogs = [{ // Level 1
 		{ type: "them", text: ["Did you manage to fix all the cracks yet?"] },
 		{ type: "them", text: ["If you need more water, find some drops to collect."] }
 	],
+	end: [
+		{ type: "them", text: ["You won level 2!"]},
+	],
 
 }, { // Level 3
 	start: [
@@ -56,6 +57,9 @@ const dialogs: LevelDialogs = [{ // Level 1
 		{ type: "them", text: ["What are you waiting for?", "The planet is burning!"] },
 		{ type: "them", text: ["If you don't close the cracks,", "the planet might explode!"] },
 	],
+	end: [
+		{ type: "them", text: ["You won level 3!"]},
+	],
 
 }, { // Level 4
 	start: [
@@ -66,6 +70,9 @@ const dialogs: LevelDialogs = [{ // Level 1
 	],
 	loop: [
 		{ type: "them", text: ["Water the trees and the flowers", "and save the planet."] },
+	],
+	end: [
+		{ type: "them", text: ["You won level 4!"]},
 	],
 
 }, { // Level 5
@@ -79,6 +86,9 @@ const dialogs: LevelDialogs = [{ // Level 1
 	loop: [
 		{ type: "them", text: ["Awesome!"] },
 	],
+	end: [
+		{ type: "them", text: ["You won level 5!"]},
+	],
 
 }, { // Level 6
 	start: [
@@ -90,6 +100,9 @@ const dialogs: LevelDialogs = [{ // Level 1
 	],
 	loop: [
 		{ type: "them", text: ["Awesome again!"] },
+	],
+	end: [
+		{ type: "them", text: ["You won level 6!"]},
 	],
 }];
 
