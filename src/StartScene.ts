@@ -68,8 +68,8 @@ export default class extends Phaser.Scene {
 		this.load.spritesheet("Characters", "SpriteSheets/Characters.png", tileConf);
 		this.load.spritesheet("Bubble", "SpriteSheets/SpeechBubble.png", tileConf);
 		this.load.spritesheet("Laser1", "SpriteSheets/Laser.png", tileConf);
-		this.load.spritesheet("Laser2", "SpriteSheets/LaserUpgrade1.png", tileConf);
-		this.load.spritesheet("Laser3", "SpriteSheets/LaserUpgrade2.png", tileConf);
+		this.load.spritesheet("Laser2", "SpriteSheets/Laser2.png", tileConf);
+		this.load.spritesheet("Laser3", "SpriteSheets/Laser3.png", tileConf);
 
 		this.load.spritesheet("Font", "Font.png", { frameWidth: 8, frameHeight: 8 });
 
