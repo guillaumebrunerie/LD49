@@ -82,9 +82,14 @@ export default class extends Phaser.Scene {
 					this.avatar.setTexture(`Player${this.playerSkin}`);
 				else
 					this.avatar.setTexture("Characters", this.levelNum * 13);
-				this.lines = currentDialog.text.map((text, i) => (
-					newTextLine(this, cfg.x, cfg.y + cfg.dy * i, i == 0 ? 0 : currentDialog.text[0].length, text)
-				));
+				this.lines = currentDialog.text.map((text, i) => {
+					const previousLetters = currentDialog.text.slice(0, i).reduce((a, b) => a + b.length, 0);
+					let y = cfg.y + i * cfg.dy;
+					if (currentDialog.text.length >= 3) {
+						y -= cfg.dy;
+					}
+					return newTextLine(this, cfg.x, y, previousLetters, text)
+				});
 				break;
 			case "callback":
 				const mainScene = this.scene.get("MainScene") as MainScene;

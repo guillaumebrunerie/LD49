@@ -534,6 +534,7 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	onLevelComplete() {
+		this.player.direction = "S";
 		this.introGuide.setDialog(dialogs[this.levelNum].end);
 		this.introGuide.interact(() => {
 			if (this.level.nextWaterCapacity !== this.level.waterCapacity) {

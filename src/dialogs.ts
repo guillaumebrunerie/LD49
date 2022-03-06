@@ -47,7 +47,7 @@ const dialogs: LevelDialogs = [{ // Level 1
 	],
 	end: [
 		{ type: "them", text: ["Well done! Here's your new armor!"]},
-		{ type: "you", text: ["Yes... new clothes was what I really needed right now..."] }
+		{ type: "you", text: ["Yes... new clothes was what I really needed", "right now..."] }
 	],
 
 }, { // Level 3
@@ -55,7 +55,7 @@ const dialogs: LevelDialogs = [{ // Level 1
 		{ type: "them", text: ["Hey! You're right on time! "] },
 		// { type: "callback", callback: (scene) => scene.initLevel(3) },
 		{ type: "them", text: ["It's not so safe here anymore."] },
-		{ type: "them", text: ["Be careful, I've heard that there are some monsters", "coming out from the cracks"] },
+		{ type: "them", text: ["Be careful, I've heard that there are some", "monsters coming out from the cracks"] },
 		{ type: "you", text: ["They need to be careful to not get into my way"] }
 	],
 	loop: [
@@ -63,7 +63,7 @@ const dialogs: LevelDialogs = [{ // Level 1
 		{ type: "them", text: ["If you don't close the cracks,", "the planet will explode!"] }
 	],
 	end: [
-		{ type: "them", text: ["Neat job! Here's additional container! You may need it."]},
+		{ type: "them", text: ["Neat job! Here's additional container!", "You may need it."]},
 		{ type: "you", text: ["Cool, I got another thing to carry..."] }
 	],
 
@@ -77,8 +77,8 @@ const dialogs: LevelDialogs = [{ // Level 1
 		{ type: "them", text: ["Try to get rid of the Demons first", "or they'll make a lot of damage to this planet"] }
 	],
 	end: [
-		{ type: "them", text: ["Ha ha! My planet is alive again! Here's your new equipment"]},
-		{ type: "them", text: ["Remember, with great power comes great responsibility!"]},
+		{ type: "them", text: ["Ha ha! My planet is alive again!", "Here's your new equipment"]},
+		{ type: "them", text: ["Remember, with great power comes", "great responsibility!"]},
 		{ type: "you", text: ["Yeah, yeah... Just give me my new suit"]}
 	],
 
