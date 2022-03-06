@@ -96,8 +96,8 @@ const dialogs: LevelDialogs = [{ // Level 1
 	],
 	end: [
 		{ type: "them", text: ["Oh my, oh my...", "I don't know what to say!!"]},
-		{ type: "you", text: ["Just don't say anything."]}
-		{ type: "them", text: ["I need to give you something then!", "Here!"]},
+		{ type: "you", text: ["Just don't say anything."]},
+		{ type: "them", text: ["I need to give you something then!", "Here!"]}
 	],
 
 }, { // Level 6
@@ -113,7 +113,7 @@ const dialogs: LevelDialogs = [{ // Level 1
 	],
 	end: [
 		{ type: "them", text: ["Thank you so much for everything!", "You will always be welcome here!"] },
-		{ type: "you", text: ["Well... Until next time!"]}
+		{ type: "you", text: ["Well... Until next time!"]},
 		{ type: "them", text: ["Whaaat??? I thought it's over"] },
 		{ type: "you", text: ["Yes, for now..."]}
 	],
