@@ -294,6 +294,10 @@ export default class MainScene extends Phaser.Scene {
 		));
 		this.borderWalls = combineAllPolygons([borderWalls, guidePolygon, ...treesPolygons]);
 
+		this.demons = [];
+		this.droplets = [];
+		this.cracks = [];
+
 		this.waterLevel = this.level.waterCapacity;
 		this.regenerateState();
 
@@ -407,6 +411,7 @@ export default class MainScene extends Phaser.Scene {
 
 	loseGame() {
 		this.scene.stop("DialogScene");
+		this.sound.stopByKey("Music");
 		this.scene.start("GameLost");
 	}
 

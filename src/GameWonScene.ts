@@ -6,9 +6,22 @@ export default class extends Phaser.Scene {
 	}
 
 	create() {
-		// this.cameras.main.fadeFrom(200, 255, 255, 255);
-
 		this.sound.play("GameWon");
-		this.add.sprite(0, 0, "GameWon", 0).setOrigin(0, 0).play("GameWon");
+
+		const screen = this.add.sprite(0, 0, "GameWon", 0).setOrigin(0, 0).play("GameWon");
+		screen.setInteractive({
+			cursor: "pointer",
+		});
+
+		const doStart = () => {
+			this.sound.play("Music", { loop: true });
+			this.sound.stopByKey("GameWon");
+			this.scene.stop();
+			this.scene.wake("LevelSelect", {type: ""});
+		}
+
+		screen.on("pointerup", () => doStart());
+		this.input.keyboard.on('keydown-SPACE', () => doStart());
+		this.input.keyboard.on('keydown-ENTER', () => doStart());
 	}
 }

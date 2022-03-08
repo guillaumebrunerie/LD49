@@ -29,6 +29,7 @@ export default class extends Phaser.Scene {
 	selection!: Phaser.GameObjects.Sprite;
 	selectedIndex = 0;
 	musicPlaying = false;
+	hasWon = false;
 
 	constructor() {
 		super("LevelSelect");
@@ -58,6 +59,9 @@ export default class extends Phaser.Scene {
 	}
 
 	updateGraphics() {
+		if (!this.selection.scene) {
+			return;
+		}
 		this.selection.setTexture("Levels", "Planet_Select_0" + (this.selectedIndex + 1));
 		this.selection.x = planetsPositions[this.selectedIndex].x;
 		this.selection.y = planetsPositions[this.selectedIndex].y;
@@ -158,9 +162,13 @@ export default class extends Phaser.Scene {
 			}
 			this.scene.stop("InventoryScene");
 			this.scene.stop("LifeBarScene");
-			this.updateGraphics();
-			if (this.planetsStatus.every(s => s === "finished")) {
-				this.scene.start("GameWon");
+			if (this.planetsStatus.some(s => s === "finished") && !this.hasWon) {
+				this.hasWon = true;
+				this.sound.stopByKey("Music");
+				this.scene.sleep();
+				this.scene.run("GameWon");
+			} else {
+				this.updateGraphics();
 			}
 		})
 

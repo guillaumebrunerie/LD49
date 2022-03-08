@@ -280,12 +280,6 @@ export default class extends Phaser.Scene {
 
 		this.add.image(0, 0, "Start_Screen").setOrigin(0, 0);
 
-
-
-		// this.scene.start("LevelSelect");
-
-
-
 		const startButton = this.add.image(Conf.startButton.x, Conf.startButton.y, "Btn_Start");
 		let isStartButtonDown = false;
 		startButton.setInteractive({
