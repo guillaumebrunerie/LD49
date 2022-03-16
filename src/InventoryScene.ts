@@ -29,6 +29,9 @@ export default class extends Phaser.Scene {
 	}
 
 	updateInventory(capacity: number, level: number, isLevelOver: boolean) {
+		if (isLevelOver) {
+			capacity = Math.max(capacity, this.capacity);
+		}
 		if (capacity > this.capacity) {
 			for (let i = this.capacity; i < capacity; i++) {
 				this.inventorySprites[i].setVisible(true);
