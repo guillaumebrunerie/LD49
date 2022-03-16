@@ -162,7 +162,7 @@ export default class extends Phaser.Scene {
 			}
 			this.scene.stop("InventoryScene");
 			this.scene.stop("LifeBarScene");
-			if (this.planetsStatus.some(s => s === "finished") && !this.hasWon) {
+			if (this.planetsStatus.every(s => s === "finished") && !this.hasWon) {
 				this.hasWon = true;
 				this.sound.stopByKey("Music");
 				this.scene.sleep();
