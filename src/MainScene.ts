@@ -81,6 +81,11 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	getValidNewCrackPosition(): Position | null {
+		const walls = combineAllPolygons([
+			this.borderWalls,
+			...this.cracks
+				.map(crack => crack.getWalls())]
+		);
 		for (let tries = 0; tries < 100; tries++) {
 			const x = Math.random() * this.level.worldSize * Conf.tileSize;
 			const y = Math.random() * this.level.worldSize * Conf.tileSize;
@@ -90,7 +95,7 @@ export default class MainScene extends Phaser.Scene {
 				{x: x - 7, y},
 				{x, y: y + 7},
 				{x, y: y - 7},
-			])) {
+			], undefined, walls)) {
 				return {x, y};
 			}
 		}
@@ -765,8 +770,8 @@ export default class MainScene extends Phaser.Scene {
 		});
 	}
 
-	isCrackAllowedAt(positions: Position[], crackToIgnore?: Crack) {
-		const walls = combineAllPolygons([
+	isCrackAllowedAt(positions: Position[], crackToIgnore?: Crack, precomputedWalls?: Polygon) {
+		const walls = precomputedWalls || combineAllPolygons([
 			this.borderWalls,
 			...this.cracks
 				.filter(crack => crack !== crackToIgnore)
