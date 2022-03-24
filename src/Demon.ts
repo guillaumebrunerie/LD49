@@ -1,7 +1,8 @@
+
 import * as Phaser from "phaser";
 import * as Conf from "./configuration";
 import MainScene from "./MainScene";
-import {Direction4, move, partialDistance, Position, findNewDirection, AnimationEntries} from "./utils";
+import {Direction4, move, Position, getDirection, AnimationEntries} from "./utils";
 
 const startAnimations: AnimationEntries = {
 	key: "Start",
@@ -183,20 +184,19 @@ export default class {
 				this.state = "ATTACKING";
 				this.scene.time.delayedCall(2000, () => this.finishAttack());
 			} else {
-				const distance = partialDistance({from: this, to: this.destination, direction: this.direction});
-				const speed = Conf.demonSpeed * Conf.tileSize / 1000;
+				const direction = getDirection(this, this.destination, this.direction, this.scene.level.worldSize);
+				if (direction == this.direction) {
+					const speed = Conf.demonSpeed * Conf.tileSize / 1000;
 
-				if (distance > 0) {
 					const {x: newX, y: newY} = move({from: this, to: this.destination, direction: this.direction, distance: delta * speed})
 					this.sprite.play("DemonWalk" + this.direction, true);
 					this.sprite.x = newX;
 					this.sprite.y = newY;
 				} else {
 					this.state = "TURNING";
-					const newDirection = findNewDirection({from: this, to: this.destination, direction: this.direction});
-					this.sprite.play("DemonTurn" + this.direction + newDirection).once("animationcomplete", () => {
+					this.sprite.play("DemonTurn" + this.direction + direction).once("animationcomplete", () => {
 						this.state = "WALKING";
-						this.direction = newDirection;
+						this.direction = direction;
 					});
 				}
 			}

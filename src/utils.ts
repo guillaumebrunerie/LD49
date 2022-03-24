@@ -60,28 +60,39 @@ export const move = ({from, to, direction, distance}: {from: Position, to: Posit
     }
 }
 
-export const findNewDirection = ({from, to, direction}: {from: Position, to: Position, direction: Direction4}): Direction4 => {
-    switch (direction) {
-        case "N":
-            if (partialDistance({from, to, direction: "E"}) > 0)
-                return "E";
-            else
-                return "W";
-        case "S":
-            if (partialDistance({from, to, direction: "W"}) > 0)
-                return "W";
-            else
-                return "E";
-        case "W":
-            if (partialDistance({from, to, direction: "N"}) > 0)
-                return "N";
-            else
-                return "S";
-        case "E":
-            if (partialDistance({from, to, direction: "S"}) > 0)
-                return "S";
-            else
-                return "N";
+// If the given direction is acceptable, return it, otherwise return another
+// acceptable direction
+export const getDirection = (from: Position, to: Position, direction: Direction4, size: number) : Direction4=> {
+    const hCorner = {x: to.x, y: from.y};
+    const vCorner = {x: from.x, y: to.y};
+    const isOk = (pos : Position) => {
+        if (pos.x == from.x && pos.y == from.y) {
+            return false;
+        }
+        const x = pos.x / 24 - size / 2;
+        const y = pos.y / 24 - (size - 1) / 2;
+        return x * x + y * y <= size * size / 4;
+    }
+    const hDir = from.y > to.y ? "N" : "S";
+    const vDir = from.x > to.x ? "W" : "E";
+    if (!isOk(hCorner) && !isOk(vCorner)) {
+        // IMPOSSIBLE
+        return hDir;
+    }
+    if (!isOk(hCorner)) {
+        return hDir;
+    }
+    if (!isOk(vCorner)) {
+        return vDir;
+    }
+    if (direction == hDir || direction == vDir) {
+        return direction;
+    } else {
+        if (["N", "S"].includes(direction)) {
+            return hDir;
+        } else {
+            return vDir;
+        }
     }
 }
 
