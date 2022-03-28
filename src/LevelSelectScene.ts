@@ -111,7 +111,7 @@ export default class extends Phaser.Scene {
 			playButton.y -= 1;
 		});
 		playButton.on("pointerdown", () => {
-			this.sound.mute = !this.sound.mute;
+			// this.sound.mute = !this.sound.mute;
 			playButton.setTexture("PlayBtn_On");
 			isDown = true;
 		});
@@ -177,7 +177,7 @@ export default class extends Phaser.Scene {
 			this.sound.play("Music", { loop: true });
 		}
 
-		this.input.keyboard.on('keydown-U', () => this.cheatCode());
+		// this.input.keyboard.on('keydown-U', () => this.cheatCode());
 	}
 
 	startSelectedLevel() {
